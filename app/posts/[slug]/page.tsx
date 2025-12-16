@@ -92,7 +92,7 @@ export default async function PostPage({ params }: PageProps) {
               {post.categories?.map((category) => (
                 <span
                   key={category._id}
-                  className="px-3 py-1 bg-[var(--card-bg)] border border-[var(--border-color)] rounded text-[var(--accent-blue)] text-sm"
+                  className="px-3 py-1 bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--accent-blue)] text-sm"
                 >
                   {category.title}
                 </span>
@@ -103,7 +103,7 @@ export default async function PostPage({ params }: PageProps) {
                 return (
                   <span
                     key={index}
-                    className="px-3 py-1 bg-[var(--dark-blue)] border border-[var(--border-color)] rounded text-[var(--text-gray-300)] text-sm"
+                    className="px-3 py-1 bg-[var(--dark-blue)] border border-[var(--border-color)] text-[var(--text-gray-300)] text-sm"
                   >
                     #{tagValue}
                   </span>
@@ -115,7 +115,7 @@ export default async function PostPage({ params }: PageProps) {
 
         {/* Featured Image */}
         {imageUrl ? (
-          <div className="relative w-full h-64 md:h-96 mb-8 rounded-lg overflow-hidden bg-[var(--background-dark-navy)] border border-[var(--border-color)]">
+          <div className="relative w-full h-64 md:h-96 mb-8 overflow-hidden bg-[var(--background-dark-navy)] border border-[var(--border-color)]">
             <Image
               src={imageUrl}
               alt={post.mainImage?.alt || post.title}
@@ -161,7 +161,7 @@ export default async function PostPage({ params }: PageProps) {
                       <h4 className="text-lg md:text-xl font-bold text-[var(--foreground)] mb-2 mt-6 first:mt-0">{children}</h4>
                     ),
                     blockquote: ({ children }) => (
-                      <blockquote className="border-l-4 border-[var(--accent-blue)] pl-6 my-8 italic text-lg md:text-xl text-[var(--foreground-low)] bg-[var(--card-bg)]/30 py-4 rounded-r">
+                      <blockquote className="border-l-4 border-[var(--accent-blue)] pl-6 my-8 italic text-lg md:text-xl text-[var(--foreground-low)] bg-[var(--card-bg)]/30 py-4">
                         {children}
                       </blockquote>
                     ),
@@ -182,7 +182,7 @@ export default async function PostPage({ params }: PageProps) {
                     strong: ({ children }) => <strong className="font-bold text-[var(--foreground)]">{children}</strong>,
                     em: ({ children }) => <em className="italic">{children}</em>,
                     code: ({ children }) => (
-                      <code className="bg-[var(--card-bg)] px-2 py-1 rounded text-[var(--accent-blue)] text-base font-mono">
+                      <code className="bg-[var(--card-bg)] px-2 py-1 text-[var(--accent-blue)] text-base font-mono">
                         {children}
                       </code>
                     ),
@@ -211,7 +211,7 @@ export default async function PostPage({ params }: PageProps) {
                             alt={value.alt || ''}
                             width={800}
                             height={600}
-                            className="rounded-lg mx-auto"
+                            className="mx-auto"
                           />
                         </div>
                       );

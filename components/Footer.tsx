@@ -22,9 +22,6 @@ export default function Footer({ categories }: FooterProps) {
             <h3 className="text-xl sm:text-2xl font-bold mb-4 bg-gradient-to-r from-[var(--neon-cyan)] to-[var(--purple)] bg-clip-text text-transparent">
               TechByJZ
             </h3>
-            <p className="text-[var(--foreground-low)] text-sm sm:text-base leading-relaxed">
-              Futuristic tech insights and deep dives into cutting-edge technology
-            </p>
           </div>
 
           {/* Quick Links */}

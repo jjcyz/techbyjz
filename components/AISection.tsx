@@ -1,4 +1,4 @@
-import BlogCard from './BlogCard';
+import AICard from './AICard';
 import type { Post } from '@/types/post';
 
 interface AISectionProps {
@@ -25,10 +25,10 @@ export default function AISection({ posts }: AISectionProps) {
           </div>
         </div>
 
-        {/* Posts Grid - Right Side (3x3) */}
-        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {posts.slice(0, 9).map((post) => (
-            <BlogCard key={post._id || post.slug?.current} post={post} featured />
+        {/* Square grid layout - emphasizes images */}
+        <div className="flex-1 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          {posts.slice(0, 12).map((post) => (
+            <AICard key={post._id || post.slug?.current} post={post} />
           ))}
         </div>
       </div>

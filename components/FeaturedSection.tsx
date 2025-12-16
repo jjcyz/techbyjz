@@ -1,4 +1,4 @@
-import BlogCard from './BlogCard';
+import FeaturedCard from './FeaturedCard';
 import type { Post } from '@/types/post';
 
 interface FeaturedSectionProps {
@@ -25,10 +25,10 @@ export default function FeaturedSection({ posts }: FeaturedSectionProps) {
           </div>
         </div>
 
-        {/* Posts Grid - Right Side (3x3) */}
+        {/* Posts Grid - Right Side (3 columns, larger cards) */}
         <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {posts.slice(0, 9).map((post) => (
-            <BlogCard key={post._id || post.slug?.current} post={post} featured />
+            <FeaturedCard key={post._id || post.slug?.current} post={post} />
           ))}
         </div>
       </div>

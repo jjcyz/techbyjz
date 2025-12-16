@@ -1,4 +1,4 @@
-import BlogCard from './BlogCard';
+import NewsCard from './NewsCard';
 import type { Post } from '@/types/post';
 
 interface NewsSectionProps {
@@ -25,10 +25,10 @@ export default function NewsSection({ posts }: NewsSectionProps) {
           </div>
         </div>
 
-        {/* Posts Grid - Right Side (3x3) */}
-        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {posts.slice(0, 9).map((post) => (
-            <BlogCard key={post._id || post.slug?.current} post={post} featured />
+        {/* Compact horizontal cards - optimized for quick scanning */}
+        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+          {posts.slice(0, 8).map((post) => (
+            <NewsCard key={post._id || post.slug?.current} post={post} />
           ))}
         </div>
       </div>

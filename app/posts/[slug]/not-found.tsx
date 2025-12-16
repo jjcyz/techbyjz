@@ -11,7 +11,7 @@ export default function NotFound() {
         </p>
         <Link
           href="/"
-          className="inline-block px-6 py-3 bg-[var(--card-bg)] border-2 border-[var(--border-color)] rounded-lg text-[var(--accent-blue)] hover:border-[var(--accent-blue)] transition-colors"
+          className="inline-block px-6 py-3 bg-[var(--card-bg)] border-2 border-[var(--border-color)] text-[var(--accent-blue)] hover:border-[var(--accent-blue)] transition-colors"
         >
           Back to Posts
         </Link>

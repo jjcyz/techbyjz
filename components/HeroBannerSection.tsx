@@ -40,8 +40,7 @@ export default function HeroBannerSection({ posts, randomPost }: HeroBannerSecti
               </div>
 
               <p className="text-sm sm:text-base md:text-lg lg:text-xl text-[var(--foreground-low)] leading-relaxed text-left max-w-2xl">
-                Futuristic tech insights and deep dives into cutting-edge technology.
-                Explore the intersection of innovation and imagination.
+              Tech insights you won't find anywhere else. Deep dives into tech news and trends today and what it means for the you. Ideas you never thought about and questions you never asked.
               </p>
             </div>
 

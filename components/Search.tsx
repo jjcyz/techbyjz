@@ -1,18 +1,50 @@
 'use client';
 
 import { useState, useMemo, useRef, useEffect } from 'react';
-import BlogCard from './BlogCard';
-import type { Post, Tag } from '@/types/post';
+import Link from 'next/link';
+import type { Post } from '@/types/post';
+import { isValidSlug } from '@/lib/utils';
 
 interface SearchProps {
   posts: Post[];
 }
 
+const SearchIcon = () => (
+  <svg
+    className="w-5 h-5"
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+    />
+  </svg>
+);
+
+const CloseIcon = () => (
+  <svg
+    className="w-5 h-5"
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M6 18L18 6M6 6l12 12"
+    />
+  </svg>
+);
+
 export default function Search({ posts }: SearchProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const filteredPosts = useMemo(() => {
     if (!searchQuery.trim()) {
@@ -42,52 +74,31 @@ export default function Search({ posts }: SearchProps) {
     }
   }, [isExpanded]);
 
-  const handleIconMouseEnter = () => {
-    setIsExpanded(true);
-  };
-
-  const handleContainerMouseLeave = () => {
-    setIsExpanded(false);
-    setSearchQuery('');
-  };
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
+  const handleToggleSearch = () => {
+    if (isExpanded) {
+      setSearchQuery('');
+    }
+    setIsExpanded(!isExpanded);
   };
 
   const handleClear = () => {
     setSearchQuery('');
+    inputRef.current?.focus();
   };
 
   const hasResults = filteredPosts.length > 0;
   const showResults = isExpanded && searchQuery.trim().length > 0;
 
   return (
-    <div
-      ref={containerRef}
-      className="relative"
-      onMouseLeave={handleContainerMouseLeave}
-    >
+    <div className="relative">
       <div className="relative flex items-center">
         {!isExpanded && (
           <button
-            onMouseEnter={handleIconMouseEnter}
-            className="p-3 text-white hover:text-[var(--neon-cyan)] transition-all duration-300"
+            onClick={handleToggleSearch}
+            className="p-3 text-white transition-all duration-300"
             aria-label="Open search"
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
+            <SearchIcon />
           </button>
         )}
 
@@ -97,38 +108,30 @@ export default function Search({ posts }: SearchProps) {
               ref={inputRef}
               type="text"
               value={searchQuery}
-              onChange={handleSearchChange}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search for posts..."
-              className="w-80 sm:w-96 md:w-[500px] lg:w-[600px] bg-[var(--card-bg)] rounded-lg text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:outline-none text-base px-6 py-4 h-auto"
+              className="w-96 sm:w-[500px] md:w-[600px] lg:w-[700px] xl:w-[800px] bg-[var(--card-bg)] text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:outline-none text-base px-6 py-4 h-auto pr-12"
             />
 
-            {searchQuery && (
-              <button
-                onClick={handleClear}
-                className="absolute right-3 p-1 text-[var(--foreground-muted)] hover:text-[var(--neon-cyan)] transition-colors rounded z-10"
-                aria-label="Clear search"
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            )}
+            <button
+              onClick={() => {
+                if (searchQuery) {
+                  handleClear();
+                } else {
+                  handleToggleSearch();
+                }
+              }}
+              className="absolute right-3 p-1 text-[var(--foreground-muted)] hover:text-[var(--neon-cyan)] transition-colors z-10"
+              aria-label={searchQuery ? "Clear search" : "Close search"}
+            >
+              <CloseIcon />
+            </button>
           </div>
         )}
       </div>
 
       {showResults && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-[var(--card-bg)] border border-[var(--border-cyan)] rounded-lg shadow-[0_0_30px_var(--glow-cyan)] backdrop-blur-sm z-50 max-h-[600px] overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-[var(--card-bg)] border border-[var(--border-cyan)] shadow-[0_0_30px_var(--glow-cyan)] backdrop-blur-sm z-50 max-h-[600px] overflow-y-auto">
           <div className="p-4">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-[var(--border-color)]">
               <h3 className="text-lg font-semibold text-[var(--foreground)]">
@@ -139,10 +142,23 @@ export default function Search({ posts }: SearchProps) {
             </div>
 
             {hasResults ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-                {filteredPosts.map((post) => (
-                  <BlogCard key={post._id || post.slug?.current} post={post} />
-                ))}
+              <div className="space-y-2">
+                {filteredPosts.map((post) => {
+                  const slug = post.slug?.current;
+                  if (!slug || !isValidSlug(slug)) return null;
+
+                  return (
+                    <Link
+                      key={post._id || slug}
+                      href={`/posts/${slug}`}
+                      className="block p-3 hover:bg-[var(--card-bg)] hover:text-[var(--neon-cyan)] transition-colors"
+                    >
+                      <h4 className="text-base font-semibold text-[var(--foreground)] hover:text-[var(--neon-cyan)] transition-colors">
+                        {post.title}
+                      </h4>
+                    </Link>
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-8">

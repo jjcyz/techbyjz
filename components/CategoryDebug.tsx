@@ -31,7 +31,7 @@ export default function CategoryDebug({ posts, categories }: CategoryDebugProps)
   const categoryTitles = categories.map(cat => cat.title?.trim()).filter(Boolean)
 
   return (
-    <div className="bg-gray-100 dark:bg-gray-800 p-4 m-4 rounded-lg text-sm">
+    <div className="bg-gray-100 dark:bg-gray-800 p-4 m-4 text-sm">
       <h3 className="font-bold mb-2">Category Debug Info</h3>
       <div className="space-y-2">
         <div>

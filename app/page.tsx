@@ -20,12 +20,6 @@ export default async function Home() {
     })
   ]);
 
-  // Debug: Log what we're getting from Sanity
-  console.log('=== SANITY DEBUG ===');
-  console.log('Total posts fetched:', posts.length);
-  console.log('Total categories fetched:', categories.length);
-  console.log('Categories:', categories.map(c => ({ id: c._id, title: c.title })));
-
   // Check posts with categories
   const postsWithCategories = posts.filter(p => p.categories && p.categories.length > 0);
   console.log('Posts with categories:', postsWithCategories.length);
@@ -77,10 +71,6 @@ export default async function Home() {
   const automationPosts = filterPostsByCategoryTitle("Automation");
   const aiPosts = filterPostsByCategoryTitle("AI Models");
 
-  // Debug: Log post counts for each category
-  console.log('Posts found for "Tech World in 60 Sec":', newsPosts.length);
-  console.log('Posts found for "Automation":', automationPosts.length);
-  console.log('Posts found for "AI Models":', aiPosts.length);
 
   return (
     <main className="min-h-screen relative">
