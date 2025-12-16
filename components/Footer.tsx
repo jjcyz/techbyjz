@@ -33,12 +33,7 @@ export default function Footer({ categories }: FooterProps) {
               Quick Links
             </h4>
             <ul className="space-y-2">
-              <li>
-                <ScrollToSectionButton sectionId="featured-posts">
-                  Featured Posts
-                </ScrollToSectionButton>
-              </li>
-              {categories.slice(0, 5).map((category) => {
+              {categories.slice(0, 7).map((category) => {
                 const slug =
                   category.slug?.current ||
                   category.title.toLowerCase().replace(/\s+/g, '-');

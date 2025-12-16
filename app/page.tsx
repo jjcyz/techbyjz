@@ -1,6 +1,9 @@
 import { client } from "@/lib/sanity";
 import { POSTS_QUERY, CATEGORIES_QUERY } from "@/lib/queries";
 import FeaturedSection from "@/components/FeaturedSection";
+import NewsSection from "@/components/NewsSection";
+import AutomationSection from "@/components/AutomationSection";
+import AISection from "@/components/AISection";
 import HeroBannerSection from "@/components/HeroBannerSection";
 import Footer from "@/components/Footer";
 import { isValidSlug, groupPostsByCategory, getRandomPost } from "@/lib/utils";
@@ -16,6 +19,19 @@ export default async function Home() {
       next: { revalidate: 60 }
     })
   ]);
+
+  // Debug: Log what we're getting from Sanity
+  console.log('=== SANITY DEBUG ===');
+  console.log('Total posts fetched:', posts.length);
+  console.log('Total categories fetched:', categories.length);
+  console.log('Categories:', categories.map(c => ({ id: c._id, title: c.title })));
+
+  // Check posts with categories
+  const postsWithCategories = posts.filter(p => p.categories && p.categories.length > 0);
+  console.log('Posts with categories:', postsWithCategories.length);
+  if (postsWithCategories.length > 0) {
+    console.log('Sample post categories:', postsWithCategories[0].categories?.map(c => c.title));
+  }
 
   // Filter out posts without valid slugs (including template strings)
   const validPosts = posts.filter((post) => isValidSlug(post.slug?.current));
@@ -34,6 +50,38 @@ export default async function Home() {
   // Get featured posts (most recent 6)
   const displayFeaturedPosts = validPosts.slice(0, 6);
 
+  // Filter posts by category title (case-insensitive, trimmed)
+  const filterPostsByCategoryTitle = (categoryTitle: string): Post[] => {
+    const normalizedTitle = categoryTitle.trim().toLowerCase();
+    return validPosts.filter((post) =>
+      post.categories?.some((category) =>
+        category.title?.trim().toLowerCase() === normalizedTitle
+      )
+    );
+  };
+
+  // Filter posts by category title with partial matching (for flexible matching)
+  const filterPostsByCategoryPartial = (searchTerms: string[]): Post[] => {
+    return validPosts.filter((post) =>
+      post.categories?.some((category) =>
+        category && category.title && searchTerms.some((term) =>
+          category.title.toLowerCase().includes(term.toLowerCase())
+        )
+      )
+    );
+  };
+
+  // Get posts for each category section
+  // Using exact category titles from Sanity
+  const newsPosts = filterPostsByCategoryTitle("Tech World in 60 Sec");
+  const automationPosts = filterPostsByCategoryTitle("Automation");
+  const aiPosts = filterPostsByCategoryTitle("AI Models");
+
+  // Debug: Log post counts for each category
+  console.log('Posts found for "Tech World in 60 Sec":', newsPosts.length);
+  console.log('Posts found for "Automation":', automationPosts.length);
+  console.log('Posts found for "AI Models":', aiPosts.length);
+
   return (
     <main className="min-h-screen relative">
       {/* Hero Banner Section */}
@@ -45,7 +93,14 @@ export default async function Home() {
       {/* Featured Posts Section */}
       <FeaturedSection posts={displayFeaturedPosts} />
 
-      {/* Category Sections */}
+      {/* News Section */}
+      <NewsSection posts={newsPosts} />
+
+      {/* Automation Section */}
+      <AutomationSection posts={automationPosts} />
+
+      {/* AI Section */}
+      <AISection posts={aiPosts} />
 
       {/* Footer */}
       <Footer categories={categoriesWithPosts} />
