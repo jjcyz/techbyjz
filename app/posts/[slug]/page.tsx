@@ -153,21 +153,18 @@ export default async function PostPage({ params }: PageProps) {
           </Link>
         </div>
 
-      <article className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 py-16 md:py-24 lg:py-32">
+      <article className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-16 md:py-24 lg:py-32">
         {/* Post Header */}
         <header className="mb-12 text-center">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground mb-6 leading-tight">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-foreground mb-6 leading-tight">
             {post.title}
           </h1>
 
-          <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-[var(--text-gray-400)] mb-6">
-            {post.authorName && (
-              <span className="text-[var(--electric-blue)]">By {post.authorName}</span>
-            )}
-            {formattedDate && (
+          {formattedDate && (
+            <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-[var(--text-gray-400)] mb-6">
               <time className="text-[var(--text-gray-500)]">{formattedDate}</time>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Categories and Tags */}
           {(post.categories && post.categories.length > 0) || (post.tags && post.tags.length > 0) ? (
@@ -176,12 +173,12 @@ export default async function PostPage({ params }: PageProps) {
                 const category = categories.find((cat) => cat._id === categoryId);
                 if (!category) return null;
                 return (
-                  <span
-                    key={category._id}
-                    className="px-3 py-1 bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--electric-blue)] text-sm"
-                  >
-                    {category.title}
-                  </span>
+                <span
+                  key={category._id}
+                  className="px-3 py-1 bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--electric-blue)] text-sm"
+                >
+                  {category.title}
+                </span>
                 );
               })}
               {post.tags?.map((tag, index) => {
@@ -216,7 +213,7 @@ export default async function PostPage({ params }: PageProps) {
 
         {/* Post Excerpt */}
         {post.excerpt && (
-          <p className="text-xl md:text-2xl lg:text-3xl text-[var(--foreground-low)] mb-12 leading-relaxed text-center max-w-5xl mx-auto">
+          <p className="text-lg md:text-xl lg:text-2xl text-[var(--foreground-low)] mb-12 leading-relaxed text-center max-w-3xl mx-auto">
             {post.excerpt}
           </p>
         )}
@@ -233,37 +230,37 @@ export default async function PostPage({ params }: PageProps) {
                 components={{
                   block: {
                     normal: ({ children }) => (
-                      <p className="text-lg md:text-xl text-[var(--foreground)] mb-6 leading-relaxed">{children}</p>
+                      <p className="text-base md:text-lg lg:text-xl text-[var(--foreground)] mb-6 leading-[1.75] max-w-[65ch] mx-auto">{children}</p>
                     ),
                     h1: ({ children }) => (
-                      <h1 className="text-3xl md:text-4xl font-bold text-[var(--foreground)] mb-6 mt-12 first:mt-0">{children}</h1>
+                      <h1 className="text-3xl md:text-4xl font-bold text-[var(--foreground)] mb-6 mt-12 first:mt-0 max-w-[65ch] mx-auto">{children}</h1>
                     ),
                     h2: ({ children }) => (
-                      <h2 className="text-2xl md:text-3xl font-bold text-[var(--foreground)] mb-4 mt-10 first:mt-0">{children}</h2>
+                      <h2 className="text-2xl md:text-3xl font-bold text-[var(--foreground)] mb-4 mt-10 first:mt-0 max-w-[65ch] mx-auto">{children}</h2>
                     ),
                     h3: ({ children }) => (
-                      <h3 className="text-xl md:text-2xl font-bold text-[var(--foreground)] mb-3 mt-8 first:mt-0">{children}</h3>
+                      <h3 className="text-xl md:text-2xl font-bold text-[var(--foreground)] mb-3 mt-8 first:mt-0 max-w-[65ch] mx-auto">{children}</h3>
                     ),
                     h4: ({ children }) => (
-                      <h4 className="text-lg md:text-xl font-bold text-[var(--foreground)] mb-2 mt-6 first:mt-0">{children}</h4>
+                      <h4 className="text-lg md:text-xl font-bold text-[var(--foreground)] mb-2 mt-6 first:mt-0 max-w-[65ch] mx-auto">{children}</h4>
                     ),
                     blockquote: ({ children }) => (
-                      <blockquote className="border-l-4 border-[var(--electric-blue)] pl-6 my-8 italic text-lg md:text-xl text-[var(--foreground-low)] bg-[var(--card-bg)]/30 py-4">
+                      <blockquote className="border-l-4 border-[var(--electric-blue)] pl-6 my-8 italic text-base md:text-lg text-[var(--foreground-low)] bg-[var(--card-bg)]/30 py-4 max-w-[65ch] mx-auto leading-relaxed">
                         {children}
                       </blockquote>
                     ),
                   },
                   list: {
                     bullet: ({ children }) => (
-                      <ul className="list-disc list-outside mb-6 text-lg md:text-xl text-[var(--foreground)] space-y-3 ml-6">{children}</ul>
+                      <ul className="list-disc list-outside mb-6 text-base md:text-lg text-[var(--foreground)] space-y-3 ml-6 max-w-[65ch] mx-auto leading-relaxed">{children}</ul>
                     ),
                     number: ({ children }) => (
-                      <ol className="list-decimal list-outside mb-6 text-lg md:text-xl text-[var(--foreground)] space-y-3 ml-6">{children}</ol>
+                      <ol className="list-decimal list-outside mb-6 text-base md:text-lg text-[var(--foreground)] space-y-3 ml-6 max-w-[65ch] mx-auto leading-relaxed">{children}</ol>
                     ),
                   },
                   listItem: {
-                    bullet: ({ children }) => <li className="mb-2 leading-relaxed">{children}</li>,
-                    number: ({ children }) => <li className="mb-2 leading-relaxed">{children}</li>,
+                    bullet: ({ children }) => <li className="mb-2 leading-[1.75]">{children}</li>,
+                    number: ({ children }) => <li className="mb-2 leading-[1.75]">{children}</li>,
                   },
                   marks: {
                     strong: ({ children }) => <strong className="font-bold text-[var(--foreground)]">{children}</strong>,
@@ -292,13 +289,13 @@ export default async function PostPage({ params }: PageProps) {
                       const imageUrl = getImageUrl(value, 800);
                       if (!imageUrl) return null;
                       return (
-                        <div className="my-12">
+                        <div className="my-12 max-w-full">
                           <Image
                             src={imageUrl}
                             alt={value.alt || ''}
                             width={800}
                             height={600}
-                            className="mx-auto"
+                            className="mx-auto rounded-lg"
                           />
                         </div>
                       );

@@ -6,12 +6,12 @@ const eslintConfig = [
   ...nextTs,
   {
     ignores: [
-      ".next/**",
-      "out/**",
-      "build/**",
-      "next-env.d.ts",
-      ".sanity/**",
-      "dist/**",
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+    ".sanity/**",
+    "dist/**",
     ],
   },
 ];
