@@ -19,7 +19,7 @@ export default function Footer({ categories }: FooterProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12 mb-8">
           {/* Brand */}
           <div>
-            <h3 className="text-xl sm:text-2xl font-bold mb-4 bg-gradient-to-r from-[var(--neon-cyan)] to-[var(--purple)] bg-clip-text text-transparent">
+            <h3 className="text-xl sm:text-2xl font-bold mb-4 bg-gradient-to-r from-[var(--electric-blue)] to-[var(--purple)] bg-clip-text text-transparent">
               TechByJZ
             </h3>
           </div>
@@ -54,7 +54,7 @@ export default function Footer({ categories }: FooterProps) {
               <li>
                 <a
                   href="mailto:techbyjz@gmail.com"
-                  className="text-[var(--foreground-low)] hover:text-[var(--neon-cyan)] transition-colors text-sm"
+                  className="text-[var(--foreground-low)] hover:text-[var(--electric-blue)] transition-colors text-sm"
                 >
                   Contact
                 </a>

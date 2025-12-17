@@ -20,13 +20,6 @@ export default async function Home() {
     })
   ]);
 
-  // Check posts with categories
-  const postsWithCategories = posts.filter(p => p.categories && p.categories.length > 0);
-  console.log('Posts with categories:', postsWithCategories.length);
-  if (postsWithCategories.length > 0) {
-    console.log('Sample post categories:', postsWithCategories[0].categories?.map(c => c.title));
-  }
-
   // Filter out posts without valid slugs (including template strings)
   const validPosts = posts.filter((post) => isValidSlug(post.slug?.current));
 

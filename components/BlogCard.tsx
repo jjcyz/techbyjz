@@ -52,7 +52,7 @@ export default function BlogCard({ post, featured = false }: BlogCardProps) {
       {/* Content - Title and Description */}
       <div className={`flex-1 flex flex-col ${contentSpacing}`}>
         {/* Title with transparent background */}
-        <h3 className={`${titleSize} font-bold text-[var(--foreground)] group-hover:text-[var(--neon-cyan)] transition-colors duration-300 line-clamp-2 leading-tight`}>
+        <h3 className={`${titleSize} font-bold text-[var(--foreground)] group-hover:text-[var(--electric-blue)] transition-colors duration-300 line-clamp-2 leading-tight`}>
           {post.title}
         </h3>
 

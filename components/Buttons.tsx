@@ -16,7 +16,7 @@ export function ReadArticlesButton() {
   return (
     <button
       onClick={scrollToCategories}
-      className="group relative px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 lg:px-12 lg:py-6 text-sm font-medium sm:font-bold sm:text-base bg-transparent border border-[var(--neon-cyan)] sm:border-2 text-[var(--neon-cyan)] overflow-hidden transition-all duration-300 hover:scale-105 hover:bg-[var(--neon-cyan)]/10 glow-cyan no-button-reset"
+      className="group relative px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 lg:px-12 lg:py-6 text-sm font-medium sm:font-bold sm:text-base bg-transparent border border-[var(--electric-blue)] sm:border-2 text-[var(--electric-blue)] overflow-hidden transition-all duration-300 hover:scale-105 hover:bg-[var(--electric-blue)]/10 no-button-reset"
     >
       <span className="relative z-10">Read Articles</span>
       <div className="absolute inset-0 bg-[var(--neon-cyan)]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -45,7 +45,7 @@ export function RandomPostButton({ randomPost }: RandomPostButtonProps) {
   return (
     <button
       onClick={handleRandomPost}
-      className="group relative px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 lg:px-12 lg:py-6 text-sm font-medium sm:font-bold sm:text-base bg-transparent border border-[var(--purple)] sm:border-2 text-[var(--purple)] overflow-hidden transition-all duration-300 hover:scale-105 hover:bg-[var(--purple)]/10 glow-purple no-button-reset"
+      className="group relative px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 lg:px-12 lg:py-6 text-sm font-medium sm:font-bold sm:text-base bg-transparent border border-[var(--purple)] sm:border-2 text-[var(--purple)] overflow-hidden transition-all duration-300 hover:scale-105 hover:bg-[var(--purple)]/10 no-button-reset"
     >
       <span className="relative z-10">Random Post</span>
       <div className="absolute inset-0 bg-[var(--purple)]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -63,7 +63,7 @@ export function ViewAllButton({ onClick }: ViewAllButtonProps) {
   return (
     <button
       onClick={onClick}
-      className="text-[var(--electric-blue)] hover:text-[var(--neon-cyan)] transition-colors text-sm font-medium border border-[var(--border-cyan)] px-4 py-2 hover:bg-[var(--hover-cyan-bg)] whitespace-nowrap"
+      className="text-[var(--electric-blue)] hover:text-[var(--electric-blue)] transition-colors text-sm font-medium border border-[var(--border-cyan)] px-4 py-2 hover:bg-[var(--hover-cyan-bg)] whitespace-nowrap"
     >
       View All →
     </button>
@@ -88,7 +88,7 @@ export function ScrollToSectionButton({ sectionId, children, className = '' }: S
   return (
     <button
       onClick={handleClick}
-      className={`text-[var(--foreground-low)] hover:text-[var(--neon-cyan)] transition-colors text-sm ${className}`}
+      className={`text-[var(--foreground-low)] hover:text-[var(--electric-blue)] transition-colors text-sm ${className}`}
     >
       {children}
     </button>
@@ -104,7 +104,7 @@ export function BackToTopButton() {
   return (
     <button
       onClick={scrollToTop}
-      className="text-[var(--electric-blue)] hover:text-[var(--neon-cyan)] transition-colors text-sm font-medium flex items-center gap-2 border border-[var(--border-cyan)] px-4 py-2 hover:bg-[var(--hover-cyan-bg)]"
+      className="text-[var(--electric-blue)] hover:text-[var(--electric-blue)] transition-colors text-sm font-medium flex items-center gap-2 border border-[var(--border-cyan)] px-4 py-2 hover:bg-[var(--hover-cyan-bg)]"
     >
       Back to Top
       <svg

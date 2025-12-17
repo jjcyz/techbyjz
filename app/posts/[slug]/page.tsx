@@ -63,7 +63,7 @@ export default async function PostPage({ params }: PageProps) {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 py-4">
           <Link
             href="/"
-            className="text-electric-blue hover:text-neon-cyan transition-colors inline-flex items-center gap-2"
+            className="text-[var(--electric-blue)] hover:text-[var(--electric-blue)] transition-colors inline-flex items-center gap-2"
           >
             ← Back to Posts
           </Link>
@@ -92,7 +92,7 @@ export default async function PostPage({ params }: PageProps) {
               {post.categories?.map((category) => (
                 <span
                   key={category._id}
-                  className="px-3 py-1 bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--accent-blue)] text-sm"
+                  className="px-3 py-1 bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--electric-blue)] text-sm"
                 >
                   {category.title}
                 </span>
@@ -182,7 +182,7 @@ export default async function PostPage({ params }: PageProps) {
                     strong: ({ children }) => <strong className="font-bold text-[var(--foreground)]">{children}</strong>,
                     em: ({ children }) => <em className="italic">{children}</em>,
                     code: ({ children }) => (
-                      <code className="bg-[var(--card-bg)] px-2 py-1 text-[var(--accent-blue)] text-base font-mono">
+                      <code className="bg-[var(--card-bg)] px-2 py-1 text-[var(--electric-blue)] text-base font-mono">
                         {children}
                       </code>
                     ),
@@ -193,7 +193,7 @@ export default async function PostPage({ params }: PageProps) {
                           href={href}
                           target={href.startsWith('http') ? '_blank' : undefined}
                           rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                          className="text-[var(--accent-blue)] hover:text-[var(--neon-cyan)] underline transition-colors"
+                          className="text-[var(--electric-blue)] hover:text-[var(--electric-blue)] underline transition-colors"
                         >
                           {children}
                         </a>

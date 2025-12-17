@@ -121,7 +121,7 @@ export default function Search({ posts }: SearchProps) {
                   handleToggleSearch();
                 }
               }}
-              className="absolute right-3 p-1 text-[var(--foreground-muted)] hover:text-[var(--neon-cyan)] transition-colors z-10"
+              className="absolute right-3 p-1 text-[var(--foreground-muted)] hover:text-[var(--electric-blue)] transition-colors z-10"
               aria-label={searchQuery ? "Clear search" : "Close search"}
             >
               <CloseIcon />
@@ -151,9 +151,9 @@ export default function Search({ posts }: SearchProps) {
                     <Link
                       key={post._id || slug}
                       href={`/posts/${slug}`}
-                      className="block p-3 hover:bg-[var(--card-bg)] hover:text-[var(--neon-cyan)] transition-colors"
+                      className="block p-3 hover:bg-[var(--card-bg)] hover:text-[var(--electric-blue)] transition-colors"
                     >
-                      <h4 className="text-base font-semibold text-[var(--foreground)] hover:text-[var(--neon-cyan)] transition-colors">
+                      <h4 className="text-base font-semibold text-[var(--foreground)] hover:text-[var(--electric-blue)] transition-colors">
                         {post.title}
                       </h4>
                     </Link>

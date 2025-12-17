@@ -11,25 +11,44 @@ export default function AutomationSection({ posts }: AutomationSectionProps) {
   }
 
   return (
-    <div id="automation-posts" className="relative z-10 py-10 md:py-14 lg:py-20 scroll-mt-20 w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12">
-      <div className="flex flex-col lg:flex-row gap-6 sm:gap-8 lg:gap-12">
+    <div id="automation-posts" className="relative z-10 py-6 md:py-8 lg:py-10 scroll-mt-20 w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12">
+      <div className="flex flex-col md:flex-row gap-4 sm:gap-6 md:gap-8">
         {/* Section Header - Left Column */}
-        <div className="shrink-0 max-w-md pl-4 sm:pl-8 md:pl-12 lg:pl-16 xl:pl-24">
-          <div className="space-y-4 sm:space-y-6">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-none text-left">
+        <div className="w-full md:w-1/5 lg:w-1/6 xl:w-1/6 md:min-w-[180px] lg:min-w-[200px] md:flex-shrink">
+          <div>
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold leading-tight sm:leading-none text-left text-[var(--electric-blue)]">
               Automation
             </h2>
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-[var(--foreground-low)] leading-relaxed text-left max-w-2xl">
-              Streamline workflows and boost productivity with automation
-            </p>
           </div>
         </div>
 
-        {/* Compact vertical cards - efficient workflow layout */}
-        <div className="flex-1 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
-          {posts.slice(0, 12).map((post) => (
-            <AutomationCard key={post._id || post.slug?.current} post={post} />
-          ))}
+        {/* Content area with featured card and grid */}
+        <div className="flex-1 flex flex-col gap-3 sm:gap-4">
+          {/* Top row: Featured card with 2x2 grid beside it */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+            {/* Featured Card */}
+            {posts[0] && (
+              <div className="sm:col-span-2">
+                <AutomationCard post={posts[0]} featured />
+              </div>
+            )}
+
+            {/* 2x2 Grid of smaller cards */}
+            <div className="sm:col-span-1 grid grid-cols-2 gap-2 sm:gap-3">
+              {posts.slice(1, 5).map((post) => (
+                <AutomationCard key={post._id || post.slug?.current} post={post} />
+              ))}
+            </div>
+          </div>
+
+          {/* Remaining cards in grid below */}
+          {posts.length > 5 && (
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-3">
+              {posts.slice(5, 11).map((post) => (
+                <AutomationCard key={post._id || post.slug?.current} post={post} />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
