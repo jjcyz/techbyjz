@@ -5,8 +5,8 @@ import type { Metadata } from 'next';
 import { client } from '@/lib/sanity';
 import { POST_BY_SLUG_QUERY, POST_SLUGS_QUERY, CATEGORIES_QUERY, RELATED_POSTS_QUERY, RECENT_POSTS_QUERY } from '@/lib/queries';
 import { getImageUrl } from '@/lib/image';
-import { isValidSlug, enrichPostWithCategories } from '@/lib/utils';
-import type { Post, Category, Tag, PostWithCategoryDetails } from '@/types/post';
+import { isValidSlug } from '@/lib/utils';
+import type { Post, Category, Tag } from '@/types/post';
 import { PortableText } from '@portabletext/react';
 import Footer from '@/components/shared/Footer';
 import RelatedPosts from '@/components/posts/RelatedPosts';
@@ -107,9 +107,6 @@ export default async function PostPage({ params }: PageProps) {
     notFound();
   }
 
-  // Enrich post with category details for display
-  const postWithCategories = enrichPostWithCategories(post, categories);
-
   // Fetch related posts based on categories, fallback to recent posts if no matches
   const categoryIds = post.categories || []; // Now categories is already an array of strings
   let relatedPosts: Post[] = [];
@@ -173,16 +170,20 @@ export default async function PostPage({ params }: PageProps) {
           </div>
 
           {/* Categories and Tags */}
-          {(postWithCategories.categories && postWithCategories.categories.length > 0) || (post.tags && post.tags.length > 0) ? (
+          {(post.categories && post.categories.length > 0) || (post.tags && post.tags.length > 0) ? (
             <div className="flex flex-wrap justify-center gap-2 mb-6">
-              {postWithCategories.categories?.map((category) => (
-                <span
-                  key={category._id}
-                  className="px-3 py-1 bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--electric-blue)] text-sm"
-                >
-                  {category.title}
-                </span>
-              ))}
+              {post.categories?.map((categoryId) => {
+                const category = categories.find((cat) => cat._id === categoryId);
+                if (!category) return null;
+                return (
+                  <span
+                    key={category._id}
+                    className="px-3 py-1 bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--electric-blue)] text-sm"
+                  >
+                    {category.title}
+                  </span>
+                );
+              })}
               {post.tags?.map((tag, index) => {
                 // Handle both string tags and reference objects
                 const tagValue = typeof tag === 'string' ? tag : (tag as Tag)?.title || String(tag);

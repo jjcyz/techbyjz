@@ -1,5 +1,3 @@
-import type { Post, Category, PostWithCategoryDetails } from '@/types/post';
-
 /**
  * Validates if a slug is valid and not a template string
  */
@@ -71,33 +69,6 @@ export function groupPostsByCategory<T extends { categories?: string[] }>(
   });
 
   return grouped;
-}
-
-/**
- * Enriches a post with full category details from category objects
- */
-export function enrichPostWithCategories(
-  post: Post,
-  categories: Category[]
-): PostWithCategoryDetails {
-  const enrichedCategories = post.categories
-    ?.map((categoryId) => categories.find((cat) => cat._id === categoryId))
-    .filter((cat): cat is Category => cat !== undefined) || [];
-
-  return {
-    ...post,
-    categories: enrichedCategories,
-  };
-}
-
-/**
- * Enriches multiple posts with category details
- */
-export function enrichPostsWithCategories(
-  posts: Post[],
-  categories: Category[]
-): PostWithCategoryDetails[] {
-  return posts.map((post) => enrichPostWithCategories(post, categories));
 }
 
 /**

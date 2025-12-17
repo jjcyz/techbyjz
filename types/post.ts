@@ -35,11 +35,6 @@ export interface Post {
   publishedAt: string;
   mainImage?: SanityImage;
   authorName?: string;
-  categories?: string[]; // Array of category IDs (strings)
+  categories?: string[];
   tags?: (string | Tag)[];
-}
-
-// Helper type for posts with enriched category details
-export interface PostWithCategoryDetails extends Omit<Post, 'categories'> {
-  categories?: Category[]; // Enriched with full category objects
 }

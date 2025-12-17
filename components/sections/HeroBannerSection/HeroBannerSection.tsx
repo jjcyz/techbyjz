@@ -40,7 +40,7 @@ export default function HeroBannerSection({ posts, randomPost }: HeroBannerSecti
               </div>
 
               <p className="text-sm sm:text-base md:text-lg lg:text-xl text-[var(--electric-blue)] leading-relaxed text-left max-w-2xl">
-              Tech insights you won't find anywhere else. Deep dives into tech news and trends today and what it means for the you. Ideas you never thought about and questions you never asked.
+              Tech insights you won&apos;t find anywhere else. Deep dives into tech news and trends today and what it means for the you. Ideas you never thought about and questions you never asked.
               </p>
             </div>
 

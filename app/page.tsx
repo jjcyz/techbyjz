@@ -6,7 +6,7 @@ import AutomationSection from "@/components/sections/AutomationSection/Automatio
 import AISection from "@/components/sections/AISection/AISection";
 import HeroBannerSection from "@/components/sections/HeroBannerSection/HeroBannerSection";
 import Footer from "@/components/shared/Footer";
-import { isValidSlug, groupPostsByCategory, getRandomPost, enrichPostsWithCategories } from "@/lib/utils";
+import { isValidSlug, groupPostsByCategory, getRandomPost } from "@/lib/utils";
 import type { Post, Category } from "@/types/post";
 
 export default async function Home() {
@@ -53,21 +53,6 @@ export default async function Home() {
 
     return validPosts.filter((post) =>
       post.categories?.includes(categoryId)
-    );
-  };
-
-  // Filter posts by category title with partial matching (for flexible matching)
-  const filterPostsByCategoryPartial = (searchTerms: string[]): Post[] => {
-    const matchingCategoryIds = categories
-      .filter((category) =>
-        category.title && searchTerms.some((term) =>
-          category.title.toLowerCase().includes(term.toLowerCase())
-        )
-      )
-      .map((cat) => cat._id);
-
-    return validPosts.filter((post) =>
-      post.categories?.some((categoryId) => matchingCategoryIds.includes(categoryId))
     );
   };
 
