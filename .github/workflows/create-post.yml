@@ -1,0 +1,58 @@
+name: Automated Blog Post Creation
+
+on:
+  schedule:
+    # Run daily at 9 AM UTC (adjust timezone as needed)
+    # Format: minute hour day month day-of-week
+    - cron: '0 9 * * *'
+  # Allow manual triggering from GitHub Actions UI
+  workflow_dispatch:
+    inputs:
+      topic:
+        description: 'Optional: Specific topic to write about'
+        required: false
+        type: string
+
+jobs:
+  create-post:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate and publish blog post
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          API_URL: ${{ secrets.API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          API_KEY: ${{ secrets.API_KEY }}
+          TOPIC: ${{ inputs.topic }}
+        run: |
+          # Call the cron endpoint to generate and publish the post
+          curl -X GET "$API_URL/api/cron/create-post?secret=$CRON_SECRET&topic=${TOPIC:-}" \
+            -H "x-api-key: $API_KEY" \
+            -H "Content-Type: application/json" \
+            -w "\nHTTP Status: %{http_code}\n"
+          
+          if [ $? -ne 0 ]; then
+            echo "❌ Failed to create post"
+            exit 1
+          fi
+          
+          echo "✅ Post creation completed"
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Workflow failed to create post"
+          # You can add Slack/Discord/Email notifications here

@@ -24,7 +24,7 @@ export default function RelatedPosts({ posts, currentPostSlug }: RelatedPostsPro
   }
 
   return (
-    <section className="mt-16 pt-16 border-t border-[rgba(0,255,255,0.2)]">
+    <section className="mt-16 pt-16">
       <h2 className="text-2xl md:text-3xl font-bold text-[var(--electric-blue)] mb-8">
         Related Posts
       </h2>

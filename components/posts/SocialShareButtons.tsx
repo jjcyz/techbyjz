@@ -79,7 +79,7 @@ export default function SocialShareButtons({ title, url, excerpt }: SocialShareB
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-3 mt-8 pt-8 border-t border-[rgba(0,255,255,0.2)]">
+    <div className="flex flex-wrap items-center gap-3 mt-8 pt-8">
       <span className="text-sm font-medium text-[var(--foreground-low)]">Share:</span>
       <div className="flex flex-wrap gap-3">
         <a

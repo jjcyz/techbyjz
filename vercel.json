@@ -1,0 +1,9 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/create-post",
+      "schedule": "0 9 * * *"
+    }
+  ]
+}
+

@@ -1,0 +1,33 @@
+name: Create Daily Blog Post (Simple)
+
+# Simpler version that calls your API endpoint directly
+# Your API handles AI generation internally
+
+on:
+  schedule:
+    - cron: '0 9 * * *'  # Daily at 9 AM UTC
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  create-post:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Post Creation
+        env:
+          API_URL: ${{ secrets.API_URL || 'https://your-domain.com' }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          # Call your cron endpoint
+          # Your API will handle AI generation internally
+          RESPONSE=$(curl -s -X GET "$API_URL/api/cron/create-post?secret=$CRON_SECRET")
+
+          if echo "$RESPONSE" | jq -e '.success' > /dev/null; then
+            echo "✅ Post created successfully!"
+            echo "$RESPONSE" | jq .
+          else
+            echo "❌ Failed to create post:"
+            echo "$RESPONSE" | jq .
+            exit 1
+          fi
+
