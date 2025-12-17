@@ -32,3 +32,4 @@ export default function FeaturedSection({ posts }: FeaturedSectionProps) {
     </div>
   );
 }
+

@@ -24,7 +24,7 @@ export default function AISection({ posts }: AISectionProps) {
 
         {/* Uniform square grid layout */}
         <div className="flex-1 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-          {posts.slice(0, 6).map((post) => (
+          {posts.slice(0, 12).map((post) => (
             <AICard key={post._id || post.slug?.current} post={post} />
           ))}
         </div>
@@ -32,3 +32,4 @@ export default function AISection({ posts }: AISectionProps) {
     </div>
   );
 }
+

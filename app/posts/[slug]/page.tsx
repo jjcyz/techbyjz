@@ -7,7 +7,7 @@ import { getImageUrl } from '@/lib/image';
 import { isValidSlug } from '@/lib/utils';
 import type { Post, Category, Tag } from '@/types/post';
 import { PortableText } from '@portabletext/react';
-import Footer from '@/components/Footer';
+import Footer from '@/components/shared/Footer';
 
 interface PageProps {
   params: Promise<{ slug: string }>;

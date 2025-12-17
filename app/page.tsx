@@ -1,11 +1,11 @@
 import { client } from "@/lib/sanity";
 import { POSTS_QUERY, CATEGORIES_QUERY } from "@/lib/queries";
-import FeaturedSection from "@/components/FeaturedSection";
-import NewsSection from "@/components/NewsSection";
-import AutomationSection from "@/components/AutomationSection";
-import AISection from "@/components/AISection";
-import HeroBannerSection from "@/components/HeroBannerSection";
-import Footer from "@/components/Footer";
+import FeaturedSection from "@/components/sections/FeaturedSection/FeaturedSection";
+import NewsSection from "@/components/sections/NewsSection/NewsSection";
+import AutomationSection from "@/components/sections/AutomationSection/AutomationSection";
+import AISection from "@/components/sections/AISection/AISection";
+import HeroBannerSection from "@/components/sections/HeroBannerSection/HeroBannerSection";
+import Footer from "@/components/shared/Footer";
 import { isValidSlug, groupPostsByCategory, getRandomPost } from "@/lib/utils";
 import type { Post, Category } from "@/types/post";
 

@@ -66,3 +66,4 @@ export default function BlogCard({ post, featured = false }: BlogCardProps) {
     </Link>
   );
 }
+

@@ -54,3 +54,4 @@ export default function AutomationSection({ posts }: AutomationSectionProps) {
     </div>
   );
 }
+

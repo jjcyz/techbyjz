@@ -1,6 +1,6 @@
 import Image from 'next/image';
-import { ReadArticlesButton, RandomPostButton } from './Buttons';
-import Search from './Search';
+import { ReadArticlesButton, RandomPostButton } from '@/components/shared/Buttons';
+import Search from '@/components/shared/Search';
 import type { Post } from '@/types/post';
 
 interface HeroBannerSectionProps {
@@ -55,3 +55,4 @@ export default function HeroBannerSection({ posts, randomPost }: HeroBannerSecti
     </section>
   );
 }
+
