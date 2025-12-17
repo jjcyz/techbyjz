@@ -1,13 +1,16 @@
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { client } from '@/lib/sanity';
-import { POST_BY_SLUG_QUERY, POST_SLUGS_QUERY, CATEGORIES_QUERY } from '@/lib/queries';
+import { POST_BY_SLUG_QUERY, POST_SLUGS_QUERY, CATEGORIES_QUERY, RELATED_POSTS_QUERY, RECENT_POSTS_QUERY } from '@/lib/queries';
 import { getImageUrl } from '@/lib/image';
-import { isValidSlug } from '@/lib/utils';
-import type { Post, Category, Tag } from '@/types/post';
+import { isValidSlug, enrichPostWithCategories } from '@/lib/utils';
+import type { Post, Category, Tag, PostWithCategoryDetails } from '@/types/post';
 import { PortableText } from '@portabletext/react';
 import Footer from '@/components/shared/Footer';
+import RelatedPosts from '@/components/posts/RelatedPosts';
+import SocialShareButtons from '@/components/posts/SocialShareButtons';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -24,6 +27,63 @@ export async function generateStaticParams() {
     }));
 }
 
+// Generate SEO metadata
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+
+  if (!isValidSlug(slug)) {
+    return {
+      title: 'Post Not Found',
+    };
+  }
+
+  const post = await client.fetch<Post | null>(POST_BY_SLUG_QUERY, { slug });
+
+  if (!post || !post.slug?.current || !isValidSlug(post.slug.current)) {
+    return {
+      title: 'Post Not Found',
+    };
+  }
+
+  const imageUrl = post.mainImage ? getImageUrl(post.mainImage, 1200, 600) : undefined;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://techbyjz.com';
+  const postUrl = `${siteUrl}/posts/${post.slug.current}`;
+
+  return {
+    title: post.title,
+    description: post.excerpt || `Read ${post.title} on TechByJZ`,
+    authors: post.authorName ? [{ name: post.authorName }] : undefined,
+    openGraph: {
+      title: post.title,
+      description: post.excerpt || `Read ${post.title} on TechByJZ`,
+      url: postUrl,
+      siteName: 'TechByJZ',
+      images: imageUrl
+        ? [
+            {
+              url: imageUrl,
+              width: 1200,
+              height: 600,
+              alt: post.mainImage?.alt || post.title,
+            },
+          ]
+        : [],
+      locale: 'en_US',
+      type: 'article',
+      publishedTime: post.publishedAt,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: post.excerpt || `Read ${post.title} on TechByJZ`,
+      images: imageUrl ? [imageUrl] : [],
+    },
+    alternates: {
+      canonical: postUrl,
+    },
+  };
+}
+
 export default async function PostPage({ params }: PageProps) {
   const { slug } = await params;
 
@@ -32,7 +92,7 @@ export default async function PostPage({ params }: PageProps) {
     notFound();
   }
 
-  // Fetch the post and categories in parallel
+  // Fetch the post, categories, and related posts in parallel
   const [post, categories] = await Promise.all([
     client.fetch<Post | null>(POST_BY_SLUG_QUERY, { slug }, {
       next: { revalidate: 60 }
@@ -47,6 +107,31 @@ export default async function PostPage({ params }: PageProps) {
     notFound();
   }
 
+  // Enrich post with category details for display
+  const postWithCategories = enrichPostWithCategories(post, categories);
+
+  // Fetch related posts based on categories, fallback to recent posts if no matches
+  const categoryIds = post.categories || []; // Now categories is already an array of strings
+  let relatedPosts: Post[] = [];
+
+  if (categoryIds.length > 0) {
+    relatedPosts = await client.fetch<Post[]>(RELATED_POSTS_QUERY, {
+      postId: post._id,
+      categoryIds,
+    }, {
+      next: { revalidate: 60 }
+    });
+  }
+
+  // If no related posts found by category, show recent posts instead
+  if (relatedPosts.length === 0) {
+    relatedPosts = await client.fetch<Post[]>(RECENT_POSTS_QUERY, {
+      postId: post._id,
+    }, {
+      next: { revalidate: 60 }
+    });
+  }
+
   const imageUrl = getImageUrl(post.mainImage, 1200, 600);
   const formattedDate = post.publishedAt
     ? new Date(post.publishedAt).toLocaleDateString('en-US', {
@@ -56,30 +141,31 @@ export default async function PostPage({ params }: PageProps) {
       })
     : '';
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://techbyjz.com';
+  const postUrl = `${siteUrl}/posts/${post.slug.current}`;
+
   return (
     <main className="min-h-screen relative">
-      {/* Header */}
-      <header className="border-b border-[rgba(0,255,255,0.2)] bg-card-bg backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 py-4">
+      {/* Back Button */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 pt-8 pb-4">
           <Link
             href="/"
-            className="text-[var(--electric-blue)] hover:text-[var(--electric-blue)] transition-colors inline-flex items-center gap-2"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--electric-blue)] hover:border-[var(--electric-blue)] hover:bg-[var(--electric-blue)]/10 transition-all duration-300 text-sm font-medium"
           >
             ← Back to Posts
           </Link>
         </div>
-      </header>
 
-      <article className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 py-16 md:py-24 lg:py-32">
+      <article className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 py-16 md:py-24 lg:py-32">
         {/* Post Header */}
         <header className="mb-12 text-center">
-          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground mb-6 leading-tight">
             {post.title}
           </h1>
 
-          <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-(--text-gray-400) mb-6">
+          <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-[var(--text-gray-400)] mb-6">
             {post.authorName && (
-              <span className="text-(--accent-blue)">By {post.authorName}</span>
+              <span className="text-[var(--electric-blue)]">By {post.authorName}</span>
             )}
             {formattedDate && (
               <time className="text-[var(--text-gray-500)]">{formattedDate}</time>
@@ -87,9 +173,9 @@ export default async function PostPage({ params }: PageProps) {
           </div>
 
           {/* Categories and Tags */}
-          {(post.categories && post.categories.length > 0) || (post.tags && post.tags.length > 0) ? (
+          {(postWithCategories.categories && postWithCategories.categories.length > 0) || (post.tags && post.tags.length > 0) ? (
             <div className="flex flex-wrap justify-center gap-2 mb-6">
-              {post.categories?.map((category) => (
+              {postWithCategories.categories?.map((category) => (
                 <span
                   key={category._id}
                   className="px-3 py-1 bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--electric-blue)] text-sm"
@@ -115,21 +201,21 @@ export default async function PostPage({ params }: PageProps) {
 
         {/* Featured Image */}
         {imageUrl ? (
-          <div className="relative w-full h-64 md:h-96 mb-8 overflow-hidden bg-[var(--background-dark-navy)] border border-[var(--border-color)]">
+          <div className="relative w-full h-64 md:h-96 lg:h-[500px] mb-8 overflow-hidden bg-[var(--background-dark-navy)] border border-[var(--border-color)]">
             <Image
               src={imageUrl}
               alt={post.mainImage?.alt || post.title}
               fill
               className="object-cover"
               priority
-              sizes="(max-width: 768px) 100vw, 896px"
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 896px, 1280px"
             />
           </div>
         ) : null}
 
         {/* Post Excerpt */}
         {post.excerpt && (
-          <p className="text-xl md:text-2xl text-[var(--foreground-low)] mb-12 leading-relaxed text-center max-w-3xl mx-auto">
+          <p className="text-xl md:text-2xl lg:text-3xl text-[var(--foreground-low)] mb-12 leading-relaxed text-center max-w-5xl mx-auto">
             {post.excerpt}
           </p>
         )}
@@ -161,7 +247,7 @@ export default async function PostPage({ params }: PageProps) {
                       <h4 className="text-lg md:text-xl font-bold text-[var(--foreground)] mb-2 mt-6 first:mt-0">{children}</h4>
                     ),
                     blockquote: ({ children }) => (
-                      <blockquote className="border-l-4 border-[var(--accent-blue)] pl-6 my-8 italic text-lg md:text-xl text-[var(--foreground-low)] bg-[var(--card-bg)]/30 py-4">
+                      <blockquote className="border-l-4 border-[var(--electric-blue)] pl-6 my-8 italic text-lg md:text-xl text-[var(--foreground-low)] bg-[var(--card-bg)]/30 py-4">
                         {children}
                       </blockquote>
                     ),
@@ -231,6 +317,16 @@ export default async function PostPage({ params }: PageProps) {
             </div>
           );
         })()}
+
+        {/* Social Share Buttons */}
+        <SocialShareButtons
+          title={post.title}
+          url={postUrl}
+          excerpt={post.excerpt}
+        />
+
+        {/* Related Posts */}
+        <RelatedPosts posts={relatedPosts} currentPostSlug={post.slug.current} />
       </article>
 
       {/* Footer */}

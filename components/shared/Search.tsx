@@ -60,11 +60,11 @@ export default function Search({ posts }: SearchProps) {
         const tagValue = typeof tag === 'string' ? tag : tag.title || String(tag);
         return tagValue.toLowerCase().includes(query);
       });
-      const categoriesMatch = post.categories?.some((category) =>
-        category.title?.toLowerCase().includes(query)
-      );
+      // Categories are now strings (IDs), so we can't search by title here
+      // Category search would require passing category objects, which we'll skip for now
+      // Users can still search by post title, excerpt, and tags
 
-      return titleMatch || excerptMatch || tagsMatch || categoriesMatch;
+      return titleMatch || excerptMatch || tagsMatch;
     });
   }, [searchQuery, posts]);
 

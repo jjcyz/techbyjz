@@ -6,7 +6,7 @@ import AutomationSection from "@/components/sections/AutomationSection/Automatio
 import AISection from "@/components/sections/AISection/AISection";
 import HeroBannerSection from "@/components/sections/HeroBannerSection/HeroBannerSection";
 import Footer from "@/components/shared/Footer";
-import { isValidSlug, groupPostsByCategory, getRandomPost } from "@/lib/utils";
+import { isValidSlug, groupPostsByCategory, getRandomPost, enrichPostsWithCategories } from "@/lib/utils";
 import type { Post, Category } from "@/types/post";
 
 export default async function Home() {
@@ -37,24 +37,37 @@ export default async function Home() {
   // Get featured posts (most recent 6)
   const displayFeaturedPosts = validPosts.slice(0, 6);
 
+  // Helper: Find category ID by title
+  const findCategoryIdByTitle = (title: string): string | undefined => {
+    const normalizedTitle = title.trim().toLowerCase();
+    return categories.find(
+      (cat) => cat.title?.trim().toLowerCase() === normalizedTitle
+    )?._id;
+  };
+
   // Filter posts by category title (case-insensitive, trimmed)
+  // Now works with category IDs (strings) instead of category objects
   const filterPostsByCategoryTitle = (categoryTitle: string): Post[] => {
-    const normalizedTitle = categoryTitle.trim().toLowerCase();
+    const categoryId = findCategoryIdByTitle(categoryTitle);
+    if (!categoryId) return [];
+
     return validPosts.filter((post) =>
-      post.categories?.some((category) =>
-        category.title?.trim().toLowerCase() === normalizedTitle
-      )
+      post.categories?.includes(categoryId)
     );
   };
 
   // Filter posts by category title with partial matching (for flexible matching)
   const filterPostsByCategoryPartial = (searchTerms: string[]): Post[] => {
-    return validPosts.filter((post) =>
-      post.categories?.some((category) =>
-        category && category.title && searchTerms.some((term) =>
+    const matchingCategoryIds = categories
+      .filter((category) =>
+        category.title && searchTerms.some((term) =>
           category.title.toLowerCase().includes(term.toLowerCase())
         )
       )
+      .map((cat) => cat._id);
+
+    return validPosts.filter((post) =>
+      post.categories?.some((categoryId) => matchingCategoryIds.includes(categoryId))
     );
   };
 

@@ -18,22 +18,7 @@ export const POSTS_QUERY = `*[_type == "post"] | order(publishedAt desc) {
     alt
   },
   "authorName": author->name,
-  "categories": select(
-    // New schema: categories is an array
-    defined(categories) => array::compact(categories[]->{
-      _id,
-      title,
-      slug
-    }),
-    // Old schema: category is a single reference
-    defined(category) => array::compact([category->{
-      _id,
-      title,
-      slug
-    }]),
-    // Fallback: empty array
-    []
-  ),
+  categories,
   tags[]->{
     _id,
     title,
@@ -57,22 +42,7 @@ export const POST_BY_SLUG_QUERY = `*[_type == "post" && slug.current == $slug][0
     alt
   },
   "authorName": author->name,
-  "categories": select(
-    // New schema: categories is an array
-    defined(categories) => array::compact(categories[]->{
-      _id,
-      title,
-      slug
-    }),
-    // Old schema: category is a single reference
-    defined(category) => array::compact([category->{
-      _id,
-      title,
-      slug
-    }]),
-    // Fallback: empty array
-    []
-  ),
+  categories,
   tags[]->{
     _id,
     title,
@@ -90,5 +60,41 @@ export const CATEGORIES_QUERY = `*[_type == "category"] | order(title asc) {
   _id,
   title,
   slug
+}`;
+
+export const RELATED_POSTS_QUERY = `*[_type == "post" && _id != $postId && count(categories[@ in $categoryIds]) > 0] | order(publishedAt desc) [0...3] {
+  _id,
+  title,
+  slug,
+  excerpt,
+  publishedAt,
+  mainImage {
+    _type,
+    asset {
+      _ref,
+      _type
+    },
+    alt
+  },
+  "authorName": author->name,
+  categories
+}`;
+
+export const RECENT_POSTS_QUERY = `*[_type == "post" && _id != $postId] | order(publishedAt desc) [0...3] {
+  _id,
+  title,
+  slug,
+  excerpt,
+  publishedAt,
+  mainImage {
+    _type,
+    asset {
+      _ref,
+      _type
+    },
+    alt
+  },
+  "authorName": author->name,
+  categories
 }`;
 
