@@ -221,6 +221,12 @@ export default async function PostPage({ params }: PageProps) {
         {/* Post Body */}
         {(() => {
           const content = post.content || post.body;
+
+          // Debug: Log content structure
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Post content:', JSON.stringify(content, null, 2));
+          }
+
           return content ? (
             Array.isArray(content) && content.length > 0 ? (
               <div className="prose prose-invert prose-xl max-w-none">
