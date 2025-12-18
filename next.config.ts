@@ -36,8 +36,6 @@ const nextConfig: NextConfig = {
   transpilePackages: ['next-sanity'],
   // External packages for server components (moved from experimental in Next.js 16)
   serverExternalPackages: ['@sanity/vision'],
-  // Add empty turbopack config to silence warning (we're using webpack for Sanity Studio fix)
-  turbopack: {},
 };
 
 export default nextConfig;
