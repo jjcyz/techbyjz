@@ -8,6 +8,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { client } from '@/lib/sanity';
 import { markdownToPortableText } from '@/lib/markdown-to-portable-text';
 
+// Force dynamic rendering for Vercel
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function POST(request: NextRequest) {
   try {
     // Optional: Add API key authentication
