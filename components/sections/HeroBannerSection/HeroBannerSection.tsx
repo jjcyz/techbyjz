@@ -35,11 +35,11 @@ export default function HeroBannerSection({ posts, randomPost }: HeroBannerSecti
         <div className="w-full mb-4 sm:mb-6 pl-4 sm:pl-8 md:pl-12 lg:pl-16 xl:pl-24">
           <div className="space-y-4 sm:space-y-6">
             <div className="space-y-3 sm:space-y-4">
-              <div className="text-xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-none text-left pb-4 sm:pb-6 text-[var(--electric-blue)]">
+              <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-none text-left pb-4 sm:pb-6 text-[var(--electric-blue)]">
                 TechByJZ
               </div>
 
-              <p className="text-sm sm:text-base md:text-lg lg:text-xl text-[var(--electric-blue)] leading-relaxed text-left max-w-2xl">
+              <p className="text-base sm:text-lg md:text-xl text-[var(--electric-blue)] leading-relaxed text-left max-w-2xl">
               Tech insights you won&apos;t find anywhere else. Deep dives into tech news and trends today and what it means for the you. Ideas you never thought about and questions you never asked.
               </p>
             </div>

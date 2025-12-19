@@ -16,7 +16,7 @@ export default function AISection({ posts }: AISectionProps) {
         {/* Section Header - Left Column */}
         <div className="w-full md:w-1/5 lg:w-1/6 xl:w-1/6 md:min-w-[180px] lg:min-w-[200px] md:flex-shrink">
           <div>
-            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold leading-tight sm:leading-none text-left text-[var(--purple)]">
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold leading-tight sm:leading-none text-left text-[var(--purple)]">
               AI Models
             </h2>
           </div>
