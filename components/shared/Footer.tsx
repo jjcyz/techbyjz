@@ -11,7 +11,7 @@ export default function Footer({ categories }: FooterProps) {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="relative bg-[var(--background-dark-navy)] border-t border-[rgba(0,255,255,0.1)] py-12 overflow-hidden w-full">
+    <footer className="relative bg-[var(--background-dark-navy)] border-t border-[rgba(0,255,255,0.1)] py-8 overflow-hidden w-full">
       {/* Subtle background glow */}
       <div className="absolute inset-0 bg-gradient-to-t from-[rgba(157,78,221,0.05)] to-transparent" />
 
@@ -19,14 +19,14 @@ export default function Footer({ categories }: FooterProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12 mb-8">
           {/* Brand */}
           <div>
-            <h3 className="text-xl sm:text-2xl font-bold mb-4 bg-gradient-to-r from-[var(--electric-blue)] to-[var(--purple)] bg-clip-text text-transparent">
+            <h3 className="text-lg sm:text-xl font-bold mb-3 bg-gradient-to-r from-[var(--electric-blue)] to-[var(--purple)] bg-clip-text text-transparent">
               TechByJZ
             </h3>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-base sm:text-lg font-semibold text-[var(--electric-blue)] mb-4">
+            <h4 className="text-sm sm:text-base font-semibold text-[var(--electric-blue)] mb-3">
               Quick Links
             </h4>
             <ul className="space-y-2">
@@ -47,7 +47,7 @@ export default function Footer({ categories }: FooterProps) {
 
           {/* Contact */}
           <div>
-            <h4 className="text-base sm:text-lg font-semibold text-[var(--electric-blue)] mb-4">
+            <h4 className="text-sm sm:text-base font-semibold text-[var(--electric-blue)] mb-3">
               Connect
             </h4>
             <ul className="space-y-2">
@@ -75,4 +75,3 @@ export default function Footer({ categories }: FooterProps) {
     </footer>
   );
 }
-

@@ -1,10 +1,7 @@
 @import "tailwindcss";
 
-/* Base font size - ensures consistent scaling across all environments */
 html {
-  font-size: 16px; /* Base 16px = 1rem - ensures consistent rem calculations */
-  -webkit-text-size-adjust: 100%; /* Prevent iOS text size adjustment */
-  text-size-adjust: 100%;
+  font-size: 16px;
   box-sizing: border-box;
 }
 
@@ -23,9 +20,6 @@ html {
   /* Accent Colors */
   --neon-cyan: #00ffff;
   --electric-blue: #00bfff;
-  --accent-blue: #00bfff; /* Alias for electric-blue */
-  --header-blue: #00bfff; /* For headers */
-  --magenta: #ff00ff;
   --purple: #9d4edd;
 
   /* Text Colors */
@@ -33,8 +27,6 @@ html {
   --foreground-low: #b0b0b0;
   --foreground-muted: #6b7280;
   --text-gray-300: #d1d5db;
-  --text-gray-400: #9ca3af;
-  --text-gray-500: #6b7280;
 
   /* UI Colors */
   --card-bg: rgba(13, 20, 33, 0.8);
@@ -42,7 +34,6 @@ html {
   --border-color: rgba(0, 255, 255, 0.2);
   --border-cyan: rgba(0, 255, 255, 0.3);
   --glow-cyan: rgba(0, 255, 255, 0.3);
-  --glow-purple: rgba(157, 78, 221, 0.3);
   --hover-cyan-bg: rgba(0, 255, 255, 0.1);
 }
 
@@ -51,8 +42,6 @@ html {
   --color-foreground: var(--foreground);
   --color-neon-cyan: var(--neon-cyan);
   --color-electric-blue: var(--electric-blue);
-  --color-soft-pink: var(--soft-pink);
-  --color-magenta: var(--magenta);
   --color-purple: var(--purple);
   --color-card-bg: var(--card-bg);
   --color-border-color: var(--border-color);
@@ -65,7 +54,7 @@ body {
   background-attachment: fixed;
   color: var(--foreground-low);
   font-family: var(--font-poppins), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  font-size: 1rem; /* Explicit base font size */
+  font-size: 1rem;
   line-height: 1.5;
   margin: 0;
   padding: 0;
@@ -74,8 +63,4 @@ body {
 /* Glow effects */
 .glow-cyan {
   box-shadow: 0 0 20px rgba(0, 255, 255, 0.4), 0 0 40px rgba(0, 255, 255, 0.2);
-}
-
-.glow-purple {
-  box-shadow: 0 0 20px rgba(157, 78, 221, 0.4), 0 0 40px rgba(157, 78, 221, 0.2);
 }

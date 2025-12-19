@@ -25,21 +25,21 @@ export default function HeroBannerSection({ posts, randomPost }: HeroBannerSecti
         </div>
 
       {/* Search Component - Top Right */}
-      <div className="absolute top-4 right-16 sm:top-6 sm:right-20 md:right-24 lg:right-32 xl:right-40 z-20">
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 md:right-8 lg:right-10 xl:right-12 z-20">
         <Search posts={posts} />
       </div>
 
       {/* Hero Content Container */}
-      <div className="relative z-10 w-full mx-auto flex-1 flex flex-col justify-center py-6 sm:py-8 md:py-10 lg:py-12 xl:py-14 px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12">
+      <div className="relative z-10 w-full mx-auto flex-1 flex flex-col justify-center py-4 sm:py-6 md:py-8 lg:py-10 px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12">
         {/* Hero Text Section */}
         <div className="w-full mb-4 sm:mb-6 pl-4 sm:pl-8 md:pl-12 lg:pl-16 xl:pl-24">
           <div className="space-y-4 sm:space-y-6">
-            <div className="space-y-3 sm:space-y-4">
-              <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-none text-left pb-4 sm:pb-6 text-[var(--electric-blue)]">
+            <div className="space-y-1.5 sm:space-y-2">
+              <div className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold leading-none text-left pb-1.5 sm:pb-2 text-[var(--electric-blue)]">
                 TechByJZ
               </div>
 
-              <p className="text-base sm:text-lg md:text-xl text-[var(--electric-blue)] leading-relaxed text-left max-w-2xl">
+              <p className="text-xs sm:text-sm md:text-base text-[var(--electric-blue)] leading-relaxed text-left max-w-sm">
               Tech insights you won&apos;t find anywhere else. Deep dives into tech news and trends today and what it means for the you. Ideas you never thought about and questions you never asked.
               </p>
             </div>

@@ -16,7 +16,7 @@ export function ReadArticlesButton() {
   return (
     <button
       onClick={scrollToCategories}
-      className="group relative px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 lg:px-12 lg:py-6 text-base font-semibold bg-transparent border border-[var(--electric-blue)] sm:border-2 text-[var(--electric-blue)] overflow-hidden transition-all duration-300 hover:scale-105 hover:bg-[var(--electric-blue)]/10 no-button-reset"
+      className="group relative px-2.5 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 lg:px-6 lg:py-2.5 text-xs sm:text-sm font-semibold bg-transparent border border-[var(--electric-blue)] sm:border-2 text-[var(--electric-blue)] overflow-hidden transition-all duration-300 hover:scale-105 hover:bg-[var(--electric-blue)]/10 no-button-reset"
     >
       <span className="relative z-10">Read Articles</span>
       <div className="absolute inset-0 bg-[var(--neon-cyan)]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -45,7 +45,7 @@ export function RandomPostButton({ randomPost }: RandomPostButtonProps) {
   return (
     <button
       onClick={handleRandomPost}
-      className="group relative px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 lg:px-12 lg:py-6 text-base font-semibold bg-transparent border border-[var(--purple)] sm:border-2 text-[var(--purple)] overflow-hidden transition-all duration-300 hover:scale-105 hover:bg-[var(--purple)]/10 no-button-reset"
+      className="group relative px-2.5 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 lg:px-6 lg:py-2.5 text-xs sm:text-sm font-semibold bg-transparent border border-[var(--purple)] sm:border-2 text-[var(--purple)] overflow-hidden transition-all duration-300 hover:scale-105 hover:bg-[var(--purple)]/10 no-button-reset"
     >
       <span className="relative z-10">Random Post</span>
       <div className="absolute inset-0 bg-[var(--purple)]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />

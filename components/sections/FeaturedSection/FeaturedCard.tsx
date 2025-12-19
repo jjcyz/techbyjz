@@ -42,8 +42,8 @@ export default function FeaturedCard({ post }: FeaturedCardProps) {
         )}
 
         {/* Title overlay at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6">
-          <h3 className="text-xl md:text-2xl lg:text-3xl font-bold text-[var(--foreground)] group-hover:text-[var(--electric-blue)] transition-colors duration-300 line-clamp-3 leading-tight drop-shadow-lg">
+        <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4">
+          <h3 className="text-base md:text-lg lg:text-xl font-bold text-[var(--foreground)] group-hover:text-[var(--electric-blue)] transition-colors duration-300 line-clamp-3 leading-tight drop-shadow-lg">
             {post.title}
           </h3>
         </div>

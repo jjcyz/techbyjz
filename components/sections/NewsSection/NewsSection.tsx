@@ -22,7 +22,7 @@ export default function NewsSection({ posts }: NewsSectionProps) {
         {/* Section Header - Left Column */}
         <div className="w-full md:w-1/5 lg:w-1/6 xl:w-1/6 md:min-w-[180px] lg:min-w-[200px] md:flex-shrink">
           <div>
-            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold leading-tight sm:leading-none text-left text-[var(--electric-blue)]">
+            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold leading-tight sm:leading-none text-left text-[var(--electric-blue)]">
               Tech World in 60 Seconds
             </h2>
           </div>
@@ -32,7 +32,7 @@ export default function NewsSection({ posts }: NewsSectionProps) {
         <div className="flex-1 flex flex-col gap-4 md:gap-6">
           {/* Headlines Section */}
           <div className="relative border-[0.5px] border-[var(--electric-blue)] p-4 md:p-6 rounded-lg bg-[var(--card-bg)]/50 backdrop-blur-sm shadow-[0_0_20px_rgba(0,191,255,0.3),0_0_40px_rgba(0,191,255,0.15),inset_0_0_20px_rgba(0,191,255,0.1)] transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,191,255,0.4),0_0_60px_rgba(0,191,255,0.2),inset_0_0_30px_rgba(0,191,255,0.15)]">
-            <h3 className="text-base md:text-lg font-semibold text-[var(--electric-blue)] mb-4 md:mb-6 uppercase tracking-wide drop-shadow-[0_0_8px_rgba(0,191,255,0.6)]">
+            <h3 className="text-xs md:text-sm font-semibold text-[var(--electric-blue)] mb-2 md:mb-3 uppercase tracking-wide drop-shadow-[0_0_8px_rgba(0,191,255,0.6)]">
               Top Headlines
             </h3>
             <div className="space-y-4 md:space-y-5">
@@ -46,7 +46,7 @@ export default function NewsSection({ posts }: NewsSectionProps) {
                     href={`/posts/${slug}`}
                     className="block group"
                   >
-                    <h4 className="text-lg md:text-xl lg:text-2xl font-semibold text-[var(--foreground)] group-hover:text-[var(--electric-blue)] transition-all duration-300 leading-tight group-hover:drop-shadow-[0_0_8px_rgba(0,191,255,0.5)]">
+                    <h4 className="text-sm md:text-base lg:text-lg font-semibold text-[var(--foreground)] group-hover:text-[var(--electric-blue)] transition-all duration-300 leading-tight group-hover:drop-shadow-[0_0_8px_rgba(0,191,255,0.5)]">
                       {post.title}
                     </h4>
                   </Link>

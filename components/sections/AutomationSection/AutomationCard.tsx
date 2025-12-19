@@ -43,8 +43,8 @@ export default function AutomationCard({ post, featured = false }: AutomationCar
         )}
 
         {/* Title overlay for all cards */}
-        <div className={`absolute bottom-0 left-0 right-0 ${featured ? 'p-4 md:p-6' : 'p-2 md:p-3'}`}>
-          <h3 className={`${featured ? 'text-xl md:text-2xl lg:text-3xl' : 'text-base md:text-lg'} font-semibold text-[var(--foreground)] group-hover:text-[var(--electric-blue)] transition-colors duration-300 ${featured ? 'line-clamp-3' : 'line-clamp-3'} leading-tight drop-shadow-lg`}>
+        <div className={`absolute bottom-0 left-0 right-0 ${featured ? 'p-3 md:p-4' : 'p-2 md:p-2.5'}`}>
+          <h3 className={`${featured ? 'text-base md:text-lg lg:text-xl' : 'text-sm md:text-base'} font-semibold text-[var(--foreground)] group-hover:text-[var(--electric-blue)] transition-colors duration-300 ${featured ? 'line-clamp-3' : 'line-clamp-3'} leading-tight drop-shadow-lg`}>
             {post.title}
           </h3>
         </div>

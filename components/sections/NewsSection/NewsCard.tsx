@@ -44,11 +44,11 @@ export default function NewsCard({ post, featured = false }: NewsCardProps) {
 
       {/* Content - Title only for quick scanning */}
       <div className={`flex-1 flex flex-col ${featured ? '' : 'justify-center'} min-w-0`}>
-        <h3 className={`${featured ? 'text-xl md:text-2xl lg:text-3xl' : 'text-base md:text-lg'} font-semibold text-[var(--foreground)] group-hover:text-[var(--electric-blue)] transition-colors duration-300 ${featured ? 'line-clamp-3' : 'line-clamp-3'} leading-tight`}>
+        <h3 className={`${featured ? 'text-base md:text-lg lg:text-xl' : 'text-sm md:text-base'} font-semibold text-[var(--foreground)] group-hover:text-[var(--electric-blue)] transition-colors duration-300 ${featured ? 'line-clamp-3' : 'line-clamp-3'} leading-tight`}>
           {post.title}
         </h3>
         {featured && post.excerpt && (
-          <p className="text-base md:text-lg text-[var(--foreground-low)] line-clamp-2 mt-2">
+          <p className="text-sm md:text-base text-[var(--foreground-low)] line-clamp-2 mt-2">
             {post.excerpt}
           </p>
         )}

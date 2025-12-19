@@ -103,14 +103,14 @@ export default function Search({ posts }: SearchProps) {
         )}
 
         {isExpanded && (
-          <div className="relative flex items-stretch transition-all duration-300">
+          <div className="relative flex items-center transition-all duration-300">
             <input
               ref={inputRef}
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search for posts..."
-              className="w-96 sm:w-[500px] md:w-[600px] lg:w-[700px] xl:w-[800px] bg-[var(--card-bg)] text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:outline-none text-base px-6 py-4 h-auto pr-12"
+              className="w-96 sm:w-[500px] md:w-[600px] lg:w-[700px] xl:w-[800px] bg-[var(--card-bg)] text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:outline-none text-base px-6 py-4 h-auto pr-12 rounded"
             />
 
             <button
@@ -121,7 +121,7 @@ export default function Search({ posts }: SearchProps) {
                   handleToggleSearch();
                 }
               }}
-              className="absolute right-3 p-1 text-[var(--foreground-muted)] hover:text-[var(--electric-blue)] transition-colors z-10"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-[var(--foreground-muted)] hover:text-[var(--electric-blue)] transition-colors z-10 flex items-center justify-center"
               aria-label={searchQuery ? "Clear search" : "Close search"}
             >
               <CloseIcon />
