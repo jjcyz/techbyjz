@@ -24,11 +24,11 @@ export default function RelatedPosts({ posts, currentPostSlug }: RelatedPostsPro
   }
 
   return (
-    <section className="mt-16 pt-16">
-      <h2 className="text-2xl md:text-3xl font-bold text-[var(--electric-blue)] mb-8">
+    <section className="mt-12 pt-12">
+      <h2 className="text-xl md:text-2xl font-bold text-[var(--electric-blue)] mb-6">
         Related Posts
       </h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {validPosts.map((post) => {
           const slug = post.slug!.current;
           const imageUrl = getImageUrl(post.mainImage, 400, 250);
@@ -37,10 +37,10 @@ export default function RelatedPosts({ posts, currentPostSlug }: RelatedPostsPro
             <Link
               key={post._id}
               href={`/posts/${slug}`}
-              className="group relative transition-all duration-300 h-full flex flex-col border border-[var(--border-color)] hover:border-[var(--electric-blue)] hover:shadow-[0_0_20px_rgba(0,191,255,0.3)] p-4"
+              className="group relative transition-all duration-300 h-full flex flex-col border border-[var(--border-color)] hover:border-[var(--electric-blue)] hover:shadow-[0_0_20px_rgba(0,191,255,0.3)] p-3"
             >
               {imageUrl && (
-                <div className="relative w-full aspect-[16/9] overflow-hidden bg-[var(--background-dark-navy)] mb-4">
+                <div className="relative w-full aspect-[16/9] overflow-hidden bg-[var(--background-dark-navy)] mb-3">
                   <Image
                     src={imageUrl}
                     alt={post.mainImage?.alt || post.title}
@@ -50,11 +50,11 @@ export default function RelatedPosts({ posts, currentPostSlug }: RelatedPostsPro
                   />
                 </div>
               )}
-              <h3 className="text-lg font-bold text-[var(--foreground)] group-hover:text-[var(--electric-blue)] transition-colors duration-300 line-clamp-2 mb-2">
+              <h3 className="text-base font-bold text-[var(--foreground)] group-hover:text-[var(--electric-blue)] transition-colors duration-300 line-clamp-2 mb-2">
                 {post.title}
               </h3>
               {post.excerpt && (
-                <p className="text-sm text-[var(--foreground-low)] line-clamp-2">
+                <p className="text-xs text-[var(--foreground-low)] line-clamp-2">
                   {post.excerpt}
                 </p>
               )}
