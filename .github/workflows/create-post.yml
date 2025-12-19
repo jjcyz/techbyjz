@@ -16,7 +16,7 @@ on:
 jobs:
   create-post:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -43,12 +43,12 @@ jobs:
             -H "x-api-key: $API_KEY" \
             -H "Content-Type: application/json" \
             -w "\nHTTP Status: %{http_code}\n"
-          
+
           if [ $? -ne 0 ]; then
             echo "❌ Failed to create post"
             exit 1
           fi
-          
+
           echo "✅ Post creation completed"
 
       - name: Notify on failure

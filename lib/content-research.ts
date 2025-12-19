@@ -1,6 +1,6 @@
 /**
  * Content Research and Synthesis Module
- * 
+ *
  * This module replicates the n8n workflow functionality:
  * - Pulls from credible sources
  * - Researches topics
@@ -38,7 +38,7 @@ export async function researchTopic(
   // - HackerNews API
   // - RSS feeds
   // - Web scraping (with proper rate limiting)
-  
+
   const researchPrompt = `Research the topic: "${topic}"
 
 Provide:

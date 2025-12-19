@@ -3,7 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { client } from '@/lib/sanity';
-import { POST_BY_SLUG_QUERY, POST_SLUGS_QUERY, CATEGORIES_QUERY, RELATED_POSTS_QUERY, RECENT_POSTS_QUERY } from '@/lib/queries';
+import { POST_BY_SLUG_QUERY, CATEGORIES_QUERY, RELATED_POSTS_QUERY, RECENT_POSTS_QUERY } from '@/lib/queries';
 import { getImageUrl } from '@/lib/image';
 import { isValidSlug } from '@/lib/utils';
 import type { Post, Category, Tag } from '@/types/post';
@@ -16,15 +16,34 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-// Generate static params for all posts (for SSG)
-export async function generateStaticParams() {
-  const slugs = await client.fetch(POST_SLUGS_QUERY);
+// Use on-demand ISR: posts are generated on first request, then cached
+// This makes builds scalable - no need to generate all posts at build time
+export const dynamicParams = true; // Allow dynamic params not in generateStaticParams
+export const revalidate = 60; // Revalidate every 60 seconds (ISR)
+export const runtime = 'nodejs'; // Ensure Node.js runtime for Vercel
 
-  return slugs
-    .filter((item: { slug: { current: string } | null }) => isValidSlug(item.slug?.current))
-    .map((item: { slug: { current: string } }) => ({
-      slug: item.slug.current,
-    }));
+// Optional: Pre-generate only the most recent posts for faster initial load
+// This is optional - if removed, all posts will be generated on-demand
+export async function generateStaticParams() {
+  try {
+    // Only pre-generate the latest 10 posts for faster initial load
+    // All other posts will be generated on first request (on-demand ISR)
+    const recentPosts = await client.fetch<Array<{ slug: { current: string } | null }>>(
+      `*[_type == "post"] | order(publishedAt desc) [0...10] {
+        slug { current }
+      }`
+    );
+
+    return recentPosts
+      .filter((item) => isValidSlug(item.slug?.current))
+      .map((item) => ({
+        slug: item.slug!.current,
+      }));
+  } catch (error) {
+    console.error('Error generating static params:', error);
+    // Return empty array if there's an error - pages will still work with on-demand generation
+    return [];
+  }
 }
 
 // Generate SEO metadata

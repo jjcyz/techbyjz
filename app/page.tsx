@@ -11,14 +11,23 @@ import type { Post, Category } from "@/types/post";
 
 export default async function Home() {
   // Fetch posts and categories in parallel for better performance
-  const [posts, categories] = await Promise.all([
-    client.fetch<Post[]>(POSTS_QUERY, {}, {
-      next: { revalidate: 60 } // Revalidate every 60 seconds for ISR
-    }),
-    client.fetch<Category[]>(CATEGORIES_QUERY, {}, {
-      next: { revalidate: 60 }
-    })
-  ]);
+  let posts: Post[] = [];
+  let categories: Category[] = [];
+
+  try {
+    [posts, categories] = await Promise.all([
+      client.fetch<Post[]>(POSTS_QUERY, {}, {
+        next: { revalidate: 60 } // Revalidate every 60 seconds for ISR
+      }),
+      client.fetch<Category[]>(CATEGORIES_QUERY, {}, {
+        next: { revalidate: 60 }
+      })
+    ]);
+  } catch (error) {
+    console.error('Error fetching data from Sanity:', error);
+    // Return empty arrays if fetch fails - page will still render
+    // This prevents the entire page from failing and returning 404
+  }
 
   // Filter out posts without valid slugs (including template strings)
   const validPosts = posts.filter((post) => isValidSlug(post.slug?.current));
