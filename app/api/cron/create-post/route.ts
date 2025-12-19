@@ -1,25 +1,18 @@
-/**
+/*
  * Cron job endpoint for scheduled post creation
- * Can be triggered by:
- * - Vercel Cron Jobs (if deployed on Vercel)
- * - External cron services (cron-job.org, EasyCron, etc.)
- * - GitHub Actions
- *
- * Usage:
- * GET /api/cron/create-post?secret=your-cron-secret
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { markdownToPortableText } from '@/lib/markdown-to-portable-text';
-
-// Force dynamic rendering for Vercel
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
+import { fetchAllResearchSources, formatResearchForPrompt } from '@/lib/research-sources';
+import {
+  fetchCategories,
+  fetchTags,
+  suggestCategoriesAndTags,
+} from '@/lib/categories-tags';
 
 /**
  * Generates blog post content using AI with research and synthesis
  * Replicates n8n workflow: research → synthesize → create unique insights
- * Supports OpenAI, Anthropic Claude, or other AI services
  */
 async function generatePostContent(topic?: string): Promise<{
   markdown: string;
@@ -28,33 +21,49 @@ async function generatePostContent(topic?: string): Promise<{
   categoryIds?: string[];
   tagIds?: string[];
 }> {
-  const apiKey = process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY;
 
   if (!apiKey) {
-    throw new Error('No AI API key found. Set OPENAI_API_KEY or ANTHROPIC_API_KEY');
+    throw new Error('No OpenAI API key found. Set OPENAI_API_KEY');
   }
 
+  // Step 1: Fetch real-time research from HackerNews and RSS feeds
+  console.log(`Fetching real-time research for topic: ${topic || 'current tech trends'}`);
+  const researchArticles = await fetchAllResearchSources(topic);
+  const researchSummary = formatResearchForPrompt(researchArticles);
+  console.log(`Found ${researchArticles.length} relevant articles from research sources`);
+
+  // Step 1.5: Fetch existing categories and tags for AI suggestions
+  console.log('Fetching existing categories and tags...');
+  const [existingCategories, existingTags] = await Promise.all([
+    fetchCategories(),
+    fetchTags(),
+  ]);
+  console.log(`Found ${existingCategories.length} categories and ${existingTags.length} tags`);
+
   // Enhanced system prompt for research-based content
-  const systemPrompt = `You are an expert tech blogger who writes insightful, well-researched articles. You:
+  const systemPrompt = `You are an expert tech blogger who writes insightful, well-researched articles that people actually want to read. You:
 1. Synthesize information from multiple credible sources
 2. Make connections between seemingly unrelated points
 3. Create unique perspectives and insights
-4. Write in an engaging, thought-provoking style
+4. Write in an engaging, conversational, and thought-provoking style
 5. Structure content with clear headings, lists, and examples
 
 Your articles are known for:
 - Deep analysis and synthesis
 - Unique insights that readers won't find elsewhere
 - Connecting dots across different domains
-- Actionable takeaways`;
+- Actionable takeaways
+- **Human, readable writing** - conversational tone, natural flow, personality
+- Writing that feels authentic and genuine, not robotic or AI-generated`;
 
-  // Research and synthesis prompt
+  // Research and synthesis prompt - now includes real research data
   const researchPrompt = topic
     ? `Research the topic: "${topic}".
 
-Imagine you're pulling from credible sources (tech news sites, research papers, industry reports, Reddit discussions, HackerNews, etc.).
+${researchSummary}
 
-Extract:
+Based on the real-time research above, extract:
 1. 5-7 key points from these sources
 2. 3-5 interesting connections or patterns
 3. 2-3 unique insights or perspectives that most people miss
@@ -63,9 +72,9 @@ Extract:
 Then synthesize this research into a comprehensive blog post.`
     : `Research current tech trends and news.
 
-Imagine you're pulling from credible sources (tech news sites, research papers, industry reports, Reddit discussions, HackerNews, etc.).
+${researchSummary}
 
-Extract:
+Based on the real-time research above, extract:
 1. 5-7 key points from these sources
 2. 3-5 interesting connections or patterns
 3. 2-3 unique insights or perspectives that most people miss
@@ -80,6 +89,13 @@ Create a blog post that:
 2. Highlights the most interesting connections
 3. Develops unique insights further
 4. Tells a compelling story
+
+**CRITICAL: Write like a human, not a robot.**
+- Use conversational language and natural flow - write as if you're explaining to a friend
+- Vary sentence length and structure for rhythm and readability
+- Use contractions when appropriate (it's, don't, we're, you're)
+- Avoid overly formal or academic language - keep it accessible
+- Make it feel authentic and genuine, like a real person wrote it
 
 Format as markdown with:
 - A clear, engaging title (as H1)
@@ -102,7 +118,7 @@ Make it insightful, unique, and valuable. Length should be substantial (1500-300
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || 'gpt-4',
+        model: process.env.OPENAI_MODEL || 'gpt-4o mini',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
@@ -135,54 +151,28 @@ Make it insightful, unique, and valuable. Length should be substantial (1500-300
       ? excerptMatch[1].trim().substring(0, 200) + (excerptMatch[1].length > 200 ? '...' : '')
       : 'A new post generated by AI.';
 
+    // Step 3: Use AI to suggest categories and tags based on the generated content
+    console.log('Analyzing content to suggest categories and tags...');
+    const { categoryIds, tagIds } = await suggestCategoriesAndTags(
+      title,
+      excerpt,
+      aiContent,
+      existingCategories,
+      existingTags
+    );
+    console.log(`Assigned ${categoryIds.length} categories and ${tagIds.length} tags`);
+
     return {
       markdown: aiContent,
       title,
       excerpt,
-      categoryIds: [],
-      tagIds: [],
+      categoryIds,
+      tagIds,
     };
   }
 
-  // Option 2: Use Anthropic Claude
-  if (process.env.ANTHROPIC_API_KEY) {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: process.env.ANTHROPIC_MODEL || 'claude-3-sonnet-20240229',
-        max_tokens: 2000,
-        messages: [
-          {
-            role: 'user',
-            content: 'Write a blog post about latest tech trends in Markdown format. Include a title (H1), excerpt, and well-structured content.',
-          },
-        ],
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Anthropic API error: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    const markdown = data.content[0].text;
-
-    // Extract title and excerpt
-    const titleMatch = markdown.match(/^#\s+(.+)$/m);
-    const title = titleMatch ? titleMatch[1] : 'Untitled Post';
-    const excerptMatch = markdown.match(/\n\n([^\n]+)/);
-    const excerpt = excerptMatch ? excerptMatch[1].substring(0, 150) : '';
-
-    return { markdown, title, excerpt };
-  }
-
   // Fallback: Return error if no AI service configured
-  throw new Error('No AI service configured. Set OPENAI_API_KEY or ANTHROPIC_API_KEY in environment variables.');
+  throw new Error('No AI service configured. Set OPENAI_API_KEY in environment variables.');
 }
 
 export async function GET(request: NextRequest) {

@@ -15,7 +15,14 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "TechByJZ Blog | Futuristic Tech Insights",
-  description: "A futuristic sci-fi themed tech blog featuring cutting-edge tech insights.",
+  description: "A futuristic sci-fi themed tech blog featuring cutting-edge tech insights",
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
 };
 
 export default function RootLayout({
