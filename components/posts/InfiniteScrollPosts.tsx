@@ -132,9 +132,9 @@ export default function InfiniteScrollPosts({
                 )}
 
                 <div className="flex items-center justify-between gap-2 text-xs text-[var(--text-gray-500)]">
-                  {formattedDate && (
+                {formattedDate && (
                     <time>{formattedDate}</time>
-                  )}
+                )}
                   <ViewCount viewCount={post.viewCount} />
                 </div>
               </div>

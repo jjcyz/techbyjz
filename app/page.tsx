@@ -4,6 +4,7 @@ import FeaturedSection from "@/components/sections/FeaturedSection/FeaturedSecti
 import NewsSection from "@/components/sections/NewsSection/NewsSection";
 import AutomationSection from "@/components/sections/AutomationSection/AutomationSection";
 import AISection from "@/components/sections/AISection/AISection";
+import CybersecuritySection from "@/components/sections/CybersecuritySection/CybersecuritySection";
 import HeroBannerSection from "@/components/sections/HeroBannerSection/HeroBannerSection";
 import Footer from "@/components/shared/Footer";
 import { isValidSlug, groupPostsByCategory, getRandomPost } from "@/lib/utils";
@@ -70,10 +71,12 @@ export default async function Home() {
   const newsCategory = categories.find(cat => cat.title === "Tech World in 60 Sec");
   const automationCategory = categories.find(cat => cat.title === "Automation");
   const aiCategory = categories.find(cat => cat.title === "AI Models");
+  const cybersecurityCategory = categories.find(cat => cat.title === "Cybersecurity");
 
   const newsPosts = filterPostsByCategoryTitle("Tech World in 60 Sec");
   const automationPosts = filterPostsByCategoryTitle("Automation");
   const aiPosts = filterPostsByCategoryTitle("AI Models");
+  const cybersecurityPosts = filterPostsByCategoryTitle("Cybersecurity");
 
 
   return (
@@ -95,6 +98,9 @@ export default async function Home() {
 
       {/* AI Section */}
       <AISection posts={aiPosts} category={aiCategory} />
+
+      {/* Cybersecurity Section */}
+      <CybersecuritySection posts={cybersecurityPosts} category={cybersecurityCategory} />
 
       {/* Footer */}
       <Footer categories={categoriesWithPosts} />
