@@ -9,10 +9,7 @@
     "dev": "next dev",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "import-markdown": "tsx scripts/import-markdown.ts",
-    "fix-content": "tsx scripts/fix-existing-content.ts",
-    "test-markdown": "tsx scripts/test-markdown.ts"
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "dependencies": {
     "@portabletext/react": "^5.0.0",

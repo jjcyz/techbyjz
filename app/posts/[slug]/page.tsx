@@ -163,38 +163,38 @@ export default async function PostPage({ params }: PageProps) {
   return (
     <main className="min-h-screen relative">
       {/* Back Button */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 pt-8 pb-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 pt-6 pb-3">
           <Link
             href="/"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--electric-blue)] hover:border-[var(--electric-blue)] hover:bg-[var(--electric-blue)]/10 transition-all duration-300 text-sm font-medium"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--electric-blue)] hover:border-[var(--electric-blue)] hover:bg-[var(--electric-blue)]/10 transition-all duration-300 text-xs font-medium"
           >
             ← Back to Posts
           </Link>
         </div>
 
-      <article className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-16 md:py-24 lg:py-32">
+      <article className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-8 md:py-12 lg:py-16">
         {/* Post Header */}
-        <header className="mb-12 text-center">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-foreground mb-6 leading-tight">
+        <header className="mb-6 text-center">
+          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground mb-3 leading-tight">
             {post.title}
           </h1>
 
           {formattedDate && (
-            <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-[var(--text-gray-400)] mb-6">
+            <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-[var(--text-gray-400)] mb-3">
               <time className="text-[var(--text-gray-500)]">{formattedDate}</time>
             </div>
           )}
 
           {/* Categories and Tags */}
           {(post.categories && post.categories.length > 0) || (post.tags && post.tags.length > 0) ? (
-            <div className="flex flex-wrap justify-center gap-2 mb-6">
+            <div className="flex flex-wrap justify-center gap-1.5 mb-3">
               {post.categories?.map((categoryId) => {
                 const category = categories.find((cat) => cat._id === categoryId);
                 if (!category) return null;
                 return (
                 <span
                   key={category._id}
-                  className="px-3 py-1 bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--electric-blue)] text-sm"
+                  className="px-2 py-0.5 bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--electric-blue)] text-xs"
                 >
                   {category.title}
                 </span>
@@ -206,9 +206,9 @@ export default async function PostPage({ params }: PageProps) {
                 return (
                   <span
                     key={index}
-                    className="px-3 py-1 bg-[var(--dark-blue)] border border-[var(--border-color)] text-[var(--text-gray-300)] text-sm"
+                    className="px-2 py-0.5 bg-[var(--dark-blue)] border border-[var(--border-color)] text-[var(--text-gray-300)] text-xs"
                   >
-                    #{tagValue}
+                    {tagValue}
                   </span>
                 );
               })}
@@ -218,7 +218,7 @@ export default async function PostPage({ params }: PageProps) {
 
         {/* Featured Image */}
         {imageUrl ? (
-          <div className="relative w-full h-64 md:h-96 lg:h-[500px] mb-8 overflow-hidden bg-[var(--background-dark-navy)] border border-[var(--border-color)]">
+          <div className="relative w-full h-40 md:h-56 lg:h-72 mb-4 overflow-hidden bg-[var(--background-dark-navy)] border border-[var(--border-color)]">
             <Image
               src={imageUrl}
               alt={post.mainImage?.alt || post.title}
@@ -232,7 +232,7 @@ export default async function PostPage({ params }: PageProps) {
 
         {/* Post Excerpt */}
         {post.excerpt && (
-          <p className="text-lg md:text-xl lg:text-2xl text-[var(--foreground-low)] mb-12 leading-relaxed text-center max-w-3xl mx-auto">
+          <p className="text-xs sm:text-sm md:text-base text-[var(--foreground-low)] mb-6 leading-relaxed text-center max-w-3xl mx-auto">
             {post.excerpt}
           </p>
         )}
@@ -248,50 +248,50 @@ export default async function PostPage({ params }: PageProps) {
 
           return content ? (
             Array.isArray(content) && content.length > 0 ? (
-              <div className="prose prose-invert prose-xl max-w-none">
+              <div className="max-w-none">
                 <PortableText
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   value={content as any}
                 components={{
                   block: {
                     normal: ({ children }) => (
-                      <p className="text-base md:text-lg lg:text-xl text-[var(--foreground)] mb-6 leading-[1.75] max-w-[65ch] mx-auto">{children}</p>
+                      <p className="text-xs sm:text-sm md:text-base text-[var(--foreground)] mb-3 leading-relaxed max-w-[65ch] mx-auto">{children}</p>
                     ),
                     h1: ({ children }) => (
-                      <h1 className="text-3xl md:text-4xl font-bold text-[var(--foreground)] mb-6 mt-12 first:mt-0 max-w-[65ch] mx-auto">{children}</h1>
+                      <h1 className="text-lg md:text-xl lg:text-2xl font-bold text-[var(--foreground)] mb-3 mt-6 first:mt-0 max-w-[65ch] mx-auto">{children}</h1>
                     ),
                     h2: ({ children }) => (
-                      <h2 className="text-2xl md:text-3xl font-bold text-[var(--foreground)] mb-4 mt-10 first:mt-0 max-w-[65ch] mx-auto">{children}</h2>
+                      <h2 className="text-base md:text-lg lg:text-xl font-bold text-[var(--foreground)] mb-2 mt-5 first:mt-0 max-w-[65ch] mx-auto">{children}</h2>
                     ),
                     h3: ({ children }) => (
-                      <h3 className="text-xl md:text-2xl font-bold text-[var(--foreground)] mb-3 mt-8 first:mt-0 max-w-[65ch] mx-auto">{children}</h3>
+                      <h3 className="text-sm md:text-base lg:text-lg font-bold text-[var(--foreground)] mb-2 mt-4 first:mt-0 max-w-[65ch] mx-auto">{children}</h3>
                     ),
                     h4: ({ children }) => (
-                      <h4 className="text-lg md:text-xl font-bold text-[var(--foreground)] mb-2 mt-6 first:mt-0 max-w-[65ch] mx-auto">{children}</h4>
+                      <h4 className="text-sm md:text-base font-bold text-[var(--foreground)] mb-1.5 mt-3 first:mt-0 max-w-[65ch] mx-auto">{children}</h4>
                     ),
                     blockquote: ({ children }) => (
-                      <blockquote className="border-l-4 border-[var(--electric-blue)] pl-6 my-8 italic text-base md:text-lg text-[var(--foreground-low)] bg-[var(--card-bg)]/30 py-4 max-w-[65ch] mx-auto leading-relaxed">
+                      <blockquote className="border-l-4 border-[var(--electric-blue)] pl-3 my-4 italic text-xs sm:text-sm text-[var(--foreground-low)] bg-[var(--card-bg)]/30 py-2 max-w-[65ch] mx-auto leading-relaxed">
                         {children}
                       </blockquote>
                     ),
                   },
                   list: {
                     bullet: ({ children }) => (
-                      <ul className="list-disc list-outside mb-6 text-base md:text-lg text-[var(--foreground)] space-y-3 ml-6 max-w-[65ch] mx-auto leading-relaxed">{children}</ul>
+                      <ul className="list-disc list-outside mb-3 text-xs sm:text-sm md:text-base text-[var(--foreground)] space-y-1.5 ml-5 max-w-[65ch] mx-auto leading-relaxed">{children}</ul>
                     ),
                     number: ({ children }) => (
-                      <ol className="list-decimal list-outside mb-6 text-base md:text-lg text-[var(--foreground)] space-y-3 ml-6 max-w-[65ch] mx-auto leading-relaxed">{children}</ol>
+                      <ol className="list-decimal list-outside mb-3 text-xs sm:text-sm md:text-base text-[var(--foreground)] space-y-1.5 ml-5 max-w-[65ch] mx-auto leading-relaxed">{children}</ol>
                     ),
                   },
                   listItem: {
-                    bullet: ({ children }) => <li className="mb-2 leading-[1.75]">{children}</li>,
-                    number: ({ children }) => <li className="mb-2 leading-[1.75]">{children}</li>,
+                    bullet: ({ children }) => <li className="mb-1 leading-relaxed">{children}</li>,
+                    number: ({ children }) => <li className="mb-1 leading-relaxed">{children}</li>,
                   },
                   marks: {
                     strong: ({ children }) => <strong className="font-bold text-[var(--foreground)]">{children}</strong>,
                     em: ({ children }) => <em className="italic">{children}</em>,
                     code: ({ children }) => (
-                      <code className="bg-[var(--card-bg)] px-2 py-1 text-[var(--electric-blue)] text-base font-mono">
+                      <code className="bg-[var(--card-bg)] px-1.5 py-0.5 text-[var(--electric-blue)] text-xs font-mono">
                         {children}
                       </code>
                     ),
