@@ -11,6 +11,7 @@ import { PortableText } from '@portabletext/react';
 import Footer from '@/components/shared/Footer';
 import RelatedPosts from '@/components/posts/RelatedPosts';
 import SocialShareButtons from '@/components/posts/SocialShareButtons';
+import ViewTracker from '@/components/posts/ViewTracker';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -162,6 +163,9 @@ export default async function PostPage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen relative">
+      {/* Track view count */}
+      <ViewTracker slug={post.slug.current} />
+
       {/* Back Button */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 pt-6 pb-3">
           <Link
@@ -182,6 +186,24 @@ export default async function PostPage({ params }: PageProps) {
           {formattedDate && (
             <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-[var(--text-gray-400)] mb-4">
               <time className="text-[var(--text-gray-500)]">{formattedDate}</time>
+              {(() => {
+                // Safely get view count, defaulting to 0 if null/undefined/invalid
+                let viewCount = 0;
+                if (typeof post.viewCount === 'number' && !isNaN(post.viewCount)) {
+                  viewCount = post.viewCount;
+                } else if (post.viewCount != null) {
+                  const parsed = Number(post.viewCount);
+                  viewCount = isNaN(parsed) ? 0 : parsed;
+                }
+                return (
+                  <>
+                    <span className="text-[var(--text-gray-500)]">•</span>
+                    <span className="text-[var(--text-gray-500)]">
+                      {viewCount.toLocaleString()} {viewCount === 1 ? 'view' : 'views'}
+                    </span>
+                  </>
+                );
+              })()}
             </div>
           )}
 

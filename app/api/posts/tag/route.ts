@@ -45,6 +45,7 @@ export async function GET(request: NextRequest) {
         slug,
         excerpt,
         publishedAt,
+        viewCount,
         mainImage {
           _type,
           asset {

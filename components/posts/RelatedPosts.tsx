@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { getImageUrl } from '@/lib/image';
 import { isValidSlug } from '@/lib/utils';
 import type { Post } from '@/types/post';
+import ViewCount from '@/components/posts/ViewCount';
 
 interface RelatedPostsProps {
   posts: Post[];
@@ -54,10 +55,13 @@ export default function RelatedPosts({ posts, currentPostSlug }: RelatedPostsPro
                 {post.title}
               </h3>
               {post.excerpt && (
-                <p className="text-xs text-[var(--foreground-low)] line-clamp-2">
+                <p className="text-xs text-[var(--foreground-low)] line-clamp-2 mb-2">
                   {post.excerpt}
                 </p>
               )}
+              <div className="mt-auto">
+                <ViewCount viewCount={post.viewCount} />
+              </div>
             </Link>
           );
         })}

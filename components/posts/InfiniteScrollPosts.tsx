@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { getImageUrl } from '@/lib/image';
 import { isValidSlug } from '@/lib/utils';
 import type { Post } from '@/types/post';
+import ViewCount from '@/components/posts/ViewCount';
 
 interface InfiniteScrollPostsProps {
   initialPosts: Post[];
@@ -130,11 +131,12 @@ export default function InfiniteScrollPosts({
                   </p>
                 )}
 
-                {formattedDate && (
-                  <time className="text-xs text-[var(--text-gray-500)]">
-                    {formattedDate}
-                  </time>
-                )}
+                <div className="flex items-center justify-between gap-2 text-xs text-[var(--text-gray-500)]">
+                  {formattedDate && (
+                    <time>{formattedDate}</time>
+                  )}
+                  <ViewCount viewCount={post.viewCount} />
+                </div>
               </div>
             </Link>
           );

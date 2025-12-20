@@ -37,4 +37,5 @@ export interface Post {
   authorName?: string;
   categories?: string[];
   tags?: (string | Tag)[];
+  viewCount?: number;
 }

@@ -82,6 +82,7 @@ export default async function CategoryPage({ params }: PageProps) {
         slug,
         excerpt,
         publishedAt,
+        viewCount,
         mainImage {
           _type,
           asset {

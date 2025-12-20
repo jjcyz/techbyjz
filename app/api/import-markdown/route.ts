@@ -72,6 +72,7 @@ export async function POST(request: NextRequest) {
       excerpt: excerpt || '',
       content: portableTextContent,
       publishedAt: new Date().toISOString(),
+      viewCount: 0,
       slug: {
         _type: 'slug',
         current: slug,

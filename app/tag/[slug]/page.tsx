@@ -86,6 +86,7 @@ export default async function TagPage({ params }: PageProps) {
         slug,
         excerpt,
         publishedAt,
+        viewCount,
         mainImage {
           _type,
           asset {

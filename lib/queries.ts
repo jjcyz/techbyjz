@@ -9,6 +9,7 @@ export const POSTS_QUERY = `*[_type == "post"] | order(publishedAt desc) {
   slug,
   excerpt,
   publishedAt,
+  viewCount,
   mainImage {
     _type,
     asset {
@@ -33,6 +34,7 @@ export const POST_BY_SLUG_QUERY = `*[_type == "post" && slug.current == $slug][0
   excerpt,
   content,
   publishedAt,
+  viewCount,
   mainImage {
     _type,
     asset {
@@ -74,6 +76,7 @@ export const POSTS_BY_CATEGORY_ID_QUERY = `*[_type == "post" && $categoryId in c
   slug,
   excerpt,
   publishedAt,
+  viewCount,
   mainImage {
     _type,
     asset {
@@ -97,6 +100,7 @@ export const RELATED_POSTS_QUERY = `*[_type == "post" && _id != $postId && count
   slug,
   excerpt,
   publishedAt,
+  viewCount,
   mainImage {
     _type,
     asset {
@@ -115,6 +119,7 @@ export const RECENT_POSTS_QUERY = `*[_type == "post" && _id != $postId] | order(
   slug,
   excerpt,
   publishedAt,
+  viewCount,
   mainImage {
     _type,
     asset {
@@ -145,6 +150,7 @@ export const POSTS_BY_TAG_ID_QUERY = `*[_type == "post" && $tagId in tags[]._ref
   slug,
   excerpt,
   publishedAt,
+  viewCount,
   mainImage {
     _type,
     asset {

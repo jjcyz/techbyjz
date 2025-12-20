@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { getImageUrl } from '@/lib/image';
 import { isValidSlug } from '@/lib/utils';
 import type { Post } from '@/types/post';
+import ViewCount from '@/components/posts/ViewCount';
 
 interface AutomationCardProps {
   post: Post;
@@ -44,9 +45,10 @@ export default function AutomationCard({ post, featured = false }: AutomationCar
 
         {/* Title overlay for all cards */}
         <div className={`absolute bottom-0 left-0 right-0 ${featured ? 'p-3 md:p-4' : 'p-2 md:p-2.5'}`}>
-          <h3 className={`${featured ? 'text-base md:text-lg lg:text-xl' : 'text-sm md:text-base'} font-semibold text-[var(--foreground)] group-hover:text-[var(--electric-blue)] transition-colors duration-300 ${featured ? 'line-clamp-3' : 'line-clamp-3'} leading-tight drop-shadow-lg`}>
+          <h3 className={`${featured ? 'text-base md:text-lg lg:text-xl' : 'text-sm md:text-base'} font-semibold text-[var(--foreground)] group-hover:text-[var(--electric-blue)] transition-colors duration-300 ${featured ? 'line-clamp-3' : 'line-clamp-3'} leading-tight drop-shadow-lg ${featured ? 'mb-2' : 'mb-1'}`}>
             {post.title}
           </h3>
+          <ViewCount viewCount={post.viewCount} className="text-[var(--foreground)]/80" />
         </div>
       </div>
     </Link>

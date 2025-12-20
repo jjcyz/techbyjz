@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { getImageUrl } from '@/lib/image';
 import { isValidSlug } from '@/lib/utils';
 import type { Post } from '@/types/post';
+import ViewCount from '@/components/posts/ViewCount';
 
 interface NewsCardProps {
   post: Post;
@@ -52,6 +53,7 @@ export default function NewsCard({ post, featured = false }: NewsCardProps) {
             {post.excerpt}
           </p>
         )}
+        <ViewCount viewCount={post.viewCount} className={featured ? 'mt-2' : 'mt-1'} />
       </div>
     </Link>
   );

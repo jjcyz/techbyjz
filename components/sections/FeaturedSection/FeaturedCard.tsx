@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { getImageUrl } from '@/lib/image';
 import { isValidSlug } from '@/lib/utils';
 import type { Post } from '@/types/post';
+import ViewCount from '@/components/posts/ViewCount';
 
 interface FeaturedCardProps {
   post: Post;
@@ -43,9 +44,10 @@ export default function FeaturedCard({ post }: FeaturedCardProps) {
 
         {/* Title overlay at bottom */}
         <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4">
-          <h3 className="text-base md:text-lg lg:text-xl font-bold text-[var(--foreground)] group-hover:text-[var(--electric-blue)] transition-colors duration-300 line-clamp-3 leading-tight drop-shadow-lg">
+          <h3 className="text-base md:text-lg lg:text-xl font-bold text-[var(--foreground)] group-hover:text-[var(--electric-blue)] transition-colors duration-300 line-clamp-3 leading-tight drop-shadow-lg mb-2">
             {post.title}
           </h3>
+          <ViewCount viewCount={post.viewCount} className="text-[var(--foreground)]/80" />
         </div>
       </div>
     </Link>

@@ -135,6 +135,13 @@ export default defineType({
       of: [{ type: 'block' }],
       description: 'Legacy field name, kept for backwards compatibility',
     }),
+    defineField({
+      name: 'viewCount',
+      title: 'View Count',
+      type: 'number',
+      initialValue: 0,
+      description: 'Number of times this post has been viewed',
+    }),
   ],
   preview: {
     select: {
