@@ -67,13 +67,17 @@ export default async function Home() {
 
   // Get posts for each category section
   // Using exact category titles from Sanity
+  const newsCategory = categories.find(cat => cat.title === "Tech World in 60 Sec");
+  const automationCategory = categories.find(cat => cat.title === "Automation");
+  const aiCategory = categories.find(cat => cat.title === "AI Models");
+
   const newsPosts = filterPostsByCategoryTitle("Tech World in 60 Sec");
   const automationPosts = filterPostsByCategoryTitle("Automation");
   const aiPosts = filterPostsByCategoryTitle("AI Models");
 
 
   return (
-    <main className="min-h-screen relative">
+    <main className="min-h-screen relative overflow-x-hidden w-full">
       {/* Hero Banner Section */}
       <HeroBannerSection
         posts={validPosts}
@@ -84,13 +88,13 @@ export default async function Home() {
       <FeaturedSection posts={displayFeaturedPosts} />
 
       {/* News Section */}
-      <NewsSection posts={newsPosts} />
+      <NewsSection posts={newsPosts} category={newsCategory} />
 
       {/* Automation Section */}
-      <AutomationSection posts={automationPosts} />
+      <AutomationSection posts={automationPosts} category={automationCategory} />
 
       {/* AI Section */}
-      <AISection posts={aiPosts} />
+      <AISection posts={aiPosts} category={aiCategory} />
 
       {/* Footer */}
       <Footer categories={categoriesWithPosts} />

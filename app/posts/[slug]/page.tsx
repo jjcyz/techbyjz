@@ -191,21 +191,12 @@ export default async function PostPage({ params }: PageProps) {
               <div className="flex flex-wrap justify-center items-center gap-2">
                 {post.categories.map((categoryId) => {
                   const category = categories.find((cat) => cat._id === categoryId);
-                  if (!category) return null;
-
-                  // Map category titles to section IDs on homepage
-                  const categoryToSectionId: Record<string, string> = {
-                    'Tech World in 60 Sec': 'news-posts',
-                    'Automation': 'automation-posts',
-                    'AI Models': 'ai-posts',
-                  };
-
-                  const sectionId = categoryToSectionId[category.title] || `category-${category.slug?.current || category.title.toLowerCase().replace(/\s+/g, '-')}`;
+                  if (!category || !category.slug?.current) return null;
 
                   return (
                     <Link
                       key={category._id}
-                      href={`/#${sectionId}`}
+                      href={`/category/${category.slug.current}`}
                       className="inline-flex items-center px-3 py-1.5 bg-[var(--card-bg)] border-2 border-[var(--electric-blue)] text-[var(--electric-blue)] hover:bg-[var(--electric-blue)] hover:text-[var(--background-dark-navy)] transition-all duration-300 text-sm font-semibold shadow-[0_0_10px_rgba(0,191,255,0.2)] hover:shadow-[0_0_15px_rgba(0,191,255,0.4)]"
                     >
                       {category.title}
@@ -224,10 +215,17 @@ export default async function PostPage({ params }: PageProps) {
                   // Handle both string tags and reference objects
                   const tagObj = typeof tag === 'string' ? null : (tag as Tag);
                   const tagTitle = typeof tag === 'string' ? tag : tagObj?.title || String(tag);
+                  const tagSlug = tagObj?.slug?.current;
+
+                  // If tag has a slug, link to tag page, otherwise fallback to search
+                  const href = tagSlug && isValidSlug(tagSlug)
+                    ? `/tag/${tagSlug}`
+                    : `/?search=${encodeURIComponent(tagTitle)}`;
+
                   return (
                     <Link
                       key={index}
-                      href={`/?search=${encodeURIComponent(tagTitle)}`}
+                      href={href}
                       className="inline-flex items-center px-2 py-0.5 bg-[var(--dark-blue)] border border-[var(--border-color)] text-[var(--text-gray-300)] hover:border-[var(--electric-blue)] hover:text-[var(--electric-blue)] hover:bg-[var(--card-bg)] transition-all duration-300 text-xs"
                     >
                       {tagTitle}

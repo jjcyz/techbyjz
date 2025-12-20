@@ -10,7 +10,7 @@ interface HeroBannerSectionProps {
 
 export default function HeroBannerSection({ posts, randomPost }: HeroBannerSectionProps) {
   return (
-    <section className="relative min-h-[50vh] flex flex-col -mx-4 sm:-mx-6 md:-mx-8 lg:-mx-10 xl:-mx-12">
+    <section className="relative min-h-[50vh] flex flex-col w-full">
         {/* Background Image */}
         <div className="absolute inset-0 z-0 bg-[var(--background-dark-navy)]">
           <Image
@@ -31,8 +31,8 @@ export default function HeroBannerSection({ posts, randomPost }: HeroBannerSecti
 
       {/* Hero Content Container */}
       <div className="relative z-10 w-full mx-auto flex-1 flex flex-col justify-center py-4 sm:py-6 md:py-8 lg:py-10 px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12">
-        {/* Hero Text Section */}
-        <div className="w-full mb-4 sm:mb-6 pl-4 sm:pl-8 md:pl-12 lg:pl-16 xl:pl-24">
+        {/* Hero Text Section - Starts aligned with section headers but extends wider */}
+        <div className="w-full md:w-1/3 lg:w-2/5 xl:w-2/5 md:min-w-[180px] mb-4 sm:mb-6">
           <div className="space-y-4 sm:space-y-6">
             <div className="space-y-1.5 sm:space-y-2">
               <div className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold leading-none text-left pb-1.5 sm:pb-2 text-[var(--electric-blue)]">

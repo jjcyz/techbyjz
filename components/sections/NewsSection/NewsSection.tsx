@@ -1,13 +1,14 @@
 import NewsCard from './NewsCard';
 import Link from 'next/link';
 import { isValidSlug } from '@/lib/utils';
-import type { Post } from '@/types/post';
+import type { Post, Category } from '@/types/post';
 
 interface NewsSectionProps {
   posts: Post[];
+  category?: Category | null;
 }
 
-export default function NewsSection({ posts }: NewsSectionProps) {
+export default function NewsSection({ posts, category }: NewsSectionProps) {
   if (posts.length === 0) {
     return null;
   }
@@ -21,10 +22,51 @@ export default function NewsSection({ posts }: NewsSectionProps) {
       <div className="flex flex-col md:flex-row gap-4 sm:gap-6 md:gap-8">
         {/* Section Header - Left Column */}
         <div className="w-full md:w-1/5 lg:w-1/6 xl:w-1/6 md:min-w-[180px] lg:min-w-[200px] md:flex-shrink">
-          <div>
+          <div className="flex flex-col gap-3">
             <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold leading-tight sm:leading-none text-left text-[var(--electric-blue)]">
               Tech World in 60 Seconds
             </h2>
+            {category?.slug?.current ? (
+              <Link
+                href={`/category/${category.slug.current}`}
+                className="inline-flex items-center gap-2 text-xs sm:text-sm text-[var(--electric-blue)] border border-[var(--electric-blue)] px-3 py-1.5 hover:bg-[var(--electric-blue)] hover:text-[var(--background-dark-navy)] transition-all duration-300 font-semibold w-fit group"
+              >
+                View More
+                <svg
+                  className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </Link>
+            ) : (
+              <Link
+                href="/#news-posts"
+                className="inline-flex items-center gap-2 text-xs sm:text-sm text-[var(--electric-blue)] border border-[var(--electric-blue)] px-3 py-1.5 hover:bg-[var(--electric-blue)] hover:text-[var(--background-dark-navy)] transition-all duration-300 font-semibold w-fit group"
+              >
+                View More
+                <svg
+                  className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </Link>
+            )}
           </div>
         </div>
 

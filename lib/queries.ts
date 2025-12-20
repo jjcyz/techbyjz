@@ -62,6 +62,35 @@ export const CATEGORIES_QUERY = `*[_type == "category"] | order(title asc) {
   slug
 }`;
 
+export const CATEGORY_BY_SLUG_QUERY = `*[_type == "category" && slug.current == $slug][0] {
+  _id,
+  title,
+  slug
+}`;
+
+export const POSTS_BY_CATEGORY_ID_QUERY = `*[_type == "post" && $categoryId in categories] | order(publishedAt desc) {
+  _id,
+  title,
+  slug,
+  excerpt,
+  publishedAt,
+  mainImage {
+    _type,
+    asset {
+      _ref,
+      _type
+    },
+    alt
+  },
+  "authorName": author->name,
+  categories,
+  tags[]->{
+    _id,
+    title,
+    slug
+  }
+}`;
+
 export const RELATED_POSTS_QUERY = `*[_type == "post" && _id != $postId && count(categories[@ in $categoryIds]) > 0] | order(publishedAt desc) [0...3] {
   _id,
   title,
@@ -98,3 +127,37 @@ export const RECENT_POSTS_QUERY = `*[_type == "post" && _id != $postId] | order(
   categories
 }`;
 
+export const TAGS_QUERY = `*[_type == "tag"] | order(title asc) {
+  _id,
+  title,
+  slug
+}`;
+
+export const TAG_BY_SLUG_QUERY = `*[_type == "tag" && slug.current == $slug][0] {
+  _id,
+  title,
+  slug
+}`;
+
+export const POSTS_BY_TAG_ID_QUERY = `*[_type == "post" && $tagId in tags[]._ref] | order(publishedAt desc) {
+  _id,
+  title,
+  slug,
+  excerpt,
+  publishedAt,
+  mainImage {
+    _type,
+    asset {
+      _ref,
+      _type
+    },
+    alt
+  },
+  "authorName": author->name,
+  categories,
+  tags[]->{
+    _id,
+    title,
+    slug
+  }
+}`;
