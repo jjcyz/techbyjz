@@ -1,13 +1,17 @@
 'use client';
 
 import { useRef, useEffect, useState } from 'react';
-import CybersecurityCard from './CybersecurityCard';
+import PostCard from '@/components/shared/PostCard';
 import type { Post } from '@/types/post';
 
 interface CybersecurityCarouselProps {
   posts: Post[];
 }
 
+/**
+ * Auto-scrolling vertical carousel for cybersecurity posts.
+ * Uses CSS Grid to match height with the featured column naturally.
+ */
 export default function CybersecurityCarousel({ posts }: CybersecurityCarouselProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const animationFrameRef = useRef<number | null>(null);
@@ -87,21 +91,18 @@ export default function CybersecurityCarousel({ posts }: CybersecurityCarouselPr
 
   return (
     <div
-      className="relative w-full h-full overflow-hidden"
+      className="absolute inset-0 w-full h-full flex flex-col overflow-hidden"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      style={{ height: '100%', width: '100%' }}
     >
       {/* Top Fade Gradient */}
       <div className="absolute left-0 top-0 right-0 h-16 bg-gradient-to-b from-[var(--background-dark-navy)] to-transparent z-10 pointer-events-none" />
 
-      {/* Scrollable Container - vertical scroll */}
+      {/* Scrollable Container - vertical scroll within constrained height */}
       <div
         ref={scrollContainerRef}
-        className="flex flex-col gap-3 overflow-y-scroll hide-scrollbar w-full"
+        className="flex flex-col gap-3 overflow-y-auto hide-scrollbar w-full h-full"
         style={{
-          height: '100%',
-          width: '100%',
           scrollBehavior: 'auto',
         }}
       >
@@ -110,7 +111,7 @@ export default function CybersecurityCarousel({ posts }: CybersecurityCarouselPr
             key={`${post._id || post.slug?.current}-${index}`}
             className="flex-shrink-0"
           >
-            <CybersecurityCard post={post} />
+            <PostCard post={post} variant="overlay-horizontal" theme="red" />
           </div>
         ))}
       </div>
@@ -120,4 +121,3 @@ export default function CybersecurityCarousel({ posts }: CybersecurityCarouselPr
     </div>
   );
 }
-

@@ -1,5 +1,5 @@
-import CybersecurityCard from './CybersecurityCard';
-import CybersecurityCarouselWrapper from './CybersecurityCarouselWrapper';
+import PostCard from '@/components/shared/PostCard';
+import CybersecurityCarousel from './CybersecurityCarousel';
 import SectionHeader from '@/components/shared/SectionHeader';
 import type { Post, Category } from '@/types/post';
 
@@ -23,25 +23,24 @@ export default function CybersecuritySection({ posts, category }: CybersecurityS
           theme="red"
         />
 
-        {/* Content Area - Two column layout */}
-        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 items-start">
+        {/* Content Area - Two column layout with equal heights using CSS Grid */}
+        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           {/* Left column: Two featured cards stacked together */}
-          <div className="flex flex-col gap-3 w-full" id="cybersecurity-featured-column">
+          <div className="flex flex-col gap-3">
             {posts[0] && (
-              <CybersecurityCard post={posts[0]} featured />
+              <PostCard post={posts[0]} variant="overlay-featured" theme="red" featured />
             )}
             {posts[1] && (
-              <CybersecurityCard post={posts[1]} featured />
+              <PostCard post={posts[1]} variant="overlay-featured" theme="red" featured />
             )}
           </div>
 
-          {/* Right column: Auto-scrolling vertical carousel - height matches two featured cards */}
-          <div className="w-full h-full">
-            <CybersecurityCarouselWrapper posts={posts.slice(2)} />
+          {/* Right column: Auto-scrolling vertical carousel - constrained to match left column height */}
+          <div className="relative overflow-hidden">
+            <CybersecurityCarousel posts={posts.slice(2)} />
           </div>
         </div>
       </div>
     </div>
   );
 }
-
