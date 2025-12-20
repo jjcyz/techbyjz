@@ -4,11 +4,6 @@ import type { SanityImage } from '@/types/post';
 
 const builder = createImageUrlBuilder(client);
 
-export function urlFor(source: SanityImage | undefined) {
-  if (!source) return null;
-  return builder.image(source);
-}
-
 export function getImageUrl(
   source: SanityImage | undefined,
   width?: number,

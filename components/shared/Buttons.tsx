@@ -53,23 +53,6 @@ export function RandomPostButton({ randomPost }: RandomPostButtonProps) {
   );
 }
 
-
-// View All Button
-interface ViewAllButtonProps {
-  onClick: () => void;
-}
-
-export function ViewAllButton({ onClick }: ViewAllButtonProps) {
-  return (
-    <button
-      onClick={onClick}
-      className="text-[var(--electric-blue)] hover:text-[var(--electric-blue)] transition-colors text-sm font-medium border border-[var(--border-cyan)] px-4 py-2 hover:bg-[var(--hover-cyan-bg)] whitespace-nowrap"
-    >
-      View All →
-    </button>
-  );
-}
-
 // Scroll to Section Button
 interface ScrollToSectionButtonProps {
   sectionId: string;

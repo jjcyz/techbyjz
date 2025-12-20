@@ -204,37 +204,6 @@ function createTextBlock(text: string, linkAnnotations: Array<{ _key: string; _t
 }
 
 /**
- * Fixes a single text block that contains markdown syntax
- */
-export function fixMarkdownInBlock(block: PortableTextBlock): PortableTextBlock {
-  if (!block.children || block.children.length === 0) return block;
-
-  // Extract text from children
-  const text = block.children.map(c => c.text).join('');
-
-  // Check if it contains markdown syntax
-  if (!/(\*\*|\*|__|_|\[.*\]\(.*\)|`)/.test(text)) {
-    return block; // No markdown, return as-is
-  }
-
-  // Re-parse the text
-  const linkAnnotations: Array<{ _key: string; _type: 'link'; href: string }> = [];
-  const result = parseInlineMarkdown(text, linkAnnotations);
-
-  // Create new block preserving structure
-  const fixedBlock: PortableTextBlock = {
-    ...block,
-    children: result.children,
-  };
-
-  if (result.markDefs.length > 0) {
-    fixedBlock.markDefs = result.markDefs;
-  }
-
-  return fixedBlock;
-}
-
-/**
  * Creates a header block
  */
 function createHeaderBlock(text: string, level: number, linkAnnotations: Array<{ _key: string; _type: 'link'; href: string }> = []): PortableTextBlock {

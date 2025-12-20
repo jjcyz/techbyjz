@@ -29,7 +29,7 @@ const RSS_FEEDS = [
  * Fetch top stories from HackerNews API
  * Filters by topic if provided, otherwise returns top stories
  */
-export async function fetchHackerNews(topic?: string): Promise<ResearchArticle[]> {
+async function fetchHackerNews(topic?: string): Promise<ResearchArticle[]> {
   try {
     // Get top story IDs
     const topStoriesResponse = await fetch(
@@ -99,7 +99,7 @@ export async function fetchHackerNews(topic?: string): Promise<ResearchArticle[]
  * Fetch articles from RSS feeds
  * Supports TechCrunch, The Verge, Ars Technica, and more
  */
-export async function fetchRSSFeeds(topic?: string): Promise<ResearchArticle[]> {
+async function fetchRSSFeeds(topic?: string): Promise<ResearchArticle[]> {
   const parser = new Parser({
     timeout: 10000, // 10 second timeout per feed
     customFields: {

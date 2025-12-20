@@ -52,12 +52,6 @@ export const POST_BY_SLUG_QUERY = `*[_type == "post" && slug.current == $slug][0
   }
 }`;
 
-export const POST_SLUGS_QUERY = `*[_type == "post"] {
-  slug {
-    current
-  }
-}`;
-
 export const CATEGORIES_QUERY = `*[_type == "category"] | order(title asc) {
   _id,
   title,
@@ -142,28 +136,4 @@ export const TAG_BY_SLUG_QUERY = `*[_type == "tag" && slug.current == $slug][0] 
   _id,
   title,
   slug
-}`;
-
-export const POSTS_BY_TAG_ID_QUERY = `*[_type == "post" && $tagId in tags[]._ref] | order(publishedAt desc) {
-  _id,
-  title,
-  slug,
-  excerpt,
-  publishedAt,
-  viewCount,
-  mainImage {
-    _type,
-    asset {
-      _ref,
-      _type
-    },
-    alt
-  },
-  "authorName": author->name,
-  categories,
-  tags[]->{
-    _id,
-    title,
-    slug
-  }
 }`;
