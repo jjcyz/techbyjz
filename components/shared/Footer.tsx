@@ -30,18 +30,21 @@ export default function Footer({ categories }: FooterProps) {
               Quick Links
             </h4>
             <ul className="space-y-2">
-              {categories.slice(0, 7).map((category) => {
-                const slug =
-                  category.slug?.current ||
-                  category.title.toLowerCase().replace(/\s+/g, '-');
-                return (
-                  <li key={category._id}>
-                    <ScrollToSectionButton sectionId={`category-${slug}`}>
-                      {category.title}
-                    </ScrollToSectionButton>
-                  </li>
-                );
-              })}
+              {categories
+                .filter((category) => !category.title.toLowerCase().includes('all'))
+                .slice(0, 7)
+                .map((category) => {
+                  const slug =
+                    category.slug?.current ||
+                    category.title.toLowerCase().replace(/\s+/g, '-');
+                  return (
+                    <li key={category._id}>
+                      <ScrollToSectionButton sectionId={`category-${slug}`}>
+                        {category.title}
+                      </ScrollToSectionButton>
+                    </li>
+                  );
+                })}
             </ul>
           </div>
 

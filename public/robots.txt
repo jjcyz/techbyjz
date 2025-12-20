@@ -1,0 +1,108 @@
+# Robots.txt for TechByJZ
+# Allow legitimate search engines and AI search bots, block training/scraping bots
+
+# Traditional Search Engines
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Slurp
+Allow: /
+Crawl-delay: 1
+
+User-agent: DuckDuckBot
+Allow: /
+Crawl-delay: 1
+
+# AI Search Engines - ALLOW (for discoverability)
+# These help users find your content through AI search
+User-agent: ChatGPT-User
+Allow: /
+Crawl-delay: 2
+
+User-agent: anthropic-ai
+Allow: /
+Crawl-delay: 2
+
+User-agent: Claude-Web
+Allow: /
+Crawl-delay: 2
+
+User-agent: PerplexityBot
+Allow: /
+Crawl-delay: 2
+
+User-agent: Perplexity-AI
+Allow: /
+Crawl-delay: 2
+
+# Block AI Training Bots (these are for training models, not search)
+# These bots harvest content for training, not for helping users discover it
+User-agent: GPTBot
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: Omgilibot
+Disallow: /
+
+User-agent: FacebookBot
+Disallow: /
+
+User-agent: facebookexternalhit
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: Diffbot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+# Block common scrapers
+User-agent: Scrapy
+Disallow: /
+
+User-agent: Python-urllib
+Disallow: /
+
+User-agent: curl
+Disallow: /
+
+User-agent: wget
+Disallow: /
+
+# Block all other bots by default
+User-agent: *
+Disallow: /api/
+Disallow: /studio/
+Crawl-delay: 10
+
+# Sitemap location (add when you have one)
+# Sitemap: https://techbyjz.com/sitemap.xml
+

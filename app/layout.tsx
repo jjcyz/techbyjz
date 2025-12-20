@@ -16,6 +16,19 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "TechByJZ Blog | Futuristic Tech Insights",
   description: "A futuristic sci-fi themed tech blog featuring cutting-edge tech insights",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  // Note: We allow AI search engines (ChatGPT, Claude, Perplexity) for discoverability
+  // but block training bots (GPTBot, Google-Extended) via robots.txt
 };
 
 export const viewport = {
