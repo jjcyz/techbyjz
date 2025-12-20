@@ -37,7 +37,7 @@ export function toTitleCase(str: string): string {
       if (!word) return word;
 
       const upperWord = word.toUpperCase();
-      
+
       // Check if it's a known acronym (case-insensitive)
       if (COMMON_ACRONYMS.has(upperWord)) {
         // Return the acronym in its canonical form

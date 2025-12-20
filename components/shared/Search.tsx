@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import type { Post } from '@/types/post';
 import { isValidSlug } from '@/lib/utils';
@@ -41,10 +42,23 @@ const CloseIcon = () => (
   </svg>
 );
 
-export default function Search({ posts }: SearchProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isExpanded, setIsExpanded] = useState(false);
+// Inner component that uses useSearchParams
+function SearchInner({ posts }: SearchProps) {
+  const searchParams = useSearchParams();
+  const urlSearchQuery = searchParams.get('search') || '';
+
+  const [searchQuery, setSearchQuery] = useState(urlSearchQuery);
+  const [isExpanded, setIsExpanded] = useState(!!urlSearchQuery);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Update search query when URL parameter changes
+  useEffect(() => {
+    const urlQuery = searchParams.get('search') || '';
+    if (urlQuery && urlQuery !== searchQuery) {
+      setSearchQuery(urlQuery);
+      setIsExpanded(true);
+    }
+  }, [searchParams, searchQuery]);
 
   const filteredPosts = useMemo(() => {
     if (!searchQuery.trim()) {
@@ -174,6 +188,21 @@ export default function Search({ posts }: SearchProps) {
         </div>
       )}
     </div>
+  );
+}
+
+// Wrapper component with Suspense for useSearchParams
+export default function Search({ posts }: SearchProps) {
+  return (
+    <Suspense fallback={
+      <div className="relative">
+        <button className="p-3 text-white transition-all duration-300" aria-label="Open search">
+          <SearchIcon />
+        </button>
+      </div>
+    }>
+      <SearchInner posts={posts} />
+    </Suspense>
   );
 }
 

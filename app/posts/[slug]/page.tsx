@@ -180,38 +180,61 @@ export default async function PostPage({ params }: PageProps) {
           </h1>
 
           {formattedDate && (
-            <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-[var(--text-gray-400)] mb-3">
+            <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-[var(--text-gray-400)] mb-4">
               <time className="text-[var(--text-gray-500)]">{formattedDate}</time>
             </div>
           )}
 
-          {/* Categories and Tags */}
-          {(post.categories && post.categories.length > 0) || (post.tags && post.tags.length > 0) ? (
-            <div className="flex flex-wrap justify-center gap-1.5 mb-3">
-              {post.categories?.map((categoryId) => {
-                const category = categories.find((cat) => cat._id === categoryId);
-                if (!category) return null;
-                return (
-                <span
-                  key={category._id}
-                  className="px-2 py-0.5 bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--electric-blue)] text-xs"
-                >
-                  {category.title}
-                </span>
-                );
-              })}
-              {post.tags?.map((tag, index) => {
-                // Handle both string tags and reference objects
-                const tagValue = typeof tag === 'string' ? tag : (tag as Tag)?.title || String(tag);
-                return (
-                  <span
-                    key={index}
-                    className="px-2 py-0.5 bg-[var(--dark-blue)] border border-[var(--border-color)] text-[var(--text-gray-300)] text-xs"
-                  >
-                    {tagValue}
-                  </span>
-                );
-              })}
+          {/* Categories - More prominent, above tags */}
+          {post.categories && post.categories.length > 0 ? (
+            <div className="mb-4">
+              <div className="flex flex-wrap justify-center items-center gap-2">
+                {post.categories.map((categoryId) => {
+                  const category = categories.find((cat) => cat._id === categoryId);
+                  if (!category) return null;
+
+                  // Map category titles to section IDs on homepage
+                  const categoryToSectionId: Record<string, string> = {
+                    'Tech World in 60 Sec': 'news-posts',
+                    'Automation': 'automation-posts',
+                    'AI Models': 'ai-posts',
+                  };
+
+                  const sectionId = categoryToSectionId[category.title] || `category-${category.slug?.current || category.title.toLowerCase().replace(/\s+/g, '-')}`;
+
+                  return (
+                    <Link
+                      key={category._id}
+                      href={`/#${sectionId}`}
+                      className="inline-flex items-center px-3 py-1.5 bg-[var(--card-bg)] border-2 border-[var(--electric-blue)] text-[var(--electric-blue)] hover:bg-[var(--electric-blue)] hover:text-[var(--background-dark-navy)] transition-all duration-300 text-sm font-semibold shadow-[0_0_10px_rgba(0,191,255,0.2)] hover:shadow-[0_0_15px_rgba(0,191,255,0.4)]"
+                    >
+                      {category.title}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+
+          {/* Tags - Secondary, smaller, below categories */}
+          {post.tags && post.tags.length > 0 ? (
+            <div className="mb-6">
+              <div className="flex flex-wrap justify-center items-center gap-1.5">
+                {post.tags.map((tag, index) => {
+                  // Handle both string tags and reference objects
+                  const tagObj = typeof tag === 'string' ? null : (tag as Tag);
+                  const tagTitle = typeof tag === 'string' ? tag : tagObj?.title || String(tag);
+                  return (
+                    <Link
+                      key={index}
+                      href={`/?search=${encodeURIComponent(tagTitle)}`}
+                      className="inline-flex items-center px-2 py-0.5 bg-[var(--dark-blue)] border border-[var(--border-color)] text-[var(--text-gray-300)] hover:border-[var(--electric-blue)] hover:text-[var(--electric-blue)] hover:bg-[var(--card-bg)] transition-all duration-300 text-xs"
+                    >
+                      {tagTitle}
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
           ) : null}
         </header>
