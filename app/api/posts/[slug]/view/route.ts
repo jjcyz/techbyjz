@@ -46,12 +46,14 @@ export async function POST(
     const newViewCount = currentViewCount + 1;
 
     try {
-      const updatedPost = await client
+      await client
         .patch(post._id)
         .set({ viewCount: newViewCount })
         .commit();
 
-      console.log(`Updated view count for post ${post._id} (${slug}): ${currentViewCount} -> ${newViewCount}`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`Updated view count for post ${post._id} (${slug}): ${currentViewCount} -> ${newViewCount}`);
+      }
 
       return NextResponse.json({
         success: true,

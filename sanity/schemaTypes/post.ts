@@ -53,12 +53,16 @@ export default defineType({
       title: 'Categories',
       type: 'array',
       of: [{ type: 'reference', to: [{ type: 'category' }] }],
+      description: 'Select categories for this post. These will be preserved when editing other fields.',
+      validation: (Rule) => Rule.unique(),
     }),
     defineField({
       name: 'tags',
       title: 'Tags',
       type: 'array',
       of: [{ type: 'reference', to: [{ type: 'tag' }] }],
+      description: 'Add tags for this post. These will be preserved when editing other fields.',
+      validation: (Rule) => Rule.unique(),
     }),
     defineField({
       name: 'publishedAt',
@@ -141,6 +145,8 @@ export default defineType({
       type: 'number',
       initialValue: 0,
       description: 'Number of times this post has been viewed',
+      readOnly: true, // Prevent viewCount from being reset when editing/publishing
+      hidden: false, // Keep it visible so you can see the count
     }),
   ],
   preview: {

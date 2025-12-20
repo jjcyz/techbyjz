@@ -62,7 +62,9 @@ export default function SocialShareButtons({ title, url, excerpt }: SocialShareB
       alert('Link copied to clipboard!');
     } catch (err) {
       // Silently fail - clipboard API may not be available in some contexts
-      console.error('Failed to copy link:', err);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Failed to copy link:', err);
+      }
     }
   };
 
@@ -74,7 +76,9 @@ export default function SocialShareButtons({ title, url, excerpt }: SocialShareB
       // TODO: Replace with a toast notification component
       alert('Link copied! Paste it into your Instagram post.');
     } catch (err) {
-      console.error('Failed to copy link:', err);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Failed to copy link:', err);
+      }
     }
   };
 

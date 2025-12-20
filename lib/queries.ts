@@ -10,14 +10,7 @@ export const POSTS_QUERY = `*[_type == "post"] | order(publishedAt desc) {
   excerpt,
   publishedAt,
   viewCount,
-  mainImage {
-    _type,
-    asset {
-      _ref,
-      _type
-    },
-    alt
-  },
+  mainImage,
   "authorName": author->name,
   categories,
   tags[]->{
@@ -35,14 +28,7 @@ export const POST_BY_SLUG_QUERY = `*[_type == "post" && slug.current == $slug][0
   content,
   publishedAt,
   viewCount,
-  mainImage {
-    _type,
-    asset {
-      _ref,
-      _type
-    },
-    alt
-  },
+  mainImage,
   "authorName": author->name,
   categories,
   tags[]->{
@@ -71,14 +57,7 @@ export const POSTS_BY_CATEGORY_ID_QUERY = `*[_type == "post" && $categoryId in c
   excerpt,
   publishedAt,
   viewCount,
-  mainImage {
-    _type,
-    asset {
-      _ref,
-      _type
-    },
-    alt
-  },
+  mainImage,
   "authorName": author->name,
   categories,
   tags[]->{
@@ -95,14 +74,7 @@ export const RELATED_POSTS_QUERY = `*[_type == "post" && _id != $postId && count
   excerpt,
   publishedAt,
   viewCount,
-  mainImage {
-    _type,
-    asset {
-      _ref,
-      _type
-    },
-    alt
-  },
+  mainImage,
   "authorName": author->name,
   categories
 }`;
@@ -114,14 +86,7 @@ export const RECENT_POSTS_QUERY = `*[_type == "post" && _id != $postId] | order(
   excerpt,
   publishedAt,
   viewCount,
-  mainImage {
-    _type,
-    asset {
-      _ref,
-      _type
-    },
-    alt
-  },
+  mainImage,
   "authorName": author->name,
   categories
 }`;

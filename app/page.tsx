@@ -47,37 +47,20 @@ export default async function Home() {
   // Get featured posts (most recent 6)
   const displayFeaturedPosts = validPosts.slice(0, 6);
 
-  // Helper: Find category ID by title
-  const findCategoryIdByTitle = (title: string): string | undefined => {
-    const normalizedTitle = title.trim().toLowerCase();
-    return categories.find(
-      (cat) => cat.title?.trim().toLowerCase() === normalizedTitle
-    )?._id;
-  };
+  // Helper: Find category by title and get its posts
+  const getCategoryPosts = (categoryTitle: string): { category: Category | undefined; posts: Post[] } => {
+    const category = categories.find(cat => cat.title === categoryTitle);
+    if (!category) return { category: undefined, posts: [] };
 
-  // Filter posts by category title (case-insensitive, trimmed)
-  // Now works with category IDs (strings) instead of category objects
-  const filterPostsByCategoryTitle = (categoryTitle: string): Post[] => {
-    const categoryId = findCategoryIdByTitle(categoryTitle);
-    if (!categoryId) return [];
-
-    return validPosts.filter((post) =>
-      post.categories?.includes(categoryId)
-    );
+    const posts = postsByCategory[category._id] || [];
+    return { category, posts };
   };
 
   // Get posts for each category section
-  // Using exact category titles from Sanity
-  const newsCategory = categories.find(cat => cat.title === "Tech World in 60 Sec");
-  const automationCategory = categories.find(cat => cat.title === "Automation");
-  const aiCategory = categories.find(cat => cat.title === "AI Models");
-  const cybersecurityCategory = categories.find(cat => cat.title === "Cybersecurity");
-
-  const newsPosts = filterPostsByCategoryTitle("Tech World in 60 Sec");
-  const automationPosts = filterPostsByCategoryTitle("Automation");
-  const aiPosts = filterPostsByCategoryTitle("AI Models");
-  const cybersecurityPosts = filterPostsByCategoryTitle("Cybersecurity");
-
+  const { category: newsCategory, posts: newsPosts } = getCategoryPosts("Tech World in 60 Seconds");
+  const { category: automationCategory, posts: automationPosts } = getCategoryPosts("Automation");
+  const { category: aiCategory, posts: aiPosts } = getCategoryPosts("AI Models");
+  const { category: cybersecurityCategory, posts: cybersecurityPosts } = getCategoryPosts("Cybersecurity");
 
   return (
     <main className="min-h-screen relative overflow-x-hidden w-full">

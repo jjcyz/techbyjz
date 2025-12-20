@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { client } from '@/lib/sanity';
-import { POSTS_BY_CATEGORY_ID_QUERY, CATEGORY_BY_SLUG_QUERY } from '@/lib/queries';
+import { CATEGORY_BY_SLUG_QUERY } from '@/lib/queries';
 import { isValidSlug } from '@/lib/utils';
 import type { Post, Category } from '@/types/post';
 

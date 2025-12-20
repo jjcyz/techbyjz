@@ -47,18 +47,20 @@ function SearchInner({ posts }: SearchProps) {
   const searchParams = useSearchParams();
   const urlSearchQuery = searchParams.get('search') || '';
 
-  const [searchQuery, setSearchQuery] = useState(urlSearchQuery);
-  const [isExpanded, setIsExpanded] = useState(!!urlSearchQuery);
+  // Use lazy initialization to avoid setState in effect
+  const [searchQuery, setSearchQuery] = useState(() => urlSearchQuery);
+  const [isExpanded, setIsExpanded] = useState(() => !!urlSearchQuery);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Update search query when URL parameter changes
+  // Update search query when URL parameter changes (only when it actually changes)
   useEffect(() => {
     const urlQuery = searchParams.get('search') || '';
-    if (urlQuery && urlQuery !== searchQuery) {
+    if (urlQuery !== searchQuery) {
       setSearchQuery(urlQuery);
-      setIsExpanded(true);
+      setIsExpanded(!!urlQuery);
     }
-  }, [searchParams, searchQuery]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const filteredPosts = useMemo(() => {
     if (!searchQuery.trim()) {

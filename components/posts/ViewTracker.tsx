@@ -18,17 +18,25 @@ export default function ViewTracker({ slug }: ViewTrackerProps) {
           },
         });
 
+        // Consume response body (always consume to avoid leaving connection open)
+        const data = await response.json().catch(() => ({}));
+
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          console.error('Failed to track view:', response.status, errorData);
+          if (process.env.NODE_ENV === 'development') {
+            console.error('Failed to track view:', response.status, data);
+          }
           return;
         }
 
-        const data = await response.json();
-        console.log('View tracked successfully:', data);
+        // Only log in development
+        if (process.env.NODE_ENV === 'development') {
+          console.log('View tracked successfully', data);
+        }
       } catch (error) {
-        // Log error for debugging
-        console.error('Failed to track view:', error);
+        // Log error only in development
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Failed to track view:', error);
+        }
       }
     };
 

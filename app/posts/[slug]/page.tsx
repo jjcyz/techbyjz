@@ -12,6 +12,7 @@ import Footer from '@/components/shared/Footer';
 import RelatedPosts from '@/components/posts/RelatedPosts';
 import SocialShareButtons from '@/components/posts/SocialShareButtons';
 import ViewTracker from '@/components/posts/ViewTracker';
+import AdminEditButton from '@/components/shared/AdminEditButton';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -127,6 +128,19 @@ export default async function PostPage({ params }: PageProps) {
     notFound();
   }
 
+  // Prepare valid categories for rendering
+  const validCategories: Category[] = post.categories && Array.isArray(post.categories) && post.categories.length > 0
+    ? post.categories
+        .map((categoryId) => categories.find((cat) => cat._id === categoryId))
+        .filter((cat): cat is Category => {
+          const isValid = cat !== undefined && cat.slug?.current !== undefined;
+          if (!isValid && cat && process.env.NODE_ENV === 'development') {
+            console.warn(`Category ${cat.title || 'unknown'} (ID: ${cat._id || 'unknown'}) filtered out - missing slug`);
+          }
+          return isValid;
+        })
+    : [];
+
   // Fetch related posts based on categories, fallback to recent posts if no matches
   const categoryIds = post.categories || []; // Now categories is already an array of strings
   let relatedPosts: Post[] = [];
@@ -166,15 +180,18 @@ export default async function PostPage({ params }: PageProps) {
       {/* Track view count */}
       <ViewTracker slug={post.slug.current} />
 
-      {/* Back Button */}
+      {/* Back Button and Admin Controls */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 pt-6 pb-3">
+        <div className="flex items-center justify-between gap-3">
           <Link
             href="/"
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--electric-blue)] hover:border-[var(--electric-blue)] hover:bg-[var(--electric-blue)]/10 transition-all duration-300 text-xs font-medium"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--electric-blue)] hover:border-[var(--electric-blue)] hover:bg-[var(--electric-blue)]/10 transition-all duration-300 text-xs font-medium"
           >
             ← Back to Posts
           </Link>
+          <AdminEditButton postId={post._id} />
         </div>
+      </div>
 
       <article className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-8 md:py-12 lg:py-16">
         {/* Post Header */}
@@ -207,33 +224,23 @@ export default async function PostPage({ params }: PageProps) {
             </div>
           )}
 
-          {/* Categories - More prominent, above tags */}
-          {post.categories && post.categories.length > 0 ? (
-            <div className="mb-4">
-              <div className="flex flex-wrap justify-center items-center gap-2">
-                {post.categories.map((categoryId) => {
-                  const category = categories.find((cat) => cat._id === categoryId);
-                  if (!category || !category.slug?.current) return null;
-
-                  return (
-                    <Link
-                      key={category._id}
-                      href={`/category/${category.slug.current}`}
-                      className="inline-flex items-center px-3 py-1.5 bg-[var(--card-bg)] border-2 border-[var(--electric-blue)] text-[var(--electric-blue)] hover:bg-[var(--electric-blue)] hover:text-[var(--background-dark-navy)] transition-all duration-300 text-sm font-semibold shadow-[0_0_10px_rgba(0,191,255,0.2)] hover:shadow-[0_0_15px_rgba(0,191,255,0.4)]"
-                    >
-                      {category.title}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          ) : null}
-
-          {/* Tags - Secondary, smaller, below categories */}
-          {post.tags && post.tags.length > 0 ? (
+          {/* Categories and Tags - Same size styling */}
+          {(validCategories.length > 0 || (post.tags && Array.isArray(post.tags) && post.tags.length > 0)) && (
             <div className="mb-6">
               <div className="flex flex-wrap justify-center items-center gap-1.5">
-                {post.tags.map((tag, index) => {
+                {/* Categories */}
+                {validCategories.map((category) => (
+                  <Link
+                    key={category._id}
+                    href={`/category/${category.slug!.current}`}
+                    className="inline-flex items-center px-2 py-0.5 bg-[var(--dark-blue)] border border-[var(--border-color)] text-[var(--text-gray-300)] hover:border-[var(--electric-blue)] hover:text-[var(--electric-blue)] hover:bg-[var(--card-bg)] transition-all duration-300 text-xs"
+                  >
+                    {category.title}
+                  </Link>
+                ))}
+
+                {/* Tags */}
+                {post.tags && Array.isArray(post.tags) && post.tags.length > 0 && post.tags.map((tag, index) => {
                   // Handle both string tags and reference objects
                   const tagObj = typeof tag === 'string' ? null : (tag as Tag);
                   const tagTitle = typeof tag === 'string' ? tag : tagObj?.title || String(tag);
@@ -246,7 +253,7 @@ export default async function PostPage({ params }: PageProps) {
 
                   return (
                     <Link
-                      key={index}
+                      key={typeof tag === 'object' && tag !== null && '_id' in tag ? (tag as Tag)._id : index}
                       href={href}
                       className="inline-flex items-center px-2 py-0.5 bg-[var(--dark-blue)] border border-[var(--border-color)] text-[var(--text-gray-300)] hover:border-[var(--electric-blue)] hover:text-[var(--electric-blue)] hover:bg-[var(--card-bg)] transition-all duration-300 text-xs"
                     >
@@ -256,19 +263,19 @@ export default async function PostPage({ params }: PageProps) {
                 })}
               </div>
             </div>
-          ) : null}
+          )}
         </header>
 
         {/* Featured Image */}
         {imageUrl ? (
-          <div className="relative w-full h-40 md:h-56 lg:h-72 mb-4 overflow-hidden bg-[var(--background-dark-navy)] border border-[var(--border-color)]">
+          <div className="relative w-full max-w-[65ch] mx-auto h-40 md:h-56 lg:h-72 mb-4 overflow-hidden bg-[var(--background-dark-navy)] border border-[var(--border-color)]">
             <Image
               src={imageUrl}
               alt={post.mainImage?.alt || post.title}
               fill
               className="object-cover"
               priority
-              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 896px, 1280px"
+              sizes="(max-width: 768px) 100vw, 65ch"
             />
           </div>
         ) : null}
@@ -284,10 +291,11 @@ export default async function PostPage({ params }: PageProps) {
         {(() => {
           const content = post.content || post.body;
 
-          // Debug: Log content structure
-          if (process.env.NODE_ENV === 'development') {
-            console.log('Post content:', JSON.stringify(content, null, 2));
-          }
+          // Debug: Log content structure (only if needed for debugging)
+          // Uncomment if debugging is needed:
+          // if (process.env.NODE_ENV === 'development') {
+          //   console.log('Post content:', JSON.stringify(content, null, 2));
+          // }
 
           return content ? (
             Array.isArray(content) && content.length > 0 ? (
@@ -297,20 +305,35 @@ export default async function PostPage({ params }: PageProps) {
                   value={content as any}
                 components={{
                   block: {
-                    normal: ({ children }) => (
-                      <p className="text-xs sm:text-sm md:text-base text-[var(--foreground)] mb-3 leading-relaxed max-w-[65ch] mx-auto">{children}</p>
-                    ),
+                    normal: ({ children, value }) => {
+                      // Check if block is empty by examining the raw value structure
+                      const blockValue = value as { children?: Array<{ text?: string; _type?: string }> } | undefined;
+                      const hasEmptyContent = blockValue?.children?.every(child =>
+                        !child.text || (typeof child.text === 'string' && child.text.trim() === '')
+                      ) ?? false;
+
+                      // Render empty blocks as visible spacers to preserve paragraph breaks
+                      // This handles cases where blank lines are created in Sanity Studio
+                      if (hasEmptyContent || (!children) || (Array.isArray(children) && children.length === 0)) {
+                        return <div className="h-6 max-w-[65ch] mx-auto" aria-hidden="true" />;
+                      }
+
+                      // Regular paragraphs with normal spacing (matching Sanity's default behavior)
+                      return (
+                        <p className="text-xs sm:text-sm md:text-base text-[var(--foreground)] mb-4 leading-relaxed max-w-[65ch] mx-auto">{children}</p>
+                      );
+                    },
                     h1: ({ children }) => (
-                      <h1 className="text-lg md:text-xl lg:text-2xl font-bold text-[var(--foreground)] mb-3 mt-6 first:mt-0 max-w-[65ch] mx-auto">{children}</h1>
+                      <h1 className="text-lg md:text-xl lg:text-2xl font-bold text-[var(--foreground)] mb-4 mt-8 first:mt-0 max-w-[65ch] mx-auto">{children}</h1>
                     ),
                     h2: ({ children }) => (
-                      <h2 className="text-base md:text-lg lg:text-xl font-bold text-[var(--foreground)] mb-2 mt-5 first:mt-0 max-w-[65ch] mx-auto">{children}</h2>
+                      <h2 className="text-base md:text-lg lg:text-xl font-bold text-[var(--foreground)] mb-3 mt-6 first:mt-0 max-w-[65ch] mx-auto">{children}</h2>
                     ),
                     h3: ({ children }) => (
-                      <h3 className="text-sm md:text-base lg:text-lg font-bold text-[var(--foreground)] mb-2 mt-4 first:mt-0 max-w-[65ch] mx-auto">{children}</h3>
+                      <h3 className="text-sm md:text-base lg:text-lg font-bold text-[var(--foreground)] mb-3 mt-5 first:mt-0 max-w-[65ch] mx-auto">{children}</h3>
                     ),
                     h4: ({ children }) => (
-                      <h4 className="text-sm md:text-base font-bold text-[var(--foreground)] mb-1.5 mt-3 first:mt-0 max-w-[65ch] mx-auto">{children}</h4>
+                      <h4 className="text-sm md:text-base font-bold text-[var(--foreground)] mb-2 mt-4 first:mt-0 max-w-[65ch] mx-auto">{children}</h4>
                     ),
                     blockquote: ({ children }) => (
                       <blockquote className="border-l-4 border-[var(--electric-blue)] pl-3 my-4 italic text-xs sm:text-sm text-[var(--foreground-low)] bg-[var(--card-bg)]/30 py-2 max-w-[65ch] mx-auto leading-relaxed">
@@ -320,15 +343,15 @@ export default async function PostPage({ params }: PageProps) {
                   },
                   list: {
                     bullet: ({ children }) => (
-                      <ul className="list-disc list-outside mb-3 text-xs sm:text-sm md:text-base text-[var(--foreground)] space-y-1.5 ml-5 max-w-[65ch] mx-auto leading-relaxed">{children}</ul>
+                      <ul className="list-disc mb-3 text-xs sm:text-sm md:text-base text-[var(--foreground)] space-y-1.5 max-w-[65ch] mx-auto pl-6 leading-relaxed">{children}</ul>
                     ),
                     number: ({ children }) => (
-                      <ol className="list-decimal list-outside mb-3 text-xs sm:text-sm md:text-base text-[var(--foreground)] space-y-1.5 ml-5 max-w-[65ch] mx-auto leading-relaxed">{children}</ol>
+                      <ol className="list-decimal mb-3 text-xs sm:text-sm md:text-base text-[var(--foreground)] space-y-1.5 max-w-[65ch] mx-auto pl-6 leading-relaxed">{children}</ol>
                     ),
                   },
                   listItem: {
-                    bullet: ({ children }) => <li className="mb-1 leading-relaxed">{children}</li>,
-                    number: ({ children }) => <li className="mb-1 leading-relaxed">{children}</li>,
+                    bullet: ({ children }) => <li className="mb-1 leading-relaxed pl-1">{children}</li>,
+                    number: ({ children }) => <li className="mb-1 leading-relaxed pl-1">{children}</li>,
                   },
                   marks: {
                     strong: ({ children }) => <strong className="font-bold text-[var(--foreground)]">{children}</strong>,
