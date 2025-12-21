@@ -75,7 +75,7 @@ export async function suggestCategoriesAndTags(
   const apiKey = process.env.OPENAI_API_KEY;
 
   if (!apiKey) {
-    console.warn('No OpenAI API key found. Skipping category/tag suggestions.');
+    // Silently skip if no API key - this is expected in some deployments
     return { categoryIds: [], tagIds: [] };
   }
 
@@ -228,9 +228,10 @@ async function matchOrCreateCategoriesAndTags(
         });
 
         categoryIds.push(newCategory._id);
-        console.log(`Created new category: "${normalizedTitle}" (from "${categoryName}")`);
       } catch (error) {
-        console.error(`Error creating category "${categoryName}":`, error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error(`Error creating category "${categoryName}":`, error);
+        }
       }
     }
   }
@@ -259,9 +260,10 @@ async function matchOrCreateCategoriesAndTags(
         });
 
         tagIds.push(newTag._id);
-        console.log(`Created new tag: "${normalizedTitle}" (from "${tagName}")`);
       } catch (error) {
-        console.error(`Error creating tag "${tagName}":`, error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error(`Error creating tag "${tagName}":`, error);
+        }
       }
     }
   }
@@ -286,7 +288,7 @@ export async function suggestTagsOnly(
   const apiKey = process.env.OPENAI_API_KEY;
 
   if (!apiKey) {
-    console.warn('No OpenAI API key found. Skipping tag suggestions.');
+    // Silently skip if no API key - this is expected in some deployments
     return [];
   }
 
@@ -369,8 +371,6 @@ IMPORTANT: Include ALL suggested tags in the "newTags" array. The system will au
     // Remove duplicates
     const uniqueTagNames = Array.from(new Set(suggestedTagNames.map((t: string) => t.trim())));
 
-    console.log(`   💭 AI suggested ${uniqueTagNames.length} tags: ${uniqueTagNames.join(', ')}`);
-
     // Match existing tags or create new ones
     const tagIds: string[] = [];
 
@@ -381,7 +381,6 @@ IMPORTANT: Include ALL suggested tags in the "newTags" array. The system will au
       const exact = existingTags.find((item) => item.title.toLowerCase() === normalized);
       if (exact) {
         tagIds.push(exact._id);
-        console.log(`   ✅ Matched existing tag: "${tagName}" → "${exact.title}"`);
         continue;
       }
 
@@ -397,7 +396,6 @@ IMPORTANT: Include ALL suggested tags in the "newTags" array. The system will au
       });
       if (partial) {
         tagIds.push(partial._id);
-        console.log(`   ✅ Matched existing tag (partial): "${tagName}" → "${partial.title}"`);
         continue;
       }
 
@@ -416,7 +414,6 @@ IMPORTANT: Include ALL suggested tags in the "newTags" array. The system will au
         });
 
         tagIds.push(newTag._id);
-        console.log(`   ✨ Created new tag: "${normalizedTitle}" (from "${tagName}")`);
         // Add to existingTags array so future iterations can use it
         existingTags.push({
           _id: newTag._id,
@@ -424,18 +421,21 @@ IMPORTANT: Include ALL suggested tags in the "newTags" array. The system will au
           slug: newTag.slug as { current: string },
         });
       } catch (error) {
-        // If permission error, just skip this tag
-        if (error instanceof Error && error.message.includes('permission')) {
-          console.log(`   ⚠️  Skipped creating tag "${tagName}" (insufficient permissions)`);
-        } else {
-          console.error(`   ❌ Error creating tag "${tagName}":`, error);
+        // If permission error, just skip this tag silently
+        // Only log non-permission errors in development
+        if (process.env.NODE_ENV === 'development' &&
+            error instanceof Error &&
+            !error.message.includes('permission')) {
+          console.error(`Error creating tag "${tagName}":`, error);
         }
       }
     }
 
     return Array.from(new Set(tagIds));
   } catch (error) {
-    console.error('Error suggesting tags:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error suggesting tags:', error);
+    }
     return [];
   }
 }
