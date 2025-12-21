@@ -30,12 +30,15 @@ export const metadata: Metadata = {
   },
   // Note: We allow AI search engines (ChatGPT, Claude, Perplexity) for discoverability
   // but block training bots (GPTBot, Google-Extended) via robots.txt
-  // Google AdSense verification
-  other: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
-    ? {
-        'google-site-verification': process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
-      }
-    : {},
+  // Google AdSense account meta tag (required for verification)
+  other: {
+    'google-adsense-account': process.env.NEXT_PUBLIC_ADSENSE_PUBLISHER_ID || '',
+    ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+      ? {
+          'google-site-verification': process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+        }
+      : {}),
+  },
 };
 
 export const viewport = {

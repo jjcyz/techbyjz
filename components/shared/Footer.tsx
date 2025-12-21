@@ -35,17 +35,17 @@ export default function Footer({ categories }: FooterProps) {
                 .filter((category) => !category.title.toLowerCase().includes('all'))
                 .slice(0, 7)
                 .map((category) => {
-                  const slug =
-                    category.slug?.current ||
-                    category.title.toLowerCase().replace(/\s+/g, '-');
-                  return (
-                    <li key={category._id}>
-                      <ScrollToSectionButton sectionId={`category-${slug}`}>
-                        {category.title}
-                      </ScrollToSectionButton>
-                    </li>
-                  );
-                })}
+                const slug =
+                  category.slug?.current ||
+                  category.title.toLowerCase().replace(/\s+/g, '-');
+                return (
+                  <li key={category._id}>
+                    <ScrollToSectionButton sectionId={`category-${slug}`}>
+                      {category.title}
+                    </ScrollToSectionButton>
+                  </li>
+                );
+              })}
             </ul>
           </div>
 
