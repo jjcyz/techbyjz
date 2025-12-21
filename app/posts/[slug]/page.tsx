@@ -67,7 +67,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const imageUrl = post.mainImage ? getImageUrl(post.mainImage, 1200, 600) : undefined;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://techbyjz.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://techbyjz.blog';
   const postUrl = `${siteUrl}/posts/${post.slug.current}`;
 
   return {
@@ -172,7 +172,7 @@ export default async function PostPage({ params }: PageProps) {
       })
     : '';
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://techbyjz.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://techbyjz.blog';
   const postUrl = `${siteUrl}/posts/${post.slug.current}`;
 
   return (

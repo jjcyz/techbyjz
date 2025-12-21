@@ -104,5 +104,5 @@ Disallow: /studio/
 Crawl-delay: 10
 
 # Sitemap location (add when you have one)
-# Sitemap: https://techbyjz.com/sitemap.xml
+# Sitemap: https://techbyjz.blog/sitemap.xml
 

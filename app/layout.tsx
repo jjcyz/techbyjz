@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Poppins, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -29,6 +30,12 @@ export const metadata: Metadata = {
   },
   // Note: We allow AI search engines (ChatGPT, Claude, Perplexity) for discoverability
   // but block training bots (GPTBot, Google-Extended) via robots.txt
+  // Google AdSense verification
+  other: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+    ? {
+        'google-site-verification': process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+      }
+    : {},
 };
 
 export const viewport = {
@@ -43,11 +50,22 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const publisherId = process.env.NEXT_PUBLIC_ADSENSE_PUBLISHER_ID;
+
   return (
     <html lang="en">
       <body
         className={`${poppins.variable} ${geistMono.variable} antialiased`}
       >
+        {/* Google AdSense Script - Load once globally */}
+        {publisherId && (
+          <Script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${publisherId}`}
+            crossOrigin="anonymous"
+            strategy="afterInteractive"
+          />
+        )}
         {children}
       </body>
     </html>
