@@ -102,3 +102,9 @@ export const TAG_BY_SLUG_QUERY = `*[_type == "tag" && slug.current == $slug][0] 
   title,
   slug
 }`;
+
+// Lightweight query for sitemap - only fetches essential fields
+export const POSTS_SITEMAP_QUERY = `*[_type == "post"] {
+  slug,
+  publishedAt
+}`;

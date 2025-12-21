@@ -103,5 +103,5 @@ Disallow: /api/
 Disallow: /studio/
 Crawl-delay: 10
 
-# Sitemap location (add later)
-# Sitemap: https://techbyjz.blog/sitemap.xml
+# Sitemap location
+Sitemap: https://techbyjz.blog/sitemap.xml
