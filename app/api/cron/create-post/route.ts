@@ -2,7 +2,7 @@
  * Cron job endpoint for scheduled post creation
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { fetchAllResearchSources, formatResearchForPrompt } from '@/lib/research-sources';
 import {
   fetchCategories,
@@ -11,6 +11,8 @@ import {
   type Category,
   type Tag,
 } from '@/lib/categories-tags';
+import { importPost } from '@/lib/import-post';
+import { ApiErrors, successResponse } from '@/lib/api-response';
 
 /**
  * Generates blog post content using AI with research and synthesis
@@ -30,10 +32,8 @@ async function generatePostContent(topic?: string): Promise<{
   }
 
   // Step 1: Fetch real-time research from HackerNews and RSS feeds
-  console.log(`Fetching real-time research for topic: ${topic || 'current tech trends'}`);
   const researchArticles = await fetchAllResearchSources(topic);
   const researchSummary = formatResearchForPrompt(researchArticles);
-  console.log(`Found ${researchArticles.length} relevant articles from research sources`);
 
   // Step 1.5: Fetch existing categories and tags for AI suggestions (cached)
   // Only fetch if we'll actually use them (if OpenAI key exists)
@@ -41,12 +41,10 @@ async function generatePostContent(topic?: string): Promise<{
   let existingTags: Tag[] = [];
 
   if (process.env.OPENAI_API_KEY) {
-    console.log('Fetching existing categories and tags...');
     [existingCategories, existingTags] = await Promise.all([
       fetchCategories(),
       fetchTags(),
     ]);
-    console.log(`Found ${existingCategories.length} categories and ${existingTags.length} tags`);
   }
 
   // Enhanced system prompt for research-based content
@@ -165,7 +163,6 @@ Make it insightful, unique, and valuable. Length should be substantial (1500-300
     let tagIds: string[] = [];
 
     if (process.env.OPENAI_API_KEY && (existingCategories.length > 0 || existingTags.length > 0)) {
-      console.log('Analyzing content to suggest categories and tags...');
       try {
         const result = await suggestCategoriesAndTags(
           title,
@@ -176,20 +173,18 @@ Make it insightful, unique, and valuable. Length should be substantial (1500-300
         );
         categoryIds = result.categoryIds;
         tagIds = result.tagIds;
-        console.log(`Assigned ${categoryIds.length} categories and ${tagIds.length} tags`);
       } catch (error) {
-        console.error('Error assigning categories/tags:', error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error assigning categories/tags:', error);
+        }
         // Continue without tags - post will still be created
       }
-    } else {
-      console.log('Skipping category/tag assignment (no OpenAI key or no existing categories/tags)');
     }
 
     // Fallback: Ensure at least one category if none assigned
     if (categoryIds.length === 0 && existingCategories.length > 0) {
       // Assign first available category as fallback
       categoryIds = [existingCategories[0]._id];
-      console.log(`Fallback: Assigned default category "${existingCategories[0].title}"`);
     }
 
     return {
@@ -212,10 +207,7 @@ export async function GET(request: NextRequest) {
     const expectedSecret = process.env.CRON_SECRET;
 
     if (expectedSecret && secret !== expectedSecret) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return ApiErrors.unauthorized();
     }
 
     // Get optional topic parameter
@@ -224,44 +216,25 @@ export async function GET(request: NextRequest) {
     // Generate post content with research and synthesis
     const { markdown, title, excerpt, categoryIds, tagIds } = await generatePostContent(topic);
 
-    // Import via internal API call (reuses your existing logic)
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin;
-    const importResponse = await fetch(`${baseUrl}/api/import-markdown`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        // Include API key if set
-        ...(process.env.API_KEY && { 'x-api-key': process.env.API_KEY }),
-      },
-      body: JSON.stringify({
-        markdown,
-        title,
-        excerpt,
-        categoryIds,
-        tagIds,
-      }),
+    // Import post directly using shared function (no HTTP overhead)
+    const result = await importPost({
+      markdown,
+      title,
+      excerpt,
+      categoryIds,
+      tagIds,
     });
 
-    if (!importResponse.ok) {
-      const error = await importResponse.json();
-      throw new Error(error.error || 'Failed to import post');
-    }
-
-    const result = await importResponse.json();
-
-    return NextResponse.json({
-      success: true,
-      message: 'Post created successfully',
-      post: result.post,
-    });
+    return successResponse(result.post, result.message);
   } catch (error) {
-    console.error('Error in cron job:', error);
-    return NextResponse.json(
-      {
-        error: 'Failed to create post',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error in cron job:', error);
+    }
+    return ApiErrors.internalError(
+      'Failed to create post',
+      process.env.NODE_ENV === 'development' && error instanceof Error
+        ? error.message
+        : undefined
     );
   }
 }
@@ -270,4 +243,3 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   return GET(request);
 }
-

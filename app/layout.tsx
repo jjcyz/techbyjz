@@ -3,7 +3,25 @@ import { Poppins, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import PageViewTracker from "@/components/analytics/PageViewTracker";
+import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
+import { validateStartup } from "@/lib/startup-validation";
 import "./globals.css";
+
+// Validate environment variables on app startup
+// This runs once when the module is loaded
+if (typeof window === 'undefined') {
+  // Only run on server side
+  try {
+    validateStartup();
+  } catch (error) {
+    // In development, throw to catch issues early
+    // In production, log but continue (graceful degradation)
+    if (process.env.NODE_ENV === 'development') {
+      throw error;
+    }
+    console.error('Startup validation failed:', error);
+  }
+}
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -80,7 +98,9 @@ export default function RootLayout({
             strategy="afterInteractive"
           />
         )}
-        {children}
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
       </body>
     </html>
   );

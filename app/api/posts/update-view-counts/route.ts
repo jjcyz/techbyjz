@@ -41,8 +41,6 @@ export async function POST(request: NextRequest) {
       `*[_type == "post"] { _id, viewCount }`
     );
 
-    console.log(`Found ${posts.length} posts to update`);
-
     // Update each post to set viewCount to 0 (handles null, undefined, or missing values)
     const updates = posts.map((post) =>
       client
@@ -60,7 +58,9 @@ export async function POST(request: NextRequest) {
       count: posts.length,
     });
   } catch (error) {
-    console.error('Error updating view counts:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error updating view counts:', error);
+    }
     return NextResponse.json(
       { error: 'Failed to update view counts', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

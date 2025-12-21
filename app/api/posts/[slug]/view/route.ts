@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { client } from '@/lib/sanity';
 import { POST_BY_SLUG_QUERY } from '@/lib/queries';
 import { checkRateLimit, RATE_LIMITS, isBot } from '@/lib/rate-limit';
+import { ApiErrors, successResponse } from '@/lib/api-response';
 import type { Post } from '@/types/post';
 
 export async function POST(
@@ -75,27 +76,18 @@ export async function POST(
       );
     }
 
-    // Increment view count atomically
-    // Safely get current view count, defaulting to 0 if null/undefined/invalid
-    let currentViewCount = 0;
-    if (typeof post.viewCount === 'number' && !isNaN(post.viewCount)) {
-      currentViewCount = post.viewCount;
-    }
-
-    const newViewCount = currentViewCount + 1;
-
+    // Increment view count atomically using Sanity's inc() method
+    // This prevents race conditions by using atomic increment
     try {
-      await client
+      // Use inc() for atomic increment instead of read-then-write
+      const updatedPost = await client
         .patch(post._id)
-        .set({ viewCount: newViewCount })
-        .commit();
+        .inc({ viewCount: 1 })
+        .commit<Post>();
 
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`Updated view count for post ${post._id} (${slug}): ${currentViewCount} -> ${newViewCount}`);
-      }
+      const newViewCount = updatedPost.viewCount || 0;
 
-      return NextResponse.json({
-        success: true,
+      return successResponse({
         viewCount: newViewCount,
         postId: post._id,
       });
@@ -104,11 +96,8 @@ export async function POST(
       if (process.env.NODE_ENV === 'development') {
         console.error('Error patching post in Sanity:', patchError);
       }
-      return NextResponse.json(
-        {
-          error: 'Failed to update view count'
-        },
-        { status: 500 }
+      return ApiErrors.internalError('Failed to update view count',
+        process.env.NODE_ENV === 'development' ? patchError : undefined
       );
     }
   } catch (error) {
@@ -116,11 +105,8 @@ export async function POST(
     if (process.env.NODE_ENV === 'development') {
       console.error('Error incrementing view count:', error);
     }
-    return NextResponse.json(
-      {
-        error: 'Failed to process request'
-      },
-      { status: 500 }
+    return ApiErrors.internalError('Failed to process request',
+      process.env.NODE_ENV === 'development' ? error : undefined
     );
   }
 }

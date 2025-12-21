@@ -41,14 +41,16 @@ export function middleware(request: NextRequest) {
   );
 
   // Content Security Policy
+  // Note: 'unsafe-inline' is required for Next.js and Tailwind CSS
+  // TODO: Consider implementing nonce-based CSP for better security
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // 'unsafe-inline' needed for Next.js
-    "style-src 'self' 'unsafe-inline'", // 'unsafe-inline' needed for Tailwind
-    "img-src 'self' data: https://cdn.sanity.io https://*.sanity.io",
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://pagead2.googlesyndication.com",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: https://cdn.sanity.io https://*.sanity.io https://www.google-analytics.com https://*.googlesyndication.com",
     "font-src 'self' data:",
-    "connect-src 'self' https://*.sanity.io https://api.openai.com",
-    "frame-src 'self'",
+    "connect-src 'self' https://*.sanity.io https://api.openai.com https://www.google-analytics.com https://*.google-analytics.com",
+    "frame-src 'self' https://tpc.googlesyndication.com https://googleads.g.doubleclick.net",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

@@ -4,10 +4,11 @@
  * Body: { markdown: string, postId?: string, title?: string, excerpt?: string }
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { client } from '@/lib/sanity';
-import { markdownToPortableText } from '@/lib/markdown-to-portable-text';
+import { NextRequest } from 'next/server';
 import { checkRateLimit, RATE_LIMITS, isBot } from '@/lib/rate-limit';
+import { secureCompare } from '@/lib/security';
+import { successResponse, ApiErrors } from '@/lib/api-response';
+import { importPost } from '@/lib/import-post';
 
 // Maximum request body size (10MB)
 const MAX_BODY_SIZE = 10 * 1024 * 1024;
@@ -17,30 +18,20 @@ export async function POST(request: NextRequest) {
     // Block bots
     const userAgent = request.headers.get('user-agent');
     if (isBot(userAgent)) {
-      return NextResponse.json(
-        { error: 'Access denied' },
-        { status: 403 }
-      );
+      return ApiErrors.forbidden();
     }
 
     // Rate limiting
     const rateLimit = checkRateLimit(request, RATE_LIMITS.IMPORT);
     if (!rateLimit.allowed) {
-      return NextResponse.json(
-        {
-          error: 'Too many requests',
-          retryAfter: Math.ceil((rateLimit.resetTime - Date.now()) / 1000)
-        },
-        {
-          status: 429,
-          headers: {
-            'Retry-After': String(Math.ceil((rateLimit.resetTime - Date.now()) / 1000)),
-            'X-RateLimit-Limit': String(RATE_LIMITS.IMPORT.maxRequests),
-            'X-RateLimit-Remaining': String(rateLimit.remaining),
-            'X-RateLimit-Reset': String(rateLimit.resetTime),
-          }
-        }
-      );
+      const retryAfter = Math.ceil((rateLimit.resetTime - Date.now()) / 1000);
+      const response = ApiErrors.tooManyRequests(retryAfter);
+      // Add rate limit headers
+      response.headers.set('Retry-After', String(retryAfter));
+      response.headers.set('X-RateLimit-Limit', String(RATE_LIMITS.IMPORT.maxRequests));
+      response.headers.set('X-RateLimit-Remaining', String(rateLimit.remaining));
+      response.headers.set('X-RateLimit-Reset', String(rateLimit.resetTime));
+      return response;
     }
 
     // Require API key authentication for this sensitive endpoint
@@ -48,144 +39,68 @@ export async function POST(request: NextRequest) {
     const expectedApiKey = process.env.API_KEY;
 
     if (!expectedApiKey) {
-      return NextResponse.json(
-        { error: 'Server configuration error' },
-        { status: 500 }
-      );
+      return ApiErrors.internalError('Server configuration error: API_KEY not set');
     }
 
-    if (apiKey !== expectedApiKey) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+    if (!apiKey || !secureCompare(apiKey, expectedApiKey)) {
+      return ApiErrors.unauthorized();
     }
 
-    // Check content length
-    const contentLength = request.headers.get('content-length');
-    if (contentLength && parseInt(contentLength, 10) > MAX_BODY_SIZE) {
-      return NextResponse.json(
-        { error: 'Request too large' },
-        { status: 413 }
-      );
+    // Validate request body size - read as text first to prevent header spoofing
+    // Note: We read as text, validate size, then parse as JSON
+    const bodyText = await request.text();
+
+    // Validate actual body size (not just header)
+    if (bodyText.length > MAX_BODY_SIZE) {
+      return ApiErrors.badRequest('Request body too large (max 10MB)');
     }
 
-    const body = await request.json();
+    // Parse JSON body
+    let body: {
+      markdown?: string;
+      postId?: string;
+      title?: string;
+      excerpt?: string;
+      categoryIds?: string[];
+      tagIds?: string[];
+    };
+
+    try {
+      body = JSON.parse(bodyText);
+    } catch {
+      return ApiErrors.badRequest('Invalid JSON in request body');
+    }
+
     const { markdown, postId, title, excerpt, categoryIds, tagIds } = body;
 
-    // Input validation with size limits
+    // Validate markdown is provided (required)
     if (!markdown || typeof markdown !== 'string') {
-      return NextResponse.json(
-        { error: 'Invalid request' },
-        { status: 400 }
-      );
-    }
-
-    // Validate markdown size (max 5MB)
-    if (markdown.length > 5 * 1024 * 1024) {
-      return NextResponse.json(
-        { error: 'Content too large' },
-        { status: 400 }
-      );
-    }
-
-    // Validate title length
-    if (title && (typeof title !== 'string' || title.length > 200)) {
-      return NextResponse.json(
-        { error: 'Invalid request' },
-        { status: 400 }
-      );
-    }
-
-    // Validate excerpt length
-    if (excerpt && (typeof excerpt !== 'string' || excerpt.length > 500)) {
-      return NextResponse.json(
-        { error: 'Invalid request' },
-        { status: 400 }
-      );
+      return ApiErrors.badRequest('Markdown content is required');
     }
 
     // Validate postId format if provided
     if (postId && (typeof postId !== 'string' || postId.length > 100)) {
-      return NextResponse.json(
-        { error: 'Invalid request' },
-        { status: 400 }
-      );
+      return ApiErrors.badRequest('Invalid postId format');
     }
 
-    // Convert markdown to Portable Text
-    const portableTextContent = markdownToPortableText(markdown);
-
-    // If postId is provided, update existing post
-    if (postId) {
-      const updatedPost = await client
-        .patch(postId)
-        .set({
-          content: portableTextContent,
-          ...(title && { title }),
-          ...(excerpt && { excerpt }),
-        })
-        .commit();
-
-      return NextResponse.json({
-        success: true,
-        post: updatedPost,
-        message: 'Post updated successfully',
-      });
-    }
-
-    // Otherwise, create a new draft post
-    if (!title) {
-      return NextResponse.json(
-        { error: 'Title is required for new posts' },
-        { status: 400 }
-      );
-    }
-
-    // Generate slug from title
-    const slug = title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
-
-    const newPost = await client.create({
-      _type: 'post',
+    // Use shared import function instead of duplicating logic
+    const result = await importPost({
+      markdown,
+      postId,
       title,
-      excerpt: excerpt || '',
-      content: portableTextContent,
-      publishedAt: new Date().toISOString(),
-      viewCount: 0,
-      slug: {
-        _type: 'slug',
-        current: slug,
-      },
-      ...(categoryIds && categoryIds.length > 0 && {
-        categories: categoryIds.map((id: string) => ({
-          _type: 'reference',
-          _ref: id,
-        })),
-      }),
-      ...(tagIds && tagIds.length > 0 && {
-        tags: tagIds.map((id: string) => ({
-          _type: 'reference',
-          _ref: id,
-        })),
-      }),
+      excerpt,
+      categoryIds,
+      tagIds,
     });
 
-    return NextResponse.json({
-      success: true,
-      post: newPost,
-      message: 'Post created successfully',
-    });
+    return successResponse(result.post, result.message);
   } catch (error) {
     // Don't expose internal error details in production
     if (process.env.NODE_ENV === 'development') {
       console.error('Error importing markdown:', error);
     }
-    return NextResponse.json(
-      { error: 'Failed to process request' },
-      { status: 500 }
+    return ApiErrors.internalError('Failed to process request',
+      process.env.NODE_ENV === 'development' ? error : undefined
     );
   }
 }

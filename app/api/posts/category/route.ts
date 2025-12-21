@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { client } from '@/lib/sanity';
 import { CATEGORY_BY_SLUG_QUERY } from '@/lib/queries';
 import { isValidSlug } from '@/lib/utils';
 import { checkRateLimit, RATE_LIMITS, isBot } from '@/lib/rate-limit';
+import { ApiErrors, successResponse } from '@/lib/api-response';
 import type { Post, Category } from '@/types/post';
 
 const POSTS_PER_PAGE = 12;
@@ -15,30 +16,20 @@ export async function GET(request: NextRequest) {
     const userAgent = request.headers.get('user-agent');
     const isSearchEngine = /googlebot|bingbot|slurp|duckduckbot|chatgpt-user|anthropic-ai|claude-web|perplexitybot|perplexity-ai/i.test(userAgent || '');
     if (isBot(userAgent) && !isSearchEngine) {
-      return NextResponse.json(
-        { error: 'Access denied' },
-        { status: 403 }
-      );
+      return ApiErrors.forbidden();
     }
 
     // Rate limiting
     const rateLimit = checkRateLimit(request, RATE_LIMITS.API);
     if (!rateLimit.allowed) {
-      return NextResponse.json(
-        {
-          error: 'Too many requests',
-          retryAfter: Math.ceil((rateLimit.resetTime - Date.now()) / 1000)
-        },
-        {
-          status: 429,
-          headers: {
-            'Retry-After': String(Math.ceil((rateLimit.resetTime - Date.now()) / 1000)),
-            'X-RateLimit-Limit': String(RATE_LIMITS.API.maxRequests),
-            'X-RateLimit-Remaining': String(rateLimit.remaining),
-            'X-RateLimit-Reset': String(rateLimit.resetTime),
-          }
-        }
-      );
+      const retryAfter = Math.ceil((rateLimit.resetTime - Date.now()) / 1000);
+      const response = ApiErrors.tooManyRequests(retryAfter);
+      // Add rate limit headers
+      response.headers.set('Retry-After', String(retryAfter));
+      response.headers.set('X-RateLimit-Limit', String(RATE_LIMITS.API.maxRequests));
+      response.headers.set('X-RateLimit-Remaining', String(rateLimit.remaining));
+      response.headers.set('X-RateLimit-Reset', String(rateLimit.resetTime));
+      return response;
     }
 
     const searchParams = request.nextUrl.searchParams;
@@ -53,10 +44,7 @@ export async function GET(request: NextRequest) {
     if (limit > MAX_LIMIT) limit = MAX_LIMIT;
 
     if (!slug || !isValidSlug(slug)) {
-      return NextResponse.json(
-        { error: 'Invalid category slug' },
-        { status: 400 }
-      );
+      return ApiErrors.badRequest('Invalid category slug');
     }
 
     // Fetch category to get its ID
@@ -67,10 +55,7 @@ export async function GET(request: NextRequest) {
     );
 
     if (!category) {
-      return NextResponse.json(
-        { error: 'Category not found' },
-        { status: 404 }
-      );
+      return ApiErrors.notFound('Category not found');
     }
 
     // Fetch posts with pagination
@@ -114,7 +99,7 @@ export async function GET(request: NextRequest) {
 
     const hasMore = end < totalCount;
 
-    return NextResponse.json({
+    return successResponse({
       posts,
       pagination: {
         page,
@@ -124,10 +109,11 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error fetching category posts:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch posts' },
-      { status: 500 }
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error fetching category posts:', error);
+    }
+    return ApiErrors.internalError('Failed to fetch posts',
+      process.env.NODE_ENV === 'development' ? error : undefined
     );
   }
 }
