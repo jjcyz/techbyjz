@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Poppins, Geist_Mono } from "next/font/google";
 import Script from "next/script";
+import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
+import PageViewTracker from "@/components/analytics/PageViewTracker";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -54,12 +56,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const publisherId = process.env.NEXT_PUBLIC_ADSENSE_PUBLISHER_ID;
+  const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
   return (
     <html lang="en">
       <body
         className={`${poppins.variable} ${geistMono.variable} antialiased`}
       >
+        {/* Google Analytics 4 - Website Traffic Analytics */}
+        {gaMeasurementId && (
+          <>
+            <GoogleAnalytics measurementId={gaMeasurementId} />
+            <PageViewTracker measurementId={gaMeasurementId} />
+          </>
+        )}
+
         {/* Google AdSense Script - Load once globally */}
         {publisherId && (
           <Script
