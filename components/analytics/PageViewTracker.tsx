@@ -1,17 +1,17 @@
 'use client'
 
 import { usePathname, useSearchParams } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, Suspense } from 'react'
 
 interface PageViewTrackerProps {
   measurementId: string
 }
 
 /**
- * Tracks page views in Google Analytics when route changes
- * This ensures page views are tracked correctly in Next.js App Router
+ * Inner component that uses useSearchParams
+ * Must be wrapped in Suspense boundary
  */
-export default function PageViewTracker({ measurementId }: PageViewTrackerProps) {
+function PageViewTrackerInner({ measurementId }: PageViewTrackerProps) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
@@ -27,5 +27,18 @@ export default function PageViewTracker({ measurementId }: PageViewTrackerProps)
   }, [pathname, searchParams, measurementId])
 
   return null
+}
+
+/**
+ * Tracks page views in Google Analytics when route changes
+ * This ensures page views are tracked correctly in Next.js App Router
+ * Wrapped in Suspense to handle useSearchParams() requirement
+ */
+export default function PageViewTracker({ measurementId }: PageViewTrackerProps) {
+  return (
+    <Suspense fallback={null}>
+      <PageViewTrackerInner measurementId={measurementId} />
+    </Suspense>
+  )
 }
 
