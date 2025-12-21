@@ -8,15 +8,9 @@ import { isBot } from '@/lib/rate-limit';
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const userAgent = request.headers.get('user-agent') || '';
-  const hostname = request.headers.get('host') || '';
 
-  // Redirect www to non-www (canonical domain)
-  // This ensures all URLs use the non-www version for SEO consistency
-  if (hostname.startsWith('www.')) {
-    const url = request.nextUrl.clone();
-    url.hostname = hostname.replace('www.', '');
-    return NextResponse.redirect(url, 301); // Permanent redirect
-  }
+  // Redirect www to non-www is handled by Vercel domain settings
+  // Configure in Vercel Dashboard → Project → Settings → Domains
 
   // Block bots from API endpoints (except allowed search engines and AI search bots)
   if (pathname.startsWith('/api/')) {
