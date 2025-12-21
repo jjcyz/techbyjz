@@ -4,6 +4,7 @@ import Script from "next/script";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import PageViewTracker from "@/components/analytics/PageViewTracker";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
+import CookieConsent from "@/components/shared/CookieConsent";
 import { validateStartup } from "@/lib/startup-validation";
 import "./globals.css";
 
@@ -101,6 +102,9 @@ export default function RootLayout({
         <ErrorBoundary>
           {children}
         </ErrorBoundary>
+
+        {/* Cookie Consent Banner */}
+        <CookieConsent />
       </body>
     </html>
   );

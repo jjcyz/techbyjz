@@ -13,11 +13,7 @@ interface AdSenseProps {
 /**
  * Google AdSense Component
  *
- * Usage:
- * 1. Get your AdSense publisher ID from Google AdSense dashboard
- * 2. Add it to your .env.local: NEXT_PUBLIC_ADSENSE_PUBLISHER_ID=ca-pub-xxxxxxxxxx
- * 3. Create ad units in AdSense dashboard and get ad slot IDs
- * 4. Use this component in your pages:
+ * Use this component in your pages:
  *
  * <AdSense
  *   adSlot="1234567890"
