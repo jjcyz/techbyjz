@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import type { Category } from '@/types/post';
 import { ScrollToSectionButton, BackToTopButton } from './Buttons';
 
@@ -48,12 +49,36 @@ export default function Footer({ categories }: FooterProps) {
             </ul>
           </div>
 
-          {/* Contact */}
+          {/* Legal & Info */}
           <div>
             <h4 className="text-sm sm:text-base font-semibold text-[var(--electric-blue)] mb-3">
-              Connect
+              Legal & Info
             </h4>
             <ul className="space-y-2">
+              <li>
+                <Link
+                  href="/about"
+                  className="text-[var(--foreground-low)] hover:text-[var(--electric-blue)] transition-colors text-sm"
+                >
+                  About
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/privacy"
+                  className="text-[var(--foreground-low)] hover:text-[var(--electric-blue)] transition-colors text-sm"
+                >
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/terms"
+                  className="text-[var(--foreground-low)] hover:text-[var(--electric-blue)] transition-colors text-sm"
+                >
+                  Terms of Service
+                </Link>
+              </li>
               <li>
                 <a
                   href="mailto:techbyjz@gmail.com"
@@ -62,7 +87,6 @@ export default function Footer({ categories }: FooterProps) {
                   Contact
                 </a>
               </li>
-              {/* Add social media links here */}
             </ul>
           </div>
         </div>
