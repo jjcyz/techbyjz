@@ -1,0 +1,6 @@
+# ads.txt file for techbyjz.blog
+# This file authorizes Google AdSense to sell ads on your site
+# Format: <Domain>, <Publisher ID>, <Relationship>, <Certification Authority ID>
+
+google.com, ca-pub-2617674024080003, DIRECT, f08c47fec0942fa0
+
