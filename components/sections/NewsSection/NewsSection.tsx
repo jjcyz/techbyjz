@@ -31,7 +31,7 @@ export default function NewsSection({ posts, category }: NewsSectionProps) {
         {/* Content Area */}
         <div className="flex-1 flex flex-col gap-4 md:gap-6">
           {/* Headlines Section */}
-          <div className="relative border-[0.5px] border-[var(--electric-blue)] p-4 md:p-6 rounded-none bg-[var(--card-bg)]/50 backdrop-blur-sm shadow-[0_0_20px_rgba(0,191,255,0.3),0_0_40px_rgba(0,191,255,0.15),inset_0_0_20px_rgba(0,191,255,0.1)] transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,191,255,0.4),0_0_60px_rgba(0,191,255,0.2),inset_0_0_30px_rgba(0,191,255,0.15)]">
+          <div className="relative border-[0.5px] border-[var(--electric-blue)] p-4 md:p-6 bg-[var(--card-bg)]/50 backdrop-blur-sm shadow-[0_0_20px_rgba(0,191,255,0.3),0_0_40px_rgba(0,191,255,0.15),inset_0_0_20px_rgba(0,191,255,0.1)] transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,191,255,0.4),0_0_60px_rgba(0,191,255,0.2),inset_0_0_30px_rgba(0,191,255,0.15)]">
             <h3 className="text-xs md:text-sm font-semibold text-[var(--electric-blue)] mb-2 md:mb-3 uppercase tracking-wide drop-shadow-[0_0_8px_rgba(0,191,255,0.6)]">
               Top Headlines
             </h3>

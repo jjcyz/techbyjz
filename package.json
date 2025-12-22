@@ -20,6 +20,7 @@
     "@sanity/image-url": "^2.0.1",
     "@sanity/react-loader": "^2.0.4",
     "@sanity/ui": "^3.1.11",
+    "@tiptap/extension-image": "^3.14.0",
     "@tiptap/extension-link": "^3.14.0",
     "@tiptap/extension-placeholder": "^3.14.0",
     "@tiptap/react": "^3.14.0",

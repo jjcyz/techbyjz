@@ -126,7 +126,7 @@ function SearchInner({ posts }: SearchProps) {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search for posts..."
-              className="w-96 sm:w-[500px] md:w-[600px] lg:w-[700px] xl:w-[800px] bg-[var(--card-bg)] text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:outline-none text-base px-6 py-4 h-auto pr-12 rounded"
+              className="w-96 sm:w-[500px] md:w-[600px] lg:w-[700px] xl:w-[800px] bg-[var(--card-bg)] text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:outline-none text-base px-6 py-4 h-auto pr-12"
             />
 
             <button

@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation';
-import Image from 'next/image';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { client } from '@/lib/sanity';
@@ -11,7 +10,6 @@ import Footer from '@/components/shared/Footer';
 import RelatedPosts from '@/components/posts/RelatedPosts';
 import SocialShareButtons from '@/components/posts/SocialShareButtons';
 import ViewTracker from '@/components/posts/ViewTracker';
-import AdminEditButton from '@/components/shared/AdminEditButton';
 import PostContent from '@/components/posts/PostContent';
 import PostTitle from '@/components/posts/PostTitle';
 import PostExcerpt from '@/components/posts/PostExcerpt';
@@ -165,7 +163,6 @@ export default async function PostPage({ params }: PageProps) {
     });
   }
 
-  const imageUrl = getImageUrl(post.mainImage, 1200, 600);
   const formattedDate = post.publishedAt
     ? new Date(post.publishedAt).toLocaleDateString('en-US', {
         year: 'numeric',
@@ -182,17 +179,14 @@ export default async function PostPage({ params }: PageProps) {
       {/* Track view count */}
       <ViewTracker slug={post.slug.current} />
 
-      {/* Back Button and Admin Controls */}
+      {/* Back Button */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 pt-6 pb-3">
-        <div className="flex items-center justify-between gap-3">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--electric-blue)] hover:border-[var(--electric-blue)] hover:bg-[var(--electric-blue)]/10 transition-all duration-300 text-xs font-medium"
-          >
-            ← Back to Posts
-          </Link>
-          <AdminEditButton postId={post._id} />
-        </div>
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--electric-blue)] hover:border-[var(--electric-blue)] hover:bg-[var(--electric-blue)]/10 transition-all duration-300 text-xs font-medium"
+        >
+          ← Back to Posts
+        </Link>
       </div>
 
       <article className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-8 md:py-12 lg:py-16">
@@ -265,20 +259,6 @@ export default async function PostPage({ params }: PageProps) {
             </div>
           )}
         </header>
-
-        {/* Featured Image */}
-        {imageUrl ? (
-          <div className="relative w-full max-w-[65ch] mx-auto h-40 md:h-56 lg:h-72 mb-4 overflow-hidden bg-[var(--background-dark-navy)] border border-[var(--border-color)]">
-            <Image
-              src={imageUrl}
-              alt={post.mainImage?.alt || post.title}
-              fill
-              className="object-cover"
-              priority
-              sizes="(max-width: 768px) 100vw, 65ch"
-            />
-          </div>
-        ) : null}
 
         {/* Post Excerpt */}
         <PostExcerpt initialData={post} />

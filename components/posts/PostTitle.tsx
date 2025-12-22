@@ -63,7 +63,7 @@ export default function PostTitle({ initialData }: PostTitleProps) {
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full text-xl md:text-2xl lg:text-3xl font-bold text-foreground bg-[var(--card-bg)] border-2 border-[var(--electric-blue)] px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[var(--electric-blue)]"
+          className="w-full text-xl md:text-2xl lg:text-3xl font-bold text-foreground bg-[var(--card-bg)] border-2 border-[var(--electric-blue)] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--electric-blue)]"
           autoFocus
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -78,14 +78,14 @@ export default function PostTitle({ initialData }: PostTitleProps) {
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="px-4 py-1.5 bg-[var(--electric-blue)] text-white rounded hover:opacity-90 disabled:opacity-50 text-sm"
+            className="px-4 py-1.5 bg-[var(--electric-blue)] text-white hover:opacity-90 disabled:opacity-50 text-sm"
           >
             {isSaving ? 'Saving...' : 'Save'}
           </button>
           <button
             onClick={handleCancel}
             disabled={isSaving}
-            className="px-4 py-1.5 bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--foreground)] rounded hover:bg-[var(--background)] disabled:opacity-50 text-sm"
+            className="px-4 py-1.5 bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--foreground)] hover:bg-[var(--background)] disabled:opacity-50 text-sm"
           >
             Cancel
           </button>
@@ -101,7 +101,7 @@ export default function PostTitle({ initialData }: PostTitleProps) {
       </h1>
       <button
         onClick={() => setIsEditing(true)}
-        className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity px-2 py-1 bg-[var(--electric-blue)] text-white text-xs rounded hover:opacity-90"
+        className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity px-2 py-1 bg-[var(--electric-blue)] text-white text-xs hover:opacity-90"
         title="Edit title"
       >
         Edit

@@ -4,6 +4,8 @@
  */
 
 import { PortableTextBlock } from '@portabletext/types'
+import { getImageUrl } from './image'
+import type { SanityImage } from '@/types/post'
 
 export function portableTextToHtml(blocks: PortableTextBlock[] | null | undefined): string {
   if (!blocks || !Array.isArray(blocks) || blocks.length === 0) {
@@ -22,6 +24,56 @@ export function portableTextToHtml(blocks: PortableTextBlock[] | null | undefine
   }
 
   blocks.forEach((block) => {
+    if (block._type === 'image') {
+      // Handle image blocks
+      const imageBlock = block as { _type: 'image'; asset?: { _ref?: string; _type?: string } | string; alt?: string }
+      let imageUrl: string | null = null
+      let sanityRef: string | null = null
+      let sanityImageData: string | null = null
+
+      // Handle different image formats
+      if (typeof imageBlock.asset === 'string') {
+        // Legacy: direct URL
+        imageUrl = imageBlock.asset
+      } else if (imageBlock.asset && typeof imageBlock.asset === 'object') {
+        // Sanity image reference
+        const ref = imageBlock.asset._ref
+        if (ref) {
+          sanityRef = ref
+          // Convert to SanityImage format and get URL
+          const sanityImage: SanityImage = {
+            _type: 'image',
+            asset: {
+              _type: 'reference',
+              _ref: ref,
+            },
+            alt: imageBlock.alt,
+          }
+
+          // Get the image URL from Sanity
+          imageUrl = getImageUrl(sanityImage, 800)
+
+          // Store the full image data as JSON for saving back
+          sanityImageData = JSON.stringify(sanityImage)
+        }
+      }
+
+      if (imageUrl) {
+        const alt = imageBlock.alt || ''
+        // Include Sanity metadata as data attributes so we can save it back
+        const dataAttrs: string[] = []
+        if (sanityRef) {
+          dataAttrs.push(`data-sanity-ref="${escapeHtml(sanityRef)}"`)
+        }
+        if (sanityImageData) {
+          dataAttrs.push(`data-sanity-image="${escapeHtml(sanityImageData)}"`)
+        }
+        const dataAttrStr = dataAttrs.length > 0 ? ` ${dataAttrs.join(' ')}` : ''
+        html.push(`<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(alt)}"${dataAttrStr} />`)
+      }
+      return
+    }
+
     if (block._type !== 'block') {
       return
     }

@@ -82,17 +82,78 @@ function processInlineContent(
   return { children, markDefs }
 }
 
-export function tiptapToPortableText(tiptapJson: { type: string; content?: TiptapNode[] }): PortableTextBlock[] {
+export function tiptapToPortableText(tiptapJson: { type: string; content?: TiptapNode[] }): Array<PortableTextBlock | { _type: 'image'; _key: string; asset: { _type: 'reference'; _ref: string }; alt?: string }> {
   if (!tiptapJson.content || !Array.isArray(tiptapJson.content)) {
     return []
   }
 
-  const blocks: PortableTextBlock[] = []
+  const blocks: Array<PortableTextBlock | { _type: 'image'; _key: string; asset: { _type: 'reference'; _ref: string }; alt?: string }> = []
   // Track all link annotations globally to deduplicate by href
   const linkMap = new Map<string, string>() // href -> _key mapping
 
   tiptapJson.content.forEach((node) => {
-    if (node.type === 'paragraph') {
+    if (node.type === 'image') {
+      // Handle image nodes - convert to PortableText image block
+      const attrs = node.attrs || {}
+      const alt = attrs.alt as string | undefined
+      const sanityImageJson = attrs['data-sanity-image'] as string | undefined
+      const sanityRef = attrs['data-sanity-ref'] as string | undefined
+
+      // If we have a Sanity image reference stored in data attributes, use it
+      if (sanityImageJson) {
+        try {
+          const sanityImage = JSON.parse(sanityImageJson)
+          blocks.push({
+            _type: 'image',
+            _key: generateKey(),
+            asset: {
+              _type: 'reference',
+              _ref: sanityImage.asset._ref,
+            },
+            alt: sanityImage.alt || alt || undefined,
+          })
+        } catch (error) {
+          console.error('Error parsing Sanity image data:', error)
+          // Fallback to using ref directly if parsing fails
+          if (sanityRef) {
+            blocks.push({
+              _type: 'image',
+              _key: generateKey(),
+              asset: {
+                _type: 'reference',
+                _ref: sanityRef,
+              },
+              alt: alt || undefined,
+            })
+          }
+        }
+      } else if (sanityRef) {
+        // Fallback: use the ref directly
+        blocks.push({
+          _type: 'image',
+          _key: generateKey(),
+          asset: {
+            _type: 'reference',
+            _ref: sanityRef,
+          },
+          alt: alt || undefined,
+        })
+      } else {
+        // Legacy: if no Sanity ref, check if src is a Sanity CDN URL
+        // This handles old images that might have been added via URL
+        const src = attrs.src as string | undefined
+        if (src) {
+          // Try to extract asset ID from Sanity CDN URL
+          // NOTE: In many cases we can't reliably recover the Sanity asset _id from the URL
+          // and sending an invalid reference will cause the post update to fail.
+          // Instead of creating a broken reference, we skip these legacy images.
+          //
+          // If you need to preserve these images, please re-insert them using the new image
+          // upload flow so they get proper Sanity metadata.
+          console.warn('Skipping image without valid Sanity reference when converting from Tiptap:', src)
+        }
+      }
+    } else if (node.type === 'paragraph') {
       const result = processInlineContent(node, linkMap)
 
       const block: PortableTextBlock = {

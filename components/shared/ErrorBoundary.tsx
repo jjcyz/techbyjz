@@ -66,7 +66,7 @@ export class ErrorBoundary extends Component<Props, State> {
       // Default fallback UI
       return (
         <div className="min-h-screen flex items-center justify-center bg-[var(--background)] p-4">
-          <div className="max-w-md w-full bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6 text-center">
+          <div className="max-w-md w-full bg-[var(--card-bg)] border border-[var(--border-color)] p-6 text-center">
             <h2 className="text-xl font-semibold text-[var(--foreground)] mb-2">
               Something went wrong
             </h2>
@@ -78,7 +78,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 <summary className="cursor-pointer text-sm text-[var(--foreground-muted)] mb-2">
                   Error details (development only)
                 </summary>
-                <pre className="text-xs bg-[var(--background)] p-3 rounded overflow-auto max-h-40">
+                <pre className="text-xs bg-[var(--background)] p-3 overflow-auto max-h-40">
                   {this.state.error.toString()}
                 </pre>
               </details>
@@ -88,7 +88,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 this.setState({ hasError: false, error: null });
                 window.location.reload();
               }}
-              className="mt-4 px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded hover:opacity-90 transition-opacity"
+              className="mt-4 px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 transition-opacity"
             >
               Reload Page
             </button>
