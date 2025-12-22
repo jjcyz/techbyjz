@@ -1,9 +1,10 @@
 'use client'
 
 import { useEditor, EditorContent } from '@tiptap/react'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState, useEffect } from 'react'
 import { portableTextToHtml } from '@/lib/portable-text-to-html'
 import { tiptapToPortableText } from '@/lib/tiptap-to-portable-text'
+import type { PortableTextBlock } from '@portabletext/types'
 import type { RichTextEditorProps, PortableTextContent } from './types'
 import { editorExtensions, editorProps } from './editorConfig'
 import { Toolbar } from './Toolbar'
@@ -29,7 +30,8 @@ export default function RichTextEditor({
       return ''
     }
     try {
-      return portableTextToHtml(initialContent)
+      // portableTextToHtml handles images internally, so we cast to the expected type
+      return portableTextToHtml(initialContent as PortableTextBlock[])
     } catch (error) {
       console.error('Error converting PortableText to HTML:', error)
       return ''
@@ -42,9 +44,9 @@ export default function RichTextEditor({
       return null
     }
 
-    // Check if content has actual blocks with children
+    // Check if content has actual blocks with children (excluding images)
     const hasContent = initialContent.some(block =>
-      block._type === 'block' && block.children && block.children.length > 0
+      block._type === 'block' && 'children' in block && block.children && block.children.length > 0
     )
 
     // If we have content but got empty HTML, conversion likely failed
@@ -65,6 +67,18 @@ export default function RichTextEditor({
     enablePasteRules: true,
     autofocus: false,
   })
+
+  // Update editor content when initialContent changes (e.g., after save)
+  useEffect(() => {
+    if (!editor) return
+
+    const currentHtml = editor.getHTML()
+
+    // Only update if content has actually changed
+    if (initialHtml && initialHtml !== currentHtml) {
+      editor.commands.setContent(initialHtml)
+    }
+  }, [editor, initialHtml])
 
   // Get editor handlers
   const {

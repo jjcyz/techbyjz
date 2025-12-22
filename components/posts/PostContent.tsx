@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { PortableText } from '@portabletext/react'
 import RichTextEditor from './RichTextEditor'
@@ -18,11 +18,18 @@ export default function PostContent({ initialData }: PostContentProps) {
   const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [content, setContent] = useState<PortableTextContent[] | null | undefined>(
+    (initialData?.content || initialData?.body) as PortableTextContent[] | null | undefined
+  )
 
   // Only show edit in development mode
   const canEdit = process.env.NODE_ENV === 'development'
 
-  const content = initialData?.content || initialData?.body
+  // Update content when initialData changes (e.g., after page refresh)
+  useEffect(() => {
+    const newContent = (initialData?.content || initialData?.body) as PortableTextContent[] | null | undefined
+    setContent(newContent)
+  }, [initialData])
 
   const handleEdit = () => {
     setIsEditing(true)
@@ -49,15 +56,15 @@ export default function PostContent({ initialData }: PostContentProps) {
         throw new Error(errorMessage)
       }
 
-      // Refresh the page data using Next.js router
-      setIsEditing(false)
+      // Update local content state immediately with saved content
+      setContent(blocks)
+
+      // Refresh the page data using Next.js router (for other parts of the page)
       router.refresh()
 
-      // Also do a hard reload after a short delay to ensure fresh data
-      // This is needed because ISR cache might not be immediately updated
-      setTimeout(() => {
-        window.location.reload()
-      }, 500)
+      setIsSaving(false)
+      // Keep editor open so user can see the updated content immediately
+      // User can manually close it or it will refresh when they navigate away
     } catch (error) {
       console.error('Error saving content:', error)
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
@@ -101,7 +108,7 @@ export default function PostContent({ initialData }: PostContentProps) {
   if (isEditing) {
     return (
       <RichTextEditor
-        initialContent={Array.isArray(content) ? content : null}
+        initialContent={Array.isArray(content) ? (content as PortableTextContent[]) : null}
         onSave={handleSave}
         onCancel={handleCancel}
         isSaving={isSaving}

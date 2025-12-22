@@ -23,6 +23,27 @@ export function EditorStyles() {
         outline: 2px solid var(--electric-blue) !important;
         outline-offset: 2px !important;
       }
+      .ProseMirror ul,
+      .ProseMirror ol {
+        padding-left: 1.5rem !important;
+        margin-left: 0 !important;
+        margin-top: 0.5rem !important;
+        margin-bottom: 0.5rem !important;
+      }
+      .ProseMirror ul {
+        list-style-type: disc !important;
+      }
+      .ProseMirror ol {
+        list-style-type: decimal !important;
+      }
+      .ProseMirror li {
+        margin-left: 0 !important;
+        padding-left: 0.25rem !important;
+      }
+      .ProseMirror li p {
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+      }
     `}} />
   )
 }

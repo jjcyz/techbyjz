@@ -8,7 +8,7 @@ export type PortableTextContent = PortableTextBlock | {
 }
 
 export interface RichTextEditorProps {
-  initialContent: PortableTextBlock[] | null | undefined
+  initialContent: PortableTextContent[] | null | undefined
   onSave: (content: PortableTextContent[]) => void
   onCancel: () => void
   isSaving: boolean
