@@ -99,9 +99,9 @@ export default function RootLayout({
             strategy="afterInteractive"
           />
         )}
-        <ErrorBoundary>
-          {children}
-        </ErrorBoundary>
+            <ErrorBoundary>
+              {children}
+            </ErrorBoundary>
 
         {/* Cookie Consent Banner */}
         <CookieConsent />

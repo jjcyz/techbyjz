@@ -7,12 +7,14 @@ import { POST_BY_SLUG_QUERY, CATEGORIES_QUERY, RELATED_POSTS_QUERY, RECENT_POSTS
 import { getImageUrl } from '@/lib/image';
 import { isValidSlug } from '@/lib/utils';
 import type { Post, Category, Tag } from '@/types/post';
-import { PortableText } from '@portabletext/react';
 import Footer from '@/components/shared/Footer';
 import RelatedPosts from '@/components/posts/RelatedPosts';
 import SocialShareButtons from '@/components/posts/SocialShareButtons';
 import ViewTracker from '@/components/posts/ViewTracker';
 import AdminEditButton from '@/components/shared/AdminEditButton';
+import PostContent from '@/components/posts/PostContent';
+import PostTitle from '@/components/posts/PostTitle';
+import PostExcerpt from '@/components/posts/PostExcerpt';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -196,9 +198,7 @@ export default async function PostPage({ params }: PageProps) {
       <article className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-8 md:py-12 lg:py-16">
         {/* Post Header */}
         <header className="mb-6 text-center">
-          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground mb-3 leading-tight">
-            {post.title}
-          </h1>
+          <PostTitle initialData={post} />
 
           {formattedDate && (
             <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-[var(--text-gray-400)] mb-4">
@@ -281,131 +281,10 @@ export default async function PostPage({ params }: PageProps) {
         ) : null}
 
         {/* Post Excerpt */}
-        {post.excerpt && (
-          <p className="text-xs sm:text-sm md:text-base text-[var(--foreground-low)] mb-6 leading-relaxed text-center max-w-3xl mx-auto">
-            {post.excerpt}
-          </p>
-        )}
+        <PostExcerpt initialData={post} />
 
         {/* Post Body */}
-        {(() => {
-          const content = post.content || post.body;
-
-          // Debug: Log content structure (only if needed for debugging)
-          // Uncomment if debugging is needed:
-          // if (process.env.NODE_ENV === 'development') {
-          //   console.log('Post content:', JSON.stringify(content, null, 2));
-          // }
-
-          return content ? (
-            Array.isArray(content) && content.length > 0 ? (
-              <div className="max-w-none">
-                <PortableText
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  value={content as any}
-                components={{
-                  block: {
-                    normal: ({ children, value }) => {
-                      // Check if block is empty by examining the raw value structure
-                      const blockValue = value as { children?: Array<{ text?: string; _type?: string }> } | undefined;
-                      const hasEmptyContent = blockValue?.children?.every(child =>
-                        !child.text || (typeof child.text === 'string' && child.text.trim() === '')
-                      ) ?? false;
-
-                      // Render empty blocks as visible spacers to preserve paragraph breaks
-                      // This handles cases where blank lines are created in Sanity Studio
-                      if (hasEmptyContent || (!children) || (Array.isArray(children) && children.length === 0)) {
-                        return <div className="h-6 max-w-[65ch] mx-auto" aria-hidden="true" />;
-                      }
-
-                      // Regular paragraphs with normal spacing (matching Sanity's default behavior)
-                      return (
-                        <p className="text-xs sm:text-sm md:text-base text-[var(--foreground)] mb-4 leading-relaxed max-w-[65ch] mx-auto">{children}</p>
-                      );
-                    },
-                    h1: ({ children }) => (
-                      <h1 className="text-lg md:text-xl lg:text-2xl font-bold text-[var(--foreground)] mb-4 mt-8 first:mt-0 max-w-[65ch] mx-auto">{children}</h1>
-                    ),
-                    h2: ({ children }) => (
-                      <h2 className="text-base md:text-lg lg:text-xl font-bold text-[var(--foreground)] mb-3 mt-6 first:mt-0 max-w-[65ch] mx-auto">{children}</h2>
-                    ),
-                    h3: ({ children }) => (
-                      <h3 className="text-sm md:text-base lg:text-lg font-bold text-[var(--foreground)] mb-3 mt-5 first:mt-0 max-w-[65ch] mx-auto">{children}</h3>
-                    ),
-                    h4: ({ children }) => (
-                      <h4 className="text-sm md:text-base font-bold text-[var(--foreground)] mb-2 mt-4 first:mt-0 max-w-[65ch] mx-auto">{children}</h4>
-                    ),
-                    blockquote: ({ children }) => (
-                      <blockquote className="border-l-4 border-[var(--electric-blue)] pl-3 my-4 italic text-xs sm:text-sm text-[var(--foreground-low)] bg-[var(--card-bg)]/30 py-2 max-w-[65ch] mx-auto leading-relaxed">
-                        {children}
-                      </blockquote>
-                    ),
-                  },
-                  list: {
-                    bullet: ({ children }) => (
-                      <ul className="list-disc mb-3 text-xs sm:text-sm md:text-base text-[var(--foreground)] space-y-1.5 max-w-[65ch] mx-auto pl-6 leading-relaxed">{children}</ul>
-                    ),
-                    number: ({ children }) => (
-                      <ol className="list-decimal mb-3 text-xs sm:text-sm md:text-base text-[var(--foreground)] space-y-1.5 max-w-[65ch] mx-auto pl-6 leading-relaxed">{children}</ol>
-                    ),
-                  },
-                  listItem: {
-                    bullet: ({ children }) => <li className="mb-1 leading-relaxed pl-1">{children}</li>,
-                    number: ({ children }) => <li className="mb-1 leading-relaxed pl-1">{children}</li>,
-                  },
-                  marks: {
-                    strong: ({ children }) => <strong className="font-bold text-[var(--foreground)]">{children}</strong>,
-                    em: ({ children }) => <em className="italic">{children}</em>,
-                    code: ({ children }) => (
-                      <code className="bg-[var(--card-bg)] px-1.5 py-0.5 text-[var(--electric-blue)] text-xs font-mono">
-                        {children}
-                      </code>
-                    ),
-                    link: ({ children, value }) => {
-                      const href = value?.href || '#';
-                      return (
-                        <a
-                          href={href}
-                          target={href.startsWith('http') ? '_blank' : undefined}
-                          rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                          className="text-[var(--electric-blue)] hover:text-[var(--electric-blue)] underline transition-colors"
-                        >
-                          {children}
-                        </a>
-                      );
-                    },
-                  },
-                  types: {
-                    image: ({ value }) => {
-                      const imageUrl = getImageUrl(value, 800);
-                      if (!imageUrl) return null;
-                      return (
-                        <div className="my-12 max-w-full">
-                          <Image
-                            src={imageUrl}
-                            alt={value.alt || ''}
-                            width={800}
-                            height={600}
-                            className="mx-auto rounded-lg"
-                          />
-                        </div>
-                      );
-                    },
-                  },
-                }}
-              />
-            </div>
-          ) : (
-            <div className="text-[var(--foreground-muted)] italic mb-8">
-              <p>No content available for this post.</p>
-            </div>
-          )
-          ) : (
-            <div className="text-[var(--foreground-muted)] italic mb-8">
-              <p>This post does not have any content yet.</p>
-            </div>
-          );
-        })()}
+        <PostContent initialData={post} />
 
         {/* Social Share Buttons */}
         <SocialShareButtons

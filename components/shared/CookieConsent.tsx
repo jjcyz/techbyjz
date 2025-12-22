@@ -59,7 +59,7 @@ export default function CookieConsent() {
         isVisible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
       }`}
     >
-      <div className="bg-[var(--background-dark-navy)] border-t-2 border-[var(--electric-blue)] shadow-[0_-4px_20px_rgba(0,191,255,0.2)]">
+      <div className="bg-[var(--background-dark-navy)] shadow-[0_-4px_20px_rgba(0,191,255,0.2)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 py-4 sm:py-5 md:py-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             {/* Content */}
