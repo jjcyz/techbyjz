@@ -9,7 +9,7 @@ import type { PortableTextBlock } from '@portabletext/types'
 export const portableTextComponents: any = {
   block: {
     normal: ({ children, value }: PortableTextComponentProps<PortableTextBlock>) => {
-      const blockValue = value as { children?: Array<{ text?: string; _type?: string }> } | undefined;
+      const blockValue = value as { children?: Array<{ text?: string; _type?: string }>; indentLevel?: number } | undefined;
       const hasEmptyContent = blockValue?.children?.every(child =>
         !child.text || (typeof child.text === 'string' && child.text.trim() === '')
       ) ?? false;
@@ -18,22 +18,70 @@ export const portableTextComponents: any = {
         return <div className="h-6 max-w-[65ch] mx-auto" aria-hidden="true" />;
       }
 
+      const indentLevel = blockValue?.indentLevel || 0;
+      const indentStyle = indentLevel > 0 ? { paddingLeft: `${indentLevel * 2}rem` } : undefined;
+
       return (
-        <p className="text-xs sm:text-sm md:text-base text-[var(--foreground)] mb-4 leading-relaxed max-w-[65ch] mx-auto">{children}</p>
+        <p
+          className="text-xs sm:text-sm md:text-base text-[var(--foreground)] mb-4 leading-relaxed max-w-[65ch] mx-auto"
+          style={indentStyle}
+        >
+          {children}
+        </p>
       );
     },
-    h1: ({ children }: PortableTextComponentProps<PortableTextBlock>) => (
-      <h1 className="text-lg md:text-xl lg:text-2xl font-bold text-[var(--foreground)] mb-4 mt-8 first:mt-0 max-w-[65ch] mx-auto">{children}</h1>
-    ),
-    h2: ({ children }: PortableTextComponentProps<PortableTextBlock>) => (
-      <h2 className="text-base md:text-lg lg:text-xl font-bold text-[var(--foreground)] mb-3 mt-6 first:mt-0 max-w-[65ch] mx-auto">{children}</h2>
-    ),
-    h3: ({ children }: PortableTextComponentProps<PortableTextBlock>) => (
-      <h3 className="text-sm md:text-base lg:text-lg font-bold text-[var(--foreground)] mb-3 mt-5 first:mt-0 max-w-[65ch] mx-auto">{children}</h3>
-    ),
-    h4: ({ children }: PortableTextComponentProps<PortableTextBlock>) => (
-      <h4 className="text-sm md:text-base font-bold text-[var(--foreground)] mb-2 mt-4 first:mt-0 max-w-[65ch] mx-auto">{children}</h4>
-    ),
+    h1: ({ children, value }: PortableTextComponentProps<PortableTextBlock>) => {
+      const blockValue = value as { indentLevel?: number } | undefined;
+      const indentLevel = blockValue?.indentLevel || 0;
+      const indentStyle = indentLevel > 0 ? { paddingLeft: `${indentLevel * 2}rem` } : undefined;
+      return (
+        <h1
+          className="text-lg md:text-xl lg:text-2xl font-bold text-[var(--foreground)] mb-4 mt-8 first:mt-0 max-w-[65ch] mx-auto"
+          style={indentStyle}
+        >
+          {children}
+        </h1>
+      );
+    },
+    h2: ({ children, value }: PortableTextComponentProps<PortableTextBlock>) => {
+      const blockValue = value as { indentLevel?: number } | undefined;
+      const indentLevel = blockValue?.indentLevel || 0;
+      const indentStyle = indentLevel > 0 ? { paddingLeft: `${indentLevel * 2}rem` } : undefined;
+      return (
+        <h2
+          className="text-base md:text-lg lg:text-xl font-bold text-[var(--foreground)] mb-3 mt-6 first:mt-0 max-w-[65ch] mx-auto"
+          style={indentStyle}
+        >
+          {children}
+        </h2>
+      );
+    },
+    h3: ({ children, value }: PortableTextComponentProps<PortableTextBlock>) => {
+      const blockValue = value as { indentLevel?: number } | undefined;
+      const indentLevel = blockValue?.indentLevel || 0;
+      const indentStyle = indentLevel > 0 ? { paddingLeft: `${indentLevel * 2}rem` } : undefined;
+      return (
+        <h3
+          className="text-sm md:text-base lg:text-lg font-bold text-[var(--foreground)] mb-3 mt-5 first:mt-0 max-w-[65ch] mx-auto"
+          style={indentStyle}
+        >
+          {children}
+        </h3>
+      );
+    },
+    h4: ({ children, value }: PortableTextComponentProps<PortableTextBlock>) => {
+      const blockValue = value as { indentLevel?: number } | undefined;
+      const indentLevel = blockValue?.indentLevel || 0;
+      const indentStyle = indentLevel > 0 ? { paddingLeft: `${indentLevel * 2}rem` } : undefined;
+      return (
+        <h4
+          className="text-sm md:text-base font-bold text-[var(--foreground)] mb-2 mt-4 first:mt-0 max-w-[65ch] mx-auto"
+          style={indentStyle}
+        >
+          {children}
+        </h4>
+      );
+    },
     blockquote: ({ children }: PortableTextComponentProps<PortableTextBlock>) => (
       <blockquote className="border-l-4 border-[var(--electric-blue)] pl-3 my-4 italic text-xs sm:text-sm text-[var(--foreground-low)] bg-[var(--card-bg)]/30 py-2 max-w-[65ch] mx-auto leading-relaxed">
         {children}

@@ -101,19 +101,25 @@ export function portableTextToHtml(blocks: PortableTextBlock[] | null | undefine
       flushList()
     }
 
+    // Get indentLevel if present (custom field on block)
+    const indentLevel = (block as any).indentLevel as number | undefined
+    const indentAttr = indentLevel !== undefined && indentLevel > 0
+      ? ` data-indent-level="${indentLevel}"`
+      : ''
+
     // Handle different block styles
     if (block.style === 'h1') {
-      html.push(`<h1>${text}</h1>`)
+      html.push(`<h1${indentAttr}>${text}</h1>`)
     } else if (block.style === 'h2') {
-      html.push(`<h2>${text}</h2>`)
+      html.push(`<h2${indentAttr}>${text}</h2>`)
     } else if (block.style === 'h3') {
-      html.push(`<h3>${text}</h3>`)
+      html.push(`<h3${indentAttr}>${text}</h3>`)
     } else if (block.style === 'h4') {
-      html.push(`<h4>${text}</h4>`)
+      html.push(`<h4${indentAttr}>${text}</h4>`)
     } else if (block.style === 'blockquote') {
       html.push(`<blockquote>${text}</blockquote>`)
     } else {
-      html.push(`<p>${text}</p>`)
+      html.push(`<p${indentAttr}>${text}</p>`)
     }
   })
 

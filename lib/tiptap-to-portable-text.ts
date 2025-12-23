@@ -155,6 +155,7 @@ export function tiptapToPortableText(tiptapJson: { type: string; content?: Tipta
       }
     } else if (node.type === 'paragraph') {
       const result = processInlineContent(node, linkMap)
+      const indentLevel = node.attrs?.indentLevel as number | undefined
 
       const block: PortableTextBlock = {
         _type: 'block',
@@ -167,10 +168,16 @@ export function tiptapToPortableText(tiptapJson: { type: string; content?: Tipta
         block.markDefs = result.markDefs
       }
 
+      // Preserve indentLevel if present
+      if (indentLevel !== undefined && indentLevel > 0) {
+        ;(block as any).indentLevel = indentLevel
+      }
+
       blocks.push(block)
     } else if (node.type === 'heading') {
       const level = node.attrs?.level as number || 1
       const style = `h${Math.min(level, 4)}` as 'h1' | 'h2' | 'h3' | 'h4'
+      const indentLevel = node.attrs?.indentLevel as number | undefined
 
       const result = processInlineContent(node, linkMap)
 
@@ -183,6 +190,11 @@ export function tiptapToPortableText(tiptapJson: { type: string; content?: Tipta
 
       if (result.markDefs.length > 0) {
         block.markDefs = result.markDefs
+      }
+
+      // Preserve indentLevel if present
+      if (indentLevel !== undefined && indentLevel > 0) {
+        ;(block as any).indentLevel = indentLevel
       }
 
       blocks.push(block)

@@ -2,6 +2,7 @@ import StarterKit from '@tiptap/starter-kit'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import Image from '@tiptap/extension-image'
+import { Indent } from './extensions/Indent'
 
 export const editorExtensions = [
   StarterKit.configure({
@@ -71,6 +72,12 @@ export const editorExtensions = [
     HTMLAttributes: {
       class: 'max-w-full h-auto my-4',
     },
+  }),
+  Indent.configure({
+    types: ['paragraph', 'heading'],
+    minLevel: 0,
+    maxLevel: 8,
+    defaultLevel: 0,
   }),
 ]
 
