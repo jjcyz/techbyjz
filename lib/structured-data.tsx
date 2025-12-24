@@ -4,7 +4,7 @@
  * All data uses existing Sanity queries - no additional API calls needed
  */
 
-import type { Post, Category, Tag } from '@/types/post';
+import type { Post, Category } from '@/types/post';
 import { getImageUrl } from './image';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://techbyjz.blog';
@@ -92,6 +92,7 @@ export function getArticleSchema(post: Post, categories: Category[] = []) {
     .map(tag => typeof tag === 'string' ? tag : tag.title)
     .filter(Boolean);
 
+  // Build the schema object, ensuring required fields are present
   const schema: {
     '@context': string;
     '@type': string;
@@ -107,7 +108,7 @@ export function getArticleSchema(post: Post, categories: Category[] = []) {
     publisher: {
       '@type': string;
       name: string;
-      logo?: {
+      logo: {
         '@type': string;
         url: string;
       };
@@ -124,12 +125,6 @@ export function getArticleSchema(post: Post, categories: Category[] = []) {
     headline: post.title,
     description: post.excerpt || `Read ${post.title} on ${SITE_NAME}`,
     datePublished: post.publishedAt,
-    author: post.authorName
-      ? {
-          '@type': 'Person',
-          name: post.authorName,
-        }
-      : undefined,
     publisher: {
       '@type': 'Organization',
       name: SITE_NAME,
@@ -144,9 +139,19 @@ export function getArticleSchema(post: Post, categories: Category[] = []) {
     },
   };
 
-  // Add image if available
+  // Add author only if available
+  if (post.authorName) {
+    schema.author = {
+      '@type': 'Person',
+      name: post.authorName,
+    };
+  }
+
+  // Add image if available - must be absolute URL
   if (imageUrl) {
-    schema.image = imageUrl;
+    // Ensure imageUrl is absolute
+    const absoluteImageUrl = imageUrl.startsWith('http') ? imageUrl : `${SITE_URL}${imageUrl}`;
+    schema.image = absoluteImageUrl;
   }
 
   // Add categories as articleSection
@@ -157,6 +162,11 @@ export function getArticleSchema(post: Post, categories: Category[] = []) {
   // Add tags as keywords
   if (tagNames.length > 0) {
     schema.keywords = tagNames.length === 1 ? tagNames[0] : tagNames;
+  }
+
+  // Remove undefined author to avoid JSON issues
+  if (!schema.author) {
+    delete schema.author;
   }
 
   return schema;
@@ -206,8 +216,36 @@ export function getCollectionPageSchema(
 }
 
 /**
+ * Clean object by removing undefined values
+ * JSON.stringify omits undefined, but we want to ensure clean JSON-LD
+ */
+function cleanObject(obj: unknown): unknown {
+  if (obj === null || obj === undefined) {
+    return null;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(cleanObject).filter(item => item !== null && item !== undefined);
+  }
+
+  if (typeof obj === 'object') {
+    const cleaned: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      const cleanedValue = cleanObject(value);
+      if (cleanedValue !== null && cleanedValue !== undefined) {
+        cleaned[key] = cleanedValue;
+      }
+    }
+    return cleaned;
+  }
+
+  return obj;
+}
+
+/**
  * Render structured data as a script tag
  * Use this in your page components to inject JSON-LD
+ * In Next.js App Router, this can be placed in the body (Google reads JSON-LD from anywhere)
  */
 export function StructuredData({ data }: { data: object | object[] | null }) {
   if (!data) return null;
@@ -216,14 +254,23 @@ export function StructuredData({ data }: { data: object | object[] | null }) {
 
   return (
     <>
-      {jsonLd.map((item, index) => (
-        <script
-          key={index}
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(item) }}
-        />
-      ))}
+      {jsonLd.map((item, index) => {
+        // Clean the object to remove undefined values
+        const cleanedItem = cleanObject(item);
+
+        // Skip if item is null or empty after cleaning
+        if (!cleanedItem || (typeof cleanedItem === 'object' && Object.keys(cleanedItem).length === 0)) {
+          return null;
+        }
+
+        return (
+          <script
+            key={index}
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(cleanedItem, null, 0) }}
+          />
+        );
+      })}
     </>
   );
 }
-

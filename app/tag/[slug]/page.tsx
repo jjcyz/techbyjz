@@ -4,9 +4,12 @@ import type { Metadata } from 'next';
 import { client } from '@/lib/sanity';
 import { TAG_BY_SLUG_QUERY, CATEGORIES_QUERY } from '@/lib/queries';
 import { isValidSlug } from '@/lib/utils';
+import { getCollectionPageSchema, StructuredData } from '@/lib/structured-data';
 import type { Post, Tag, Category } from '@/types/post';
 import Footer from '@/components/shared/Footer';
 import InfiniteScrollPosts from '@/components/posts/InfiniteScrollPosts';
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://techbyjz.blog';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -53,9 +56,34 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
+  // Get post count for better description
+  const postCount = await client.fetch<number>(
+    `count(*[_type == "post" && $tagId in tags[]._ref])`,
+    { tagId: tag._id }
+  );
+
+  const tagUrl = `${SITE_URL}/tag/${tag.slug!.current}`;
+  const description = `Browse ${postCount} ${postCount === 1 ? 'post' : 'posts'} tagged with ${tag.title} on TechByJZ`;
+
   return {
     title: `${tag.title} - TechByJZ`,
-    description: `Browse all posts tagged with ${tag.title}`,
+    description,
+    openGraph: {
+      title: `${tag.title} - TechByJZ`,
+      description,
+      url: tagUrl,
+      siteName: 'TechByJZ',
+      locale: 'en_US',
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary',
+      title: `${tag.title} - TechByJZ`,
+      description,
+    },
+    alternates: {
+      canonical: tagUrl,
+    },
   };
 }
 
@@ -119,8 +147,19 @@ export default async function TagPage({ params }: PageProps) {
   // Filter posts to only show those with valid slugs
   const validPosts = posts.filter((post) => isValidSlug(post.slug?.current));
 
+  // Generate structured data
+  const tagUrl = `${SITE_URL}/tag/${tag.slug!.current}`;
+  const collectionPageSchema = getCollectionPageSchema(
+    tag.title,
+    `Browse all posts tagged with ${tag.title}`,
+    totalCount,
+    tagUrl
+  );
+
   return (
-    <main className="min-h-screen relative">
+    <>
+      <StructuredData data={collectionPageSchema} />
+      <main className="min-h-screen relative">
       {/* Back Button */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 pt-6 pb-3">
         <Link
@@ -166,7 +205,8 @@ export default async function TagPage({ params }: PageProps) {
 
       {/* Footer */}
       <Footer categories={categories} />
-    </main>
+      </main>
+    </>
   );
 }
 

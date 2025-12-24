@@ -52,7 +52,7 @@ export default function PostExcerpt({ initialData }: PostExcerptProps) {
 
   if (!canEdit) {
     return (
-      <p className="text-xs sm:text-sm md:text-base text-[var(--foreground-low)] mb-6 leading-relaxed text-center max-w-3xl mx-auto">
+      <p className="text-xs sm:text-sm md:text-base text-[var(--foreground-low)] mb-6 leading-relaxed max-w-[65ch] mx-auto italic">
         {excerpt}
       </p>
     )
@@ -94,8 +94,8 @@ export default function PostExcerpt({ initialData }: PostExcerptProps) {
 
   return (
     <div className="relative group">
-      <p className="text-xs sm:text-sm md:text-base text-[var(--foreground-low)] mb-6 leading-relaxed text-center max-w-3xl mx-auto">
-        {excerpt || <span className="italic text-[var(--foreground-muted)]">No excerpt (click Edit to add one)</span>}
+      <p className="text-xs sm:text-sm md:text-base text-[var(--foreground-low)] mb-6 leading-relaxed max-w-[65ch] mx-auto italic">
+        {excerpt || <span className="text-[var(--foreground-muted)]">No excerpt (click Edit to add one)</span>}
       </p>
       <button
         onClick={() => setIsEditing(true)}

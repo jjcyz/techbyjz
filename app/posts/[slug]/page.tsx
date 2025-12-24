@@ -5,6 +5,7 @@ import { client } from '@/lib/sanity';
 import { POST_BY_SLUG_QUERY, CATEGORIES_QUERY, RELATED_POSTS_QUERY, RECENT_POSTS_QUERY } from '@/lib/queries';
 import { getImageUrl } from '@/lib/image';
 import { isValidSlug } from '@/lib/utils';
+import { getArticleSchema, getBreadcrumbSchema, StructuredData } from '@/lib/structured-data';
 import type { Post, Category, Tag } from '@/types/post';
 import Footer from '@/components/shared/Footer';
 import RelatedPosts from '@/components/posts/RelatedPosts';
@@ -174,8 +175,31 @@ export default async function PostPage({ params }: PageProps) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://techbyjz.blog';
   const postUrl = `${siteUrl}/posts/${post.slug.current}`;
 
+  // Generate structured data for SEO
+  const articleSchema = getArticleSchema(post, validCategories);
+
+  // Build breadcrumb items
+  const breadcrumbItems = [
+    { name: 'Home', url: siteUrl },
+    ...(validCategories.length > 0
+      ? [
+          {
+            name: validCategories[0].title,
+            url: `${siteUrl}/category/${validCategories[0].slug!.current}`,
+          },
+        ]
+      : []),
+    { name: post.title, url: postUrl },
+  ];
+  const breadcrumbSchema = getBreadcrumbSchema(breadcrumbItems);
+
+  // Combine all structured data
+  const structuredData = [articleSchema, breadcrumbSchema].filter(Boolean);
+
   return (
-    <main className="min-h-screen relative">
+    <>
+      <StructuredData data={structuredData} />
+      <main className="min-h-screen relative">
       {/* Track view count */}
       <ViewTracker slug={post.slug.current} />
 
@@ -279,7 +303,8 @@ export default async function PostPage({ params }: PageProps) {
 
       {/* Footer */}
       <Footer categories={categories} />
-    </main>
+      </main>
+    </>
   );
 }
 

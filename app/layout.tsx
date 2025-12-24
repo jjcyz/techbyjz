@@ -6,6 +6,7 @@ import PageViewTracker from "@/components/analytics/PageViewTracker";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import CookieConsent from "@/components/shared/CookieConsent";
 import { validateStartup } from "@/lib/startup-validation";
+import { getOrganizationSchema, getWebSiteSchema, StructuredData } from "@/lib/structured-data";
 import "./globals.css";
 
 // Validate environment variables on app startup
@@ -77,11 +78,17 @@ export default function RootLayout({
   const publisherId = process.env.NEXT_PUBLIC_ADSENSE_PUBLISHER_ID;
   const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
+  // Generate structured data schemas for all pages
+  const organizationSchema = getOrganizationSchema();
+  const webSiteSchema = getWebSiteSchema();
+
   return (
     <html lang="en">
       <body
         className={`${poppins.variable} ${geistMono.variable} antialiased`}
       >
+        {/* Structured Data - Organization and WebSite schemas for all pages */}
+        <StructuredData data={[organizationSchema, webSiteSchema]} />
         {/* Google Analytics 4 - Website Traffic Analytics */}
         {gaMeasurementId && (
           <>

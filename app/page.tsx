@@ -1,14 +1,41 @@
+import type { Metadata } from "next";
 import { client } from "@/lib/sanity";
 import { POSTS_QUERY, CATEGORIES_QUERY } from "@/lib/queries";
 import FeaturedSection from "@/components/sections/FeaturedSection/FeaturedSection";
 import NewsSection from "@/components/sections/NewsSection/NewsSection";
 import AutomationSection from "@/components/sections/AutomationSection/AutomationSection";
 import AISection from "@/components/sections/AISection/AISection";
+import AIInfrastructureSection from "@/components/sections/AIInfrastructureSection/AIInfrastructureSection";
 import CybersecuritySection from "@/components/sections/CybersecuritySection/CybersecuritySection";
 import HeroBannerSection from "@/components/sections/HeroBannerSection/HeroBannerSection";
 import Footer from "@/components/shared/Footer";
 import { isValidSlug, groupPostsByCategory, getRandomPost } from "@/lib/utils";
+import { getBlogSchema, StructuredData } from "@/lib/structured-data";
 import type { Post, Category } from "@/types/post";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://techbyjz.blog';
+
+// Enhanced metadata for home page
+export const metadata: Metadata = {
+  title: "TechByJZ Blog | Futuristic Tech Insights",
+  description: "A futuristic tech blog featuring cutting-edge insights on technology, AI, automation, and cybersecurity. Stay ahead with the latest tech trends and innovations.",
+  openGraph: {
+    title: "TechByJZ Blog | Futuristic Tech Insights",
+    description: "A futuristic tech blog featuring cutting-edge insights on technology, AI, automation, and cybersecurity.",
+    url: SITE_URL,
+    siteName: "TechByJZ",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "TechByJZ Blog | Futuristic Tech Insights",
+    description: "A futuristic tech blog featuring cutting-edge insights on technology, AI, automation, and cybersecurity.",
+  },
+  alternates: {
+    canonical: SITE_URL,
+  },
+};
 
 export default async function Home() {
   // Fetch posts and categories in parallel for better performance
@@ -60,10 +87,16 @@ export default async function Home() {
   const { category: newsCategory, posts: newsPosts } = getCategoryPosts("Tech World in 60 Seconds");
   const { category: automationCategory, posts: automationPosts } = getCategoryPosts("Automation");
   const { category: aiCategory, posts: aiPosts } = getCategoryPosts("AI Models");
+  const { category: aiInfrastructureCategory, posts: aiInfrastructurePosts } = getCategoryPosts("AI Infrastructure");
   const { category: cybersecurityCategory, posts: cybersecurityPosts } = getCategoryPosts("Cybersecurity");
 
+  // Generate Blog schema for homepage
+  const blogSchema = getBlogSchema();
+
   return (
-    <main className="min-h-screen relative overflow-x-hidden w-full">
+    <>
+      <StructuredData data={blogSchema} />
+      <main className="min-h-screen relative overflow-x-hidden w-full">
       {/* Hero Banner Section */}
       <HeroBannerSection
         posts={validPosts}
@@ -82,11 +115,15 @@ export default async function Home() {
       {/* AI Section */}
       <AISection posts={aiPosts} category={aiCategory} />
 
+      {/* AI Infrastructure Section */}
+      <AIInfrastructureSection posts={aiInfrastructurePosts} category={aiInfrastructureCategory} />
+
       {/* Cybersecurity Section */}
       <CybersecuritySection posts={cybersecurityPosts} category={cybersecurityCategory} />
 
       {/* Footer */}
       <Footer categories={categoriesWithPosts} />
-    </main>
+      </main>
+    </>
   );
 }

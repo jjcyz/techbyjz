@@ -4,9 +4,12 @@ import type { Metadata } from 'next';
 import { client } from '@/lib/sanity';
 import { CATEGORY_BY_SLUG_QUERY, CATEGORIES_QUERY } from '@/lib/queries';
 import { isValidSlug } from '@/lib/utils';
+import { getCollectionPageSchema, StructuredData } from '@/lib/structured-data';
 import type { Post, Category } from '@/types/post';
 import Footer from '@/components/shared/Footer';
 import InfiniteScrollPosts from '@/components/posts/InfiniteScrollPosts';
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://techbyjz.blog';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -49,9 +52,34 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
+  // Get post count for better description
+  const postCount = await client.fetch<number>(
+    `count(*[_type == "post" && $categoryId in categories])`,
+    { categoryId: category._id }
+  );
+
+  const categoryUrl = `${SITE_URL}/category/${category.slug!.current}`;
+  const description = `Browse ${postCount} ${postCount === 1 ? 'post' : 'posts'} in the ${category.title} category on TechByJZ`;
+
   return {
     title: `${category.title} - TechByJZ`,
-    description: `Browse all posts in the ${category.title} category`,
+    description,
+    openGraph: {
+      title: `${category.title} - TechByJZ`,
+      description,
+      url: categoryUrl,
+      siteName: 'TechByJZ',
+      locale: 'en_US',
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary',
+      title: `${category.title} - TechByJZ`,
+      description,
+    },
+    alternates: {
+      canonical: categoryUrl,
+    },
   };
 }
 
@@ -115,8 +143,19 @@ export default async function CategoryPage({ params }: PageProps) {
   // Filter posts to only show those with valid slugs
   const validPosts = posts.filter((post) => isValidSlug(post.slug?.current));
 
+  // Generate structured data
+  const categoryUrl = `${SITE_URL}/category/${category.slug!.current}`;
+  const collectionPageSchema = getCollectionPageSchema(
+    category.title,
+    `Browse all posts in the ${category.title} category`,
+    totalCount,
+    categoryUrl
+  );
+
   return (
-    <main className="min-h-screen relative">
+    <>
+      <StructuredData data={collectionPageSchema} />
+      <main className="min-h-screen relative">
       {/* Back Button */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 pt-6 pb-3">
         <Link
@@ -162,7 +201,8 @@ export default async function CategoryPage({ params }: PageProps) {
 
       {/* Footer */}
       <Footer categories={categories} />
-    </main>
+      </main>
+    </>
   );
 }
 
