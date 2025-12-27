@@ -6,9 +6,7 @@ import { PortableText } from '@portabletext/react'
 import RichTextEditor from './RichTextEditor'
 import { portableTextComponents } from './PostContent/portableTextComponents'
 import type { Post } from '@/types/post'
-import type { PortableTextBlock } from '@portabletext/types'
-
-type PortableTextContent = PortableTextBlock | { _type: 'image'; _key: string; asset: { _type: 'reference'; _ref: string }; alt?: string }
+import type { PortableTextContent } from './RichTextEditor/types'
 
 interface PostContentProps {
   initialData: Post
