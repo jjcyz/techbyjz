@@ -2,11 +2,12 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { client } from '@/lib/sanity';
-import { CATEGORY_BY_SLUG_QUERY, CATEGORIES_QUERY } from '@/lib/queries';
+import { CATEGORY_BY_SLUG_QUERY, POSTS_QUERY, CATEGORIES_QUERY } from '@/lib/queries';
 import { isValidSlug } from '@/lib/utils';
 import { getCollectionPageSchema, StructuredData } from '@/lib/structured-data';
 import type { Post, Category } from '@/types/post';
 import Footer from '@/components/shared/Footer';
+import Header from '@/components/shared/Header';
 import InfiniteScrollPosts from '@/components/posts/InfiniteScrollPosts';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://techbyjz.blog';
@@ -101,8 +102,8 @@ export default async function CategoryPage({ params }: PageProps) {
     notFound();
   }
 
-  // Fetch only first page of posts (12 posts) and categories in parallel
-  const [posts, totalCount, categories] = await Promise.all([
+  // Fetch first page of posts, all posts (for search), total count, and categories in parallel
+  const [posts, allPosts, totalCount, categories] = await Promise.all([
     client.fetch<Post[]>(
       `*[_type == "post" && $categoryId in categories] | order(publishedAt desc) [0...12] {
         _id,
@@ -130,6 +131,9 @@ export default async function CategoryPage({ params }: PageProps) {
       { categoryId: category._id },
       { next: { revalidate: 60 } }
     ),
+    client.fetch<Post[]>(POSTS_QUERY, {}, {
+      next: { revalidate: 60 }
+    }),
     client.fetch<number>(
       `count(*[_type == "post" && $categoryId in categories])`,
       { categoryId: category._id },
@@ -155,7 +159,8 @@ export default async function CategoryPage({ params }: PageProps) {
   return (
     <>
       <StructuredData data={collectionPageSchema} />
-      <main className="min-h-screen relative">
+      <Header posts={allPosts.filter((p) => isValidSlug(p.slug?.current))} categories={categories} />
+      <main id="main-content" className="min-h-screen relative">
       {/* Back Button */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 pt-6 pb-3">
         <Link

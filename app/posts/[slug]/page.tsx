@@ -2,12 +2,13 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { client } from '@/lib/sanity';
-import { POST_BY_SLUG_QUERY, CATEGORIES_QUERY, RELATED_POSTS_QUERY, RECENT_POSTS_QUERY } from '@/lib/queries';
+import { POST_BY_SLUG_QUERY, POSTS_QUERY, CATEGORIES_QUERY, RELATED_POSTS_QUERY, RECENT_POSTS_QUERY } from '@/lib/queries';
 import { getImageUrl } from '@/lib/image';
 import { isValidSlug } from '@/lib/utils';
 import { getArticleSchema, getBreadcrumbSchema, StructuredData } from '@/lib/structured-data';
 import type { Post, Category, Tag } from '@/types/post';
 import Footer from '@/components/shared/Footer';
+import Header from '@/components/shared/Header';
 import RelatedPosts from '@/components/posts/RelatedPosts';
 import SocialShareButtons from '@/components/posts/SocialShareButtons';
 import ViewTracker from '@/components/posts/ViewTracker';
@@ -114,9 +115,12 @@ export default async function PostPage({ params }: PageProps) {
     notFound();
   }
 
-  // Fetch the post, categories, and related posts in parallel
-  const [post, categories] = await Promise.all([
+  // Fetch the post, all posts (for search), categories, and related posts in parallel
+  const [post, allPosts, categories] = await Promise.all([
     client.fetch<Post | null>(POST_BY_SLUG_QUERY, { slug }, {
+      next: { revalidate: 60 }
+    }),
+    client.fetch<Post[]>(POSTS_QUERY, {}, {
       next: { revalidate: 60 }
     }),
     client.fetch<Category[]>(CATEGORIES_QUERY, {}, {
@@ -199,7 +203,8 @@ export default async function PostPage({ params }: PageProps) {
   return (
     <>
       <StructuredData data={structuredData} />
-      <main className="min-h-screen relative">
+      <Header posts={allPosts.filter((p) => isValidSlug(p.slug?.current))} categories={categories} />
+      <main id="main-content" className="min-h-screen relative">
       {/* Track view count */}
       <ViewTracker slug={post.slug.current} />
 

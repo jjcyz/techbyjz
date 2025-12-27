@@ -87,6 +87,14 @@ export default function RootLayout({
       <body
         className={`${poppins.variable} ${geistMono.variable} antialiased`}
       >
+        {/* Skip to main content link for accessibility */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 z-50 px-4 py-2 bg-[var(--electric-blue)] text-[var(--background-dark-navy)] font-semibold rounded focus:outline-none focus:ring-2 focus:ring-[var(--electric-blue)] focus:ring-offset-2"
+        >
+          Skip to main content
+        </a>
+
         {/* Structured Data - Organization and WebSite schemas for all pages */}
         <StructuredData data={[organizationSchema, webSiteSchema]} />
         {/* Google Analytics 4 - Website Traffic Analytics */}

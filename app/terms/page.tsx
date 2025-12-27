@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Footer from '@/components/shared/Footer';
+import Header from '@/components/shared/Header';
 import { client } from '@/lib/sanity';
-import { CATEGORIES_QUERY } from '@/lib/queries';
-import type { Category } from '@/types/post';
+import { POSTS_QUERY, CATEGORIES_QUERY } from '@/lib/queries';
+import { isValidSlug } from '@/lib/utils';
+import type { Post, Category } from '@/types/post';
 
 export const metadata: Metadata = {
   title: 'Terms of Service | TechByJZ',
@@ -15,12 +17,21 @@ export const metadata: Metadata = {
 };
 
 export default async function TermsPage() {
-  const categories = await client.fetch<Category[]>(CATEGORIES_QUERY, {}, {
-    next: { revalidate: 3600 }
-  });
+  const [posts, categories] = await Promise.all([
+    client.fetch<Post[]>(POSTS_QUERY, {}, {
+      next: { revalidate: 3600 }
+    }),
+    client.fetch<Category[]>(CATEGORIES_QUERY, {}, {
+      next: { revalidate: 3600 }
+    })
+  ]);
+
+  const validPosts = posts.filter((post) => isValidSlug(post.slug?.current));
 
   return (
-    <main className="min-h-screen relative">
+    <>
+      <Header posts={validPosts} categories={categories} />
+      <main id="main-content" className="min-h-screen relative">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-8 md:py-12 lg:py-16">
         <div className="mb-8">
           <Link
@@ -164,6 +175,7 @@ export default async function TermsPage() {
 
       <Footer categories={categories} />
     </main>
+    </>
   );
 }
 

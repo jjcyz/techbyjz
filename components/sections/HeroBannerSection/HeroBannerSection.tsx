@@ -1,6 +1,5 @@
 import Image from 'next/image';
 import { ReadArticlesButton, RandomPostButton } from '@/components/shared/Buttons';
-import Search from '@/components/shared/Search';
 import type { Post } from '@/types/post';
 
 interface HeroBannerSectionProps {
@@ -23,11 +22,6 @@ export default function HeroBannerSection({ posts, randomPost }: HeroBannerSecti
           {/* Dark overlay gradient - darker towards bottom */}
           <div className="absolute inset-0 bg-gradient-to-b from-[var(--background-dark-navy)]/30 via-[var(--background-dark-navy)]/70 to-[var(--background-dark-navy)]" />
         </div>
-
-      {/* Search Component - Top Right */}
-      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 md:right-8 lg:right-10 xl:right-12 z-20">
-        <Search posts={posts} />
-      </div>
 
       {/* Hero Content Container */}
       <div className="relative z-10 w-full mx-auto flex-1 flex flex-col justify-center py-4 sm:py-6 md:py-8 lg:py-10 px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12">

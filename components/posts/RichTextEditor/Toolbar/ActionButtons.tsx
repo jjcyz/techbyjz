@@ -1,12 +1,14 @@
 'use client'
 
+import { memo } from 'react'
+
 interface ActionButtonsProps {
   onSave: () => void
   onCancel: () => void
   isSaving: boolean
 }
 
-export function ActionButtons({ onSave, onCancel, isSaving }: ActionButtonsProps) {
+function ActionButtonsComponent({ onSave, onCancel, isSaving }: ActionButtonsProps) {
   return (
     <>
       <button
@@ -33,3 +35,4 @@ export function ActionButtons({ onSave, onCancel, isSaving }: ActionButtonsProps
   )
 }
 
+export const ActionButtons = memo(ActionButtonsComponent)

@@ -1,5 +1,7 @@
 'use client'
 
+import { memo } from 'react'
+
 interface ToolbarButtonProps {
   onClick: () => void
   isActive?: boolean
@@ -11,7 +13,7 @@ interface ToolbarButtonProps {
   children: React.ReactNode
 }
 
-export function ToolbarButton({
+function ToolbarButtonComponent({
   onClick,
   isActive = false,
   disabled = false,
@@ -42,4 +44,6 @@ export function ToolbarButton({
     </button>
   )
 }
+
+export const ToolbarButton = memo(ToolbarButtonComponent)
 

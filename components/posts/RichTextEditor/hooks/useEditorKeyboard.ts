@@ -9,6 +9,7 @@ interface UseEditorKeyboardProps {
   onSave: () => void
   onLinkCancel: () => void
   onImageCancel: () => void
+  onCancel?: () => void
 }
 
 export function useEditorKeyboard({
@@ -19,6 +20,7 @@ export function useEditorKeyboard({
   onSave,
   onLinkCancel,
   onImageCancel,
+  onCancel,
 }: UseEditorKeyboardProps) {
   useEffect(() => {
     if (!editor) return
@@ -37,12 +39,14 @@ export function useEditorKeyboard({
           onLinkCancel()
         } else if (showImageInput) {
           onImageCancel()
+        } else if (onCancel) {
+          onCancel()
         }
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [editor, isSaving, showLinkInput, showImageInput, onSave, onLinkCancel, onImageCancel])
+  }, [editor, isSaving, showLinkInput, showImageInput, onSave, onLinkCancel, onImageCancel, onCancel])
 }
 

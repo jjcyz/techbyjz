@@ -32,16 +32,16 @@ export function TableMenu({
   const isInTable = editor.isActive('table')
 
   useEffect(() => {
+    if (!showTableMenu) return
+
     const handleClickOutside = (event: MouseEvent) => {
       if (tableMenuRef.current && !tableMenuRef.current.contains(event.target as Node)) {
         setShowTableMenu(false)
       }
     }
 
-    if (showTableMenu) {
-      document.addEventListener('mousedown', handleClickOutside)
-      return () => document.removeEventListener('mousedown', handleClickOutside)
-    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [showTableMenu])
 
   const handlers: TableMenuHandlers = {

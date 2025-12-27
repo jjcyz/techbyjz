@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import type { Editor } from '@tiptap/react'
 import { ToolbarButton } from './ToolbarButton'
 
@@ -10,38 +11,42 @@ interface ListButtonsProps {
   onBlockquote: () => void
 }
 
-export function ListButtons({
+function ListButtonsComponent({
   editor,
   onBulletList,
   onOrderedList,
   onBlockquote,
 }: ListButtonsProps) {
+  // Compute editor.isActive calls once per render to avoid repeated checks
+  const isBulletListActive = editor.isActive('bulletList')
+  const isOrderedListActive = editor.isActive('orderedList')
+  const isBlockquoteActive = editor.isActive('blockquote')
   return (
     <>
       <ToolbarButton
         onClick={onBulletList}
-        isActive={editor.isActive('bulletList')}
+        isActive={isBulletListActive}
         title="Bullet List"
         aria-label="Bullet list"
-        aria-pressed={editor.isActive('bulletList')}
+        aria-pressed={isBulletListActive}
       >
         •
       </ToolbarButton>
       <ToolbarButton
         onClick={onOrderedList}
-        isActive={editor.isActive('orderedList')}
+        isActive={isOrderedListActive}
         title="Numbered List"
         aria-label="Numbered list"
-        aria-pressed={editor.isActive('orderedList')}
+        aria-pressed={isOrderedListActive}
       >
         1.
       </ToolbarButton>
       <ToolbarButton
         onClick={onBlockquote}
-        isActive={editor.isActive('blockquote')}
+        isActive={isBlockquoteActive}
         title="Blockquote (Click to toggle on/off)"
         aria-label="Blockquote"
-        aria-pressed={editor.isActive('blockquote')}
+        aria-pressed={isBlockquoteActive}
       >
         &quot;
       </ToolbarButton>
@@ -49,3 +54,4 @@ export function ListButtons({
   )
 }
 
+export const ListButtons = memo(ListButtonsComponent)

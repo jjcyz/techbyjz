@@ -132,6 +132,7 @@ export default function RichTextEditor({
     onSave: handleSave,
     onLinkCancel: handleLinkCancel,
     onImageCancel: handleImageCancel,
+    onCancel,
   })
 
   if (!editor) {

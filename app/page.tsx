@@ -9,6 +9,7 @@ import AIInfrastructureSection from "@/components/sections/AIInfrastructureSecti
 import CybersecuritySection from "@/components/sections/CybersecuritySection/CybersecuritySection";
 import HeroBannerSection from "@/components/sections/HeroBannerSection/HeroBannerSection";
 import Footer from "@/components/shared/Footer";
+import Header from "@/components/shared/Header";
 import { isValidSlug, groupPostsByCategory, getRandomPost } from "@/lib/utils";
 import { getBlogSchema, StructuredData } from "@/lib/structured-data";
 import type { Post, Category } from "@/types/post";
@@ -96,7 +97,8 @@ export default async function Home() {
   return (
     <>
       <StructuredData data={blogSchema} />
-      <main className="min-h-screen relative overflow-x-hidden w-full">
+      <Header posts={validPosts} categories={categoriesWithPosts} />
+      <main id="main-content" className="min-h-screen relative overflow-x-hidden w-full">
       {/* Hero Banner Section */}
       <HeroBannerSection
         posts={validPosts}

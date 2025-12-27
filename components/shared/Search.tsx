@@ -102,17 +102,37 @@ function SearchInner({ posts }: SearchProps) {
     inputRef.current?.focus();
   };
 
+  // Close search when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (isExpanded && !target.closest('.search-container')) {
+        if (!searchQuery.trim()) {
+          setIsExpanded(false);
+        }
+      }
+    };
+
+    if (isExpanded) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isExpanded, searchQuery]);
+
   const hasResults = filteredPosts.length > 0;
   const showResults = isExpanded && searchQuery.trim().length > 0;
 
   return (
-    <div className="relative">
-      <div className="relative flex items-center">
+    <div className="relative search-container">
+      <div className="relative flex items-center justify-end">
         {!isExpanded && (
           <button
             onClick={handleToggleSearch}
-            className="p-3 text-white transition-all duration-300"
-            aria-label="Open search"
+            className="p-2 sm:p-3 text-[var(--foreground-low)] hover:text-[var(--electric-blue)] transition-all duration-300 focus:outline-none flex-shrink-0"
+            aria-label="Open search (Press Cmd+K or Ctrl+K)"
           >
             <SearchIcon />
           </button>
@@ -126,7 +146,8 @@ function SearchInner({ posts }: SearchProps) {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search for posts..."
-              className="w-96 sm:w-[500px] md:w-[600px] lg:w-[700px] xl:w-[800px] bg-[var(--card-bg)] text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:outline-none text-base px-6 py-4 h-auto pr-12"
+              className="w-[300px] sm:w-[400px] md:w-[500px] lg:w-[600px] xl:w-[700px] bg-[var(--card-bg)] text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:outline-none text-sm sm:text-base px-4 sm:px-6 py-3 sm:py-4 h-auto pr-10 sm:pr-12 border border-[var(--border-color)]"
+              aria-label="Search for posts"
             />
 
             <button
@@ -137,7 +158,7 @@ function SearchInner({ posts }: SearchProps) {
                   handleToggleSearch();
                 }
               }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-[var(--foreground-muted)] hover:text-[var(--electric-blue)] transition-colors z-10 flex items-center justify-center"
+              className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 text-[var(--foreground-muted)] hover:text-[var(--electric-blue)] transition-colors z-10 flex items-center justify-center focus:outline-none"
               aria-label={searchQuery ? "Clear search" : "Close search"}
             >
               <CloseIcon />
@@ -147,7 +168,7 @@ function SearchInner({ posts }: SearchProps) {
       </div>
 
       {showResults && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-[var(--card-bg)] shadow-[0_0_30px_var(--glow-cyan)] backdrop-blur-sm z-50 max-h-[600px] overflow-y-auto">
+        <div className="absolute top-full right-0 mt-2 bg-[var(--card-bg)] backdrop-blur-sm z-50 max-h-[calc(100vh-8rem)] sm:max-h-[600px] overflow-y-auto border border-[var(--border-color)] shadow-lg w-[300px] sm:w-[400px] md:w-[500px] lg:w-[600px] xl:w-[700px]">
           <div className="p-4">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-[var(--border-color)]">
               <h3 className="text-lg font-semibold text-[var(--foreground)]">
@@ -167,9 +188,10 @@ function SearchInner({ posts }: SearchProps) {
                     <Link
                       key={post._id || slug}
                       href={`/posts/${slug}`}
-                      className="block p-3 hover:bg-[var(--card-bg)] hover:text-[var(--electric-blue)] transition-colors"
+                      className="block p-3 hover:bg-[var(--hover-cyan-bg)] hover:text-[var(--electric-blue)] transition-colors focus:outline-none"
+                      onClick={() => setIsExpanded(false)}
                     >
-                      <h4 className="text-base font-semibold text-[var(--foreground)] hover:text-[var(--electric-blue)] transition-colors">
+                      <h4 className="text-sm sm:text-base font-semibold text-[var(--foreground)] hover:text-[var(--electric-blue)] transition-colors">
                         {post.title}
                       </h4>
                     </Link>
@@ -207,4 +229,3 @@ export default function Search({ posts }: SearchProps) {
     </Suspense>
   );
 }
-
