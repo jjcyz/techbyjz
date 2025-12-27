@@ -84,6 +84,48 @@ export function EditorStyles() {
       .ProseMirror h2[data-indent-level="8"],
       .ProseMirror h3[data-indent-level="8"],
       .ProseMirror h4[data-indent-level="8"] { padding-left: 16rem !important; }
+      .ProseMirror table {
+        border-collapse: collapse !important;
+        border: 1px solid var(--border-color) !important;
+        margin: 1rem 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        table-layout: fixed !important;
+      }
+      .ProseMirror table td,
+      .ProseMirror table th {
+        border: 1px solid var(--border-color) !important;
+        padding: 0.5rem 0.75rem !important;
+        position: relative !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        word-break: break-word !important;
+      }
+      .ProseMirror table th {
+        background-color: var(--card-bg) !important;
+        font-weight: 600 !important;
+        text-align: left !important;
+      }
+      .ProseMirror table .selectedCell:after {
+        z-index: 2;
+        position: absolute;
+        content: "";
+        left: 0; right: 0; top: 0; bottom: 0;
+        background: rgba(200, 200, 255, 0.1);
+        pointer-events: none;
+      }
+      .ProseMirror table .column-resize-handle {
+        position: absolute;
+        right: -2px;
+        top: 0;
+        bottom: -2px;
+        width: 4px;
+        background-color: var(--electric-blue);
+        pointer-events: none;
+      }
+      .ProseMirror table p {
+        margin: 0 !important;
+      }
     `}} />
   )
 }

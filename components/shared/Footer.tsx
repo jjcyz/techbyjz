@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import type { Category } from '@/types/post';
-import { ScrollToSectionButton, BackToTopButton } from './Buttons';
+import { BackToTopButton } from './Buttons';
 
 interface FooterProps {
   categories: Category[];
@@ -35,14 +35,16 @@ export default function Footer({ categories }: FooterProps) {
                 .filter((category) => !category.title.toLowerCase().includes('all'))
                 .slice(0, 7)
                 .map((category) => {
-                const slug =
-                  category.slug?.current ||
-                  category.title.toLowerCase().replace(/\s+/g, '-');
+                const slug = category.slug?.current;
+                const href = slug ? `/category/${slug}` : '#';
                 return (
                   <li key={category._id}>
-                    <ScrollToSectionButton sectionId={`category-${slug}`}>
+                    <Link
+                      href={href}
+                      className="text-[var(--foreground-low)] hover:text-[var(--electric-blue)] transition-colors text-sm"
+                    >
                       {category.title}
-                    </ScrollToSectionButton>
+                    </Link>
                   </li>
                 );
               })}

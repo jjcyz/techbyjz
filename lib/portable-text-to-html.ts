@@ -24,6 +24,39 @@ export function portableTextToHtml(blocks: PortableTextBlock[] | null | undefine
   }
 
   blocks.forEach((block) => {
+    // Handle table blocks (stored as structured data or legacy HTML)
+    if (block._type === 'table') {
+      // New structured format
+      if ('rows' in block) {
+        const tableBlock = block as {
+          _type: 'table'
+          rows: Array<{
+            cells: Array<{
+              content: Array<{
+                _type: 'block'
+                children?: Array<{ _type?: string; text?: string; marks?: string[] }>
+                markDefs?: Array<{ _key?: string; _type?: string; href?: string }>
+              }>
+              isHeader: boolean
+            }>
+          }>
+        }
+        const tableHtml = convertStructuredTableToHtml(tableBlock.rows)
+        if (tableHtml) {
+          html.push(tableHtml)
+        }
+        return
+      }
+      // Legacy HTML format (for backward compatibility)
+      if ('html' in block) {
+        const tableBlock = block as { _type: 'table'; html: string }
+        if (tableBlock.html) {
+          html.push(tableBlock.html)
+        }
+        return
+      }
+    }
+
     if (block._type === 'image') {
       // Handle image blocks
       const imageBlock = block as { _type: 'image'; asset?: { _ref?: string; _type?: string } | string; alt?: string }
@@ -102,7 +135,7 @@ export function portableTextToHtml(blocks: PortableTextBlock[] | null | undefine
     }
 
     // Get indentLevel if present (custom field on block)
-    const indentLevel = (block as any).indentLevel as number | undefined
+    const indentLevel = (block as { indentLevel?: number }).indentLevel as number | undefined
     const indentAttr = indentLevel !== undefined && indentLevel > 0
       ? ` data-indent-level="${indentLevel}"`
       : ''
@@ -159,6 +192,54 @@ function processChildren(
 
     return text
   })
+}
+
+function convertStructuredTableToHtml(rows: Array<{
+  cells: Array<{
+    content: Array<{
+      _type: 'block'
+      children?: Array<{ _type?: string; text?: string; marks?: string[] }>
+      markDefs?: Array<{ _key?: string; _type?: string; href?: string }>
+    }>
+    isHeader: boolean
+  }>
+}>): string | null {
+  if (!rows || rows.length === 0) {
+    return null
+  }
+
+  const htmlRows: string[] = []
+
+  rows.forEach((row) => {
+    if (!row.cells || row.cells.length === 0) {
+      return
+    }
+
+    const cells: string[] = []
+    row.cells.forEach((cell) => {
+      const tag = cell.isHeader ? 'th' : 'td'
+      const cellContent = cell.content
+        .map((block) => {
+          if (!block.children) {
+            return ''
+          }
+          return processChildren(block.children, block.markDefs || []).join('')
+        })
+        .join('') || '&nbsp;'
+
+      cells.push(`<${tag}>${cellContent}</${tag}>`)
+    })
+
+    if (cells.length > 0) {
+      htmlRows.push(`<tr>${cells.join('')}</tr>`)
+    }
+  })
+
+  if (htmlRows.length > 0) {
+    return `<table>${htmlRows.join('')}</table>`
+  }
+
+  return null
 }
 
 function escapeHtml(text: string): string {

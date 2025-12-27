@@ -3,7 +3,7 @@ import type { Editor } from '@tiptap/react'
 import { TextSelection } from '@tiptap/pm/state'
 import type { Transaction } from '@tiptap/pm/state'
 
-export function useEditorHandlers(editor: Editor | null) {
+export function useTextFormatHandlers(editor: Editor | null) {
   const handleBold = useCallback(() => {
     editor?.chain().focus().toggleBold().run()
   }, [editor])
@@ -33,13 +33,11 @@ export function useEditorHandlers(editor: Editor | null) {
     const { from, to, empty } = selection
 
     if (!empty) {
-      // Text is selected - expand to full blocks and wrap
       const $from = state.doc.resolve(from)
       const $to = state.doc.resolve(to)
       const start = $from.start($from.depth)
       const end = $to.end($to.depth)
 
-      // First expand selection, then apply toggle
       currentEditor.chain()
         .focus()
         .command(({ tr }: { tr: Transaction }) => {
@@ -48,7 +46,6 @@ export function useEditorHandlers(editor: Editor | null) {
         })
         .run()
 
-      // Then apply the toggle
       toggleFn()
     } else {
       toggleFn()
@@ -76,28 +73,23 @@ export function useEditorHandlers(editor: Editor | null) {
   const handleBlockquote = useCallback(() => {
     if (!editor) return
 
-    // Check if cursor is in a blockquote
     const isInBlockquote = editor.isActive('blockquote')
 
     if (isInBlockquote) {
-      // If already in blockquote, just toggle it off
       editor.chain().focus().toggleBlockquote().run()
       return
     }
 
-    // If not in blockquote, wrap selection in blockquote
     const { state } = editor
     const { selection } = state
     const { from, to, empty } = selection
 
     if (!empty) {
-      // Text is selected - expand to full blocks and wrap
       const $from = state.doc.resolve(from)
       const $to = state.doc.resolve(to)
       const start = $from.start($from.depth)
       const end = $to.end($to.depth)
 
-      // First expand selection, then apply toggle
       editor.chain()
         .focus()
         .command(({ tr }: { tr: Transaction }) => {
@@ -107,17 +99,13 @@ export function useEditorHandlers(editor: Editor | null) {
         .toggleBlockquote()
         .run()
     } else {
-      // No selection, just toggle blockquote for current block
       editor.chain().focus().toggleBlockquote().run()
     }
   }, [editor])
 
-  const handleUndo = useCallback(() => {
-    editor?.chain().focus().undo().run()
-  }, [editor])
-
-  const handleRedo = useCallback(() => {
-    editor?.chain().focus().redo().run()
+  const handleClearFormatting = useCallback(() => {
+    if (!editor) return
+    editor.chain().focus().unsetAllMarks().run()
   }, [editor])
 
   return {
@@ -127,8 +115,7 @@ export function useEditorHandlers(editor: Editor | null) {
     handleBulletList,
     handleOrderedList,
     handleBlockquote,
-    handleUndo,
-    handleRedo,
+    handleClearFormatting,
   }
 }
 

@@ -2,6 +2,10 @@ import StarterKit from '@tiptap/starter-kit'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import Image from '@tiptap/extension-image'
+import { Table } from '@tiptap/extension-table'
+import { TableRow } from '@tiptap/extension-table-row'
+import { TableCell } from '@tiptap/extension-table-cell'
+import { TableHeader } from '@tiptap/extension-table-header'
 import { Indent } from './extensions/Indent'
 
 export const editorExtensions = [
@@ -78,6 +82,27 @@ export const editorExtensions = [
     minLevel: 0,
     maxLevel: 8,
     defaultLevel: 0,
+  }),
+  Table.configure({
+    resizable: true,
+    HTMLAttributes: {
+      class: 'border-collapse border border-[var(--border-color)] my-4',
+    },
+  }),
+  TableRow.configure({
+    HTMLAttributes: {
+      class: 'border-b border-[var(--border-color)]',
+    },
+  }),
+  TableHeader.configure({
+    HTMLAttributes: {
+      class: 'border border-[var(--border-color)] bg-[var(--card-bg)] px-4 py-2 font-semibold text-left',
+    },
+  }),
+  TableCell.configure({
+    HTMLAttributes: {
+      class: 'border border-[var(--border-color)] px-4 py-2',
+    },
   }),
 ]
 

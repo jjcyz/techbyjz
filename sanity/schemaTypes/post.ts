@@ -122,6 +122,9 @@ export default defineType({
             },
           ],
         },
+        {
+          type: 'table',
+        },
       ],
       description: 'Main content in Portable Text format (for manual editing)',
     }),

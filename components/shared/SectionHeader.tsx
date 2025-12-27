@@ -36,16 +36,26 @@ export default function SectionHeader({
 }: SectionHeaderProps) {
   const themeStyles = themeConfig[theme];
 
-  // Determine view more link
+  // Determine view more link - prioritize explicit href, then category slug, then fallback to hash
   const viewMoreUrl = viewMoreHref
     || (category?.slug?.current ? `/category/${category.slug.current}` : `/#${sectionId}`);
+
+  // Determine if title should be a link (same logic as view more)
+  const titleUrl = category?.slug?.current ? `/category/${category.slug.current}` : null;
+  const titleClassName = `text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold leading-tight sm:leading-none text-left ${themeStyles.textColor} ${titleUrl ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`;
 
   return (
     <div className="w-full md:w-1/5 lg:w-1/6 xl:w-1/6 md:min-w-[180px] lg:min-w-[200px] md:flex-shrink">
       <div className="flex flex-col gap-3">
-        <h2 className={`text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold leading-tight sm:leading-none text-left ${themeStyles.textColor}`}>
-          {title}
-        </h2>
+        {titleUrl ? (
+          <Link href={titleUrl} className={titleClassName}>
+            {title}
+          </Link>
+        ) : (
+          <h2 className={titleClassName}>
+            {title}
+          </h2>
+        )}
         <Link
           href={viewMoreUrl}
           className={`inline-flex items-center gap-2 text-xs sm:text-sm ${themeStyles.textColor} border ${themeStyles.borderColor} px-3 py-1.5 ${themeStyles.hoverBg} hover:text-[var(--background-dark-navy)] transition-all duration-300 font-semibold w-fit group`}

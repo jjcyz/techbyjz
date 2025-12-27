@@ -57,14 +57,29 @@ export default function PostContent({ initialData }: PostContentProps) {
       }
 
       // Update local content state immediately with saved content
-      setContent(blocks)
+      // Filter out any empty or invalid tables to ensure consistency
+      const validBlocks = blocks.filter(block => {
+        if (block._type === 'table' && 'rows' in block) {
+          const tableBlock = block as { _type: 'table'; rows?: Array<{ cells: unknown[] }> }
+          // Only keep tables with valid rows and cells
+          return !!(tableBlock.rows &&
+                   tableBlock.rows.length > 0 &&
+                   tableBlock.rows.some(row =>
+                     row &&
+                     Array.isArray(row.cells) &&
+                     row.cells.length > 0
+                   ))
+        }
+        return true
+      })
+      setContent(validBlocks)
 
       // Refresh the page data using Next.js router (for other parts of the page)
       router.refresh()
 
       setIsSaving(false)
-      // Keep editor open so user can see the updated content immediately
-      // User can manually close it or it will refresh when they navigate away
+      // Close the editor to show the updated content
+      setIsEditing(false)
     } catch (error) {
       console.error('Error saving content:', error)
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'

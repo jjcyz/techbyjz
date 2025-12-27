@@ -1,20 +1,22 @@
 'use client'
 
 import { useEditor, EditorContent } from '@tiptap/react'
-import { useCallback, useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { portableTextToHtml } from '@/lib/portable-text-to-html'
-import { tiptapToPortableText } from '@/lib/tiptap-to-portable-text'
 import type { PortableTextBlock } from '@portabletext/types'
-import type { RichTextEditorProps, PortableTextContent } from './types'
+import type { RichTextEditorProps } from './types'
 import { editorExtensions, editorProps } from './editorConfig'
 import { Toolbar } from './Toolbar'
 import { LinkInput } from './LinkInput'
 import { ImageUpload } from './ImageUpload'
 import { EditorStyles } from './EditorStyles'
-import { useEditorHandlers } from './hooks/useEditorHandlers'
+import { TableContextMenu } from './TableContextMenu'
+import { useTextFormatHandlers } from './hooks/useTextFormatHandlers'
+import { useTableHandlers } from './hooks/useTableHandlers'
 import { useEditorKeyboard } from './hooks/useEditorKeyboard'
 import { useLinkHandler } from './hooks/useLinkHandler'
 import { useImageHandler } from './hooks/useImageHandler'
+import { useEditorSave } from './hooks/useEditorSave'
 
 export default function RichTextEditor({
   initialContent,
@@ -80,7 +82,7 @@ export default function RichTextEditor({
     }
   }, [editor, initialHtml])
 
-  // Get editor handlers
+  // Get text formatting handlers
   const {
     handleBold,
     handleItalic,
@@ -88,9 +90,11 @@ export default function RichTextEditor({
     handleBulletList,
     handleOrderedList,
     handleBlockquote,
-    handleUndo,
-    handleRedo,
-  } = useEditorHandlers(editor)
+    handleClearFormatting,
+  } = useTextFormatHandlers(editor)
+
+  // Get table handlers
+  const tableHandlers = useTableHandlers(editor)
 
   // Get link handler
   const {
@@ -111,61 +115,13 @@ export default function RichTextEditor({
     handleImageCancel,
   } = useImageHandler(editor, setError)
 
-  const handleSave = useCallback(() => {
-    if (!editor || isSaving) return
-
-    const json = editor.getJSON()
-
-    try {
-      const blocks = tiptapToPortableText(json)
-
-      // Validate images have proper Sanity references before saving
-      const imagesWithoutRefs = blocks.filter((block): boolean => {
-        if (block._type === 'image') {
-          const imageBlock = block as { _type: 'image'; asset?: { _ref?: string } }
-          const ref = imageBlock.asset?._ref
-          // Treat missing refs or URL-like refs as invalid
-          return !ref || typeof ref !== 'string' || ref.startsWith('http')
-        }
-        return false
-      })
-
-      if (imagesWithoutRefs.length > 0) {
-        setError(
-          `Some images are missing valid Sanity references. ` +
-          `Please remove and re-upload ${imagesWithoutRefs.length === 1 ? 'the image' : 'the images'} using the image upload button.`
-        )
-        return
-      }
-
-      // Filter out empty blocks while preserving images and whitespace
-      const filteredBlocks = blocks.filter((block): block is PortableTextContent => {
-        if (block._type === 'image') {
-          return true
-        }
-
-        if (block._type !== 'block' || !('children' in block) || !block.children || block.children.length === 0) {
-          return false
-        }
-
-        // Keep blocks with at least one child containing text (including whitespace)
-        return block.children.some((child: { _type?: string; text?: string | null }) => {
-          return child._type === 'span' && 'text' in child && child.text !== undefined && child.text !== null
-        })
-      })
-
-      if (filteredBlocks.length === 0) {
-        setError('Cannot save empty content')
-        return
-      }
-
-      setError(null)
-      onSave(filteredBlocks)
-    } catch (error) {
-      console.error('Error converting Tiptap to PortableText:', error)
-      setError('Error saving content. Please try again.')
-    }
-  }, [editor, onSave, isSaving])
+  // Get save handler
+  const { handleSave } = useEditorSave({
+    editor,
+    isSaving,
+    onSave,
+    setError,
+  })
 
   // Setup keyboard shortcuts
   useEditorKeyboard({
@@ -211,11 +167,10 @@ export default function RichTextEditor({
         onBlockquote={handleBlockquote}
         onLink={handleSetLink}
         onImage={handleSetImage}
-        onUndo={handleUndo}
-        onRedo={handleRedo}
         onSave={handleSave}
         onCancel={onCancel}
         isSaving={isSaving}
+        tableHandlers={tableHandlers}
       />
 
       {/* Link input */}
@@ -237,6 +192,13 @@ export default function RichTextEditor({
         isUploading={isUploading}
       />
 
+      {/* Table Context Menu (Right-click) */}
+      <TableContextMenu
+        editor={editor}
+        {...tableHandlers}
+        onClearFormatting={handleClearFormatting}
+      />
+
       {/* Editor - Scrollable */}
       <div className="bg-[var(--card-bg)] border-x border-b border-[var(--border-color)] max-h-[600px] overflow-y-auto min-h-[400px]">
         <EditorStyles />
@@ -245,4 +207,3 @@ export default function RichTextEditor({
     </div>
   )
 }
-

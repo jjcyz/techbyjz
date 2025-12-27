@@ -147,7 +147,7 @@ function SearchInner({ posts }: SearchProps) {
       </div>
 
       {showResults && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-[var(--card-bg)] border border-[var(--border-cyan)] shadow-[0_0_30px_var(--glow-cyan)] backdrop-blur-sm z-50 max-h-[600px] overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-[var(--card-bg)] shadow-[0_0_30px_var(--glow-cyan)] backdrop-blur-sm z-50 max-h-[600px] overflow-y-auto">
           <div className="p-4">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-[var(--border-color)]">
               <h3 className="text-lg font-semibold text-[var(--foreground)]">

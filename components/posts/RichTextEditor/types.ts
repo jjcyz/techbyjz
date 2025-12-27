@@ -5,6 +5,21 @@ export type PortableTextContent = PortableTextBlock | {
   _key: string;
   asset: { _type: 'reference'; _ref: string };
   alt?: string
+} | {
+  _type: 'table';
+  _key: string;
+  rows: Array<{
+    cells: Array<{
+      content: Array<{
+        _type: 'block';
+        _key: string;
+        style: 'normal';
+        children: Array<{ _type: 'span'; _key: string; text: string; marks?: string[] }>;
+        markDefs?: Array<{ _key: string; _type: 'link'; href: string }>;
+      }>;
+      isHeader: boolean;
+    }>;
+  }>;
 }
 
 export interface RichTextEditorProps {
