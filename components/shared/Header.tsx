@@ -190,6 +190,18 @@ export default function Header({ posts, categories = [] }: HeaderProps) {
               </Link>
 
               <Link
+                href="/contact"
+                className={`block py-4 px-6 text-lg font-medium transition-all duration-300 ${
+                  pathname === '/contact'
+                    ? 'text-[var(--electric-blue)] bg-[var(--card-bg)] border-2 border-[var(--electric-blue)] shadow-[0_0_20px_rgba(0,191,255,0.3)]'
+                    : 'text-[var(--foreground-low)] hover:text-[var(--electric-blue)] hover:bg-[var(--card-bg)] border-2 border-transparent hover:border-[var(--border-color)]'
+                }`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Contact
+              </Link>
+
+              <Link
                 href="/privacy"
                 className="block py-4 px-6 text-lg font-medium text-[var(--foreground-low)] hover:text-[var(--electric-blue)] hover:bg-[var(--card-bg)] border-2 border-transparent hover:border-[var(--border-color)] transition-all duration-300"
                 onClick={() => setIsMenuOpen(false)}
@@ -212,4 +224,3 @@ export default function Header({ posts, categories = [] }: HeaderProps) {
     </>
   );
 }
-

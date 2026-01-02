@@ -15,6 +15,7 @@ import ViewTracker from '@/components/posts/ViewTracker';
 import PostContent from '@/components/posts/PostContent';
 import PostTitle from '@/components/posts/PostTitle';
 import PostExcerpt from '@/components/posts/PostExcerpt';
+import { AdSenseSidebar } from '@/components/ads/AdSense';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -208,103 +209,122 @@ export default async function PostPage({ params }: PageProps) {
       {/* Track view count */}
       <ViewTracker slug={post.slug.current} />
 
-      {/* Back Button */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 pt-6 pb-3">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--electric-blue)] hover:border-[var(--electric-blue)] hover:bg-[var(--electric-blue)]/10 transition-all duration-300 text-xs font-medium"
-        >
-          ← Back to Posts
-        </Link>
-      </div>
+      {/* Post Layout with Sidebar Ads */}
+      <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-20 py-8 md:py-12 lg:py-16">
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 xl:gap-12">
+          {/* Left Sidebar Ad - Hidden on mobile/tablet, visible on desktop */}
+          <aside className="hidden lg:flex lg:w-64 xl:w-72 2xl:w-80 flex-shrink-0 justify-center">
+            <AdSenseSidebar
+              adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_POST}
+            />
+          </aside>
 
-      <article className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-8 md:py-12 lg:py-16">
-        {/* Post Header */}
-        <header className="mb-6 text-center">
-          <PostTitle initialData={post} />
-
-          {formattedDate && (
-            <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-[var(--text-gray-400)] mb-4">
-              <time className="text-[var(--text-gray-500)]">{formattedDate}</time>
-              {(() => {
-                // Safely get view count, defaulting to 0 if null/undefined/invalid
-                let viewCount = 0;
-                if (typeof post.viewCount === 'number' && !isNaN(post.viewCount)) {
-                  viewCount = post.viewCount;
-                } else if (post.viewCount != null) {
-                  const parsed = Number(post.viewCount);
-                  viewCount = isNaN(parsed) ? 0 : parsed;
-                }
-                return (
-                  <>
-                    <span className="text-[var(--text-gray-500)]">•</span>
-                    <span className="text-[var(--text-gray-500)]">
-                      {viewCount.toLocaleString()} {viewCount === 1 ? 'view' : 'views'}
-                    </span>
-                  </>
-                );
-              })()}
-            </div>
-          )}
-
-          {/* Categories and Tags - Same size styling */}
-          {(validCategories.length > 0 || (post.tags && Array.isArray(post.tags) && post.tags.length > 0)) && (
+          {/* Main Content */}
+          <article className="flex-1 max-w-4xl mx-auto lg:mx-0">
+            {/* Back Button - Aligned with content */}
             <div className="mb-6">
-              <div className="flex flex-wrap justify-center items-center gap-1.5">
-                {/* Categories */}
-                {validCategories.map((category) => (
-                  <Link
-                    key={category._id}
-                    href={`/category/${category.slug!.current}`}
-                    className="inline-flex items-center px-2 py-0.5 bg-[var(--dark-blue)] border border-[var(--border-color)] text-[var(--text-gray-300)] hover:border-[var(--electric-blue)] hover:text-[var(--electric-blue)] hover:bg-[var(--card-bg)] transition-all duration-300 text-xs"
-                  >
-                    {category.title}
-                  </Link>
-                ))}
-
-                {/* Tags */}
-                {post.tags && Array.isArray(post.tags) && post.tags.length > 0 && post.tags.map((tag, index) => {
-                  // Handle both string tags and reference objects
-                  const tagObj = typeof tag === 'string' ? null : (tag as Tag);
-                  const tagTitle = typeof tag === 'string' ? tag : tagObj?.title || String(tag);
-                  const tagSlug = tagObj?.slug?.current;
-
-                  // If tag has a slug, link to tag page, otherwise fallback to search
-                  const href = tagSlug && isValidSlug(tagSlug)
-                    ? `/tag/${tagSlug}`
-                    : `/?search=${encodeURIComponent(tagTitle)}`;
-
-                  return (
-                    <Link
-                      key={typeof tag === 'object' && tag !== null && '_id' in tag ? (tag as Tag)._id : index}
-                      href={href}
-                      className="inline-flex items-center px-2 py-0.5 bg-[var(--dark-blue)] border border-[var(--border-color)] text-[var(--text-gray-300)] hover:border-[var(--electric-blue)] hover:text-[var(--electric-blue)] hover:bg-[var(--card-bg)] transition-all duration-300 text-xs"
-                    >
-                      {tagTitle}
-                    </Link>
-                  );
-                })}
-              </div>
+              <Link
+                href="/"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[var(--card-bg)] border border-[var(--border-color)] text-[var(--electric-blue)] hover:border-[var(--electric-blue)] hover:bg-[var(--electric-blue)]/10 transition-all duration-300 text-xs font-medium"
+              >
+                ← Back to Posts
+              </Link>
             </div>
-          )}
-        </header>
+            {/* Post Header */}
+            <header className="mb-6 text-center">
+              <PostTitle initialData={post} />
 
-        {/* Post Excerpt */}
-        <PostExcerpt initialData={post} />
+              {formattedDate && (
+                <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-[var(--text-gray-400)] mb-4">
+                  <time className="text-[var(--text-gray-500)]">{formattedDate}</time>
+                  {(() => {
+                    // Safely get view count, defaulting to 0 if null/undefined/invalid
+                    let viewCount = 0;
+                    if (typeof post.viewCount === 'number' && !isNaN(post.viewCount)) {
+                      viewCount = post.viewCount;
+                    } else if (post.viewCount != null) {
+                      const parsed = Number(post.viewCount);
+                      viewCount = isNaN(parsed) ? 0 : parsed;
+                    }
+                    return (
+                      <>
+                        <span className="text-[var(--text-gray-500)]">•</span>
+                        <span className="text-[var(--text-gray-500)]">
+                          {viewCount.toLocaleString()} {viewCount === 1 ? 'view' : 'views'}
+                        </span>
+                      </>
+                    );
+                  })()}
+                </div>
+              )}
 
-        {/* Post Body */}
-        <PostContent initialData={post} />
+              {/* Categories and Tags - Same size styling */}
+              {(validCategories.length > 0 || (post.tags && Array.isArray(post.tags) && post.tags.length > 0)) && (
+                <div className="mb-6">
+                  <div className="flex flex-wrap justify-center items-center gap-1.5">
+                    {/* Categories */}
+                    {validCategories.map((category) => (
+                      <Link
+                        key={category._id}
+                        href={`/category/${category.slug!.current}`}
+                        className="inline-flex items-center px-2 py-0.5 bg-[var(--dark-blue)] border border-[var(--border-color)] text-[var(--text-gray-300)] hover:border-[var(--electric-blue)] hover:text-[var(--electric-blue)] hover:bg-[var(--card-bg)] transition-all duration-300 text-xs"
+                      >
+                        {category.title}
+                      </Link>
+                    ))}
 
-        {/* Social Share Buttons */}
-        <SocialShareButtons
-          title={post.title}
-          url={postUrl}
-          excerpt={post.excerpt}
-        />
+                    {/* Tags */}
+                    {post.tags && Array.isArray(post.tags) && post.tags.length > 0 && post.tags.map((tag, index) => {
+                      // Handle both string tags and reference objects
+                      const tagObj = typeof tag === 'string' ? null : (tag as Tag);
+                      const tagTitle = typeof tag === 'string' ? tag : tagObj?.title || String(tag);
+                      const tagSlug = tagObj?.slug?.current;
 
-        {/* Related Posts */}
-        <RelatedPosts posts={relatedPosts} currentPostSlug={post.slug.current} />
-      </article>
+                      // If tag has a slug, link to tag page, otherwise fallback to search
+                      const href = tagSlug && isValidSlug(tagSlug)
+                        ? `/tag/${tagSlug}`
+                        : `/?search=${encodeURIComponent(tagTitle)}`;
+
+                      return (
+                        <Link
+                          key={typeof tag === 'object' && tag !== null && '_id' in tag ? (tag as Tag)._id : index}
+                          href={href}
+                          className="inline-flex items-center px-2 py-0.5 bg-[var(--dark-blue)] border border-[var(--border-color)] text-[var(--text-gray-300)] hover:border-[var(--electric-blue)] hover:text-[var(--electric-blue)] hover:bg-[var(--card-bg)] transition-all duration-300 text-xs"
+                        >
+                          {tagTitle}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </header>
+
+            {/* Post Excerpt */}
+            <PostExcerpt initialData={post} />
+
+            {/* Post Body */}
+            <PostContent initialData={post} />
+
+            {/* Social Share Buttons */}
+            <SocialShareButtons
+              title={post.title}
+              url={postUrl}
+              excerpt={post.excerpt}
+            />
+
+            {/* Related Posts */}
+            <RelatedPosts posts={relatedPosts} currentPostSlug={post.slug.current} />
+          </article>
+
+          {/* Right Sidebar Ad - Hidden on mobile/tablet, visible on desktop */}
+          <aside className="hidden lg:flex lg:w-64 xl:w-72 2xl:w-80 flex-shrink-0 justify-center">
+            <AdSenseSidebar
+              adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_POST}
+            />
+          </aside>
+        </div>
+      </div>
 
       {/* Footer */}
       <Footer categories={categories} />

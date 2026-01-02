@@ -10,6 +10,7 @@ import CybersecuritySection from "@/components/sections/CybersecuritySection/Cyb
 import HeroBannerSection from "@/components/sections/HeroBannerSection/HeroBannerSection";
 import Footer from "@/components/shared/Footer";
 import Header from "@/components/shared/Header";
+import { AdSenseBanner } from "@/components/ads/AdSense";
 import { isValidSlug, groupPostsByCategory, getRandomPost } from "@/lib/utils";
 import { getBlogSchema, StructuredData } from "@/lib/structured-data";
 import type { Post, Category } from "@/types/post";
@@ -104,6 +105,13 @@ export default async function Home() {
         posts={validPosts}
         randomPost={randomPost}
       />
+
+      {/* AdSense Banner Ad - After Hero Section */}
+      <div className="w-full px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 py-4">
+        <div className="max-w-7xl mx-auto">
+          <AdSenseBanner adSlot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_HOME} />
+        </div>
+      </div>
 
       {/* Featured Posts Section */}
       <FeaturedSection posts={displayFeaturedPosts} />

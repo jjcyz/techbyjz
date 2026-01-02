@@ -67,6 +67,14 @@ export default function Footer({ categories }: FooterProps) {
               </li>
               <li>
                 <Link
+                  href="/contact"
+                  className="text-[var(--foreground-low)] hover:text-[var(--electric-blue)] transition-colors text-sm"
+                >
+                  Contact
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/privacy"
                   className="text-[var(--foreground-low)] hover:text-[var(--electric-blue)] transition-colors text-sm"
                 >
@@ -80,14 +88,6 @@ export default function Footer({ categories }: FooterProps) {
                 >
                   Terms of Service
                 </Link>
-              </li>
-              <li>
-                <a
-                  href="mailto:techbyjz@gmail.com"
-                  className="text-[var(--foreground-low)] hover:text-[var(--electric-blue)] transition-colors text-sm"
-                >
-                  Contact
-                </a>
               </li>
             </ul>
           </div>

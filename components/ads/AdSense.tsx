@@ -29,33 +29,47 @@ export default function AdSense({
   className = '',
 }: AdSenseProps) {
   const publisherId = process.env.NEXT_PUBLIC_ADSENSE_PUBLISHER_ID;
+  const isDevelopment = process.env.NODE_ENV === 'development';
 
   useEffect(() => {
     try {
       // @ts-expect-error - Google AdSense types not in @types
-      if (window.adsbygoogle && adSlot) {
+      if (window.adsbygoogle && adSlot && publisherId) {
         // @ts-expect-error - Google AdSense types not in @types
         window.adsbygoogle.push({});
+
+        if (isDevelopment) {
+          console.log('AdSense: Attempting to load ad', {
+            publisherId,
+            adSlot,
+            adFormat,
+            hostname: window.location.hostname,
+          });
+        }
       }
     } catch (err) {
-      if (process.env.NODE_ENV === 'development') {
+      if (isDevelopment) {
         console.error('AdSense error:', err);
       }
     }
-  }, [adSlot]);
+  }, [adSlot, publisherId, adFormat, isDevelopment]);
 
-  // Don't render if no publisher ID or ad slot
-  if (!publisherId || !adSlot) {
-    if (process.env.NODE_ENV === 'development') {
-      return (
-        <div className={`bg-[var(--card-bg)] border border-[var(--border-color)] p-8 text-center text-[var(--foreground-muted)] ${className}`} style={style}>
-          <p className="text-sm">AdSense Placeholder</p>
-          <p className="text-xs mt-2">Publisher ID: {publisherId ? 'Set' : 'Not Set'}</p>
-          <p className="text-xs">Ad Slot: {adSlot ? adSlot : 'Not Set'}</p>
+  // Show placeholder in development or if missing config
+  if (isDevelopment || !publisherId || !adSlot) {
+    return (
+      <div className={`bg-[var(--card-bg)] border-2 border-dashed border-[var(--border-color)] p-8 text-center text-[var(--foreground-muted)] ${className}`} style={style}>
+        <p className="text-sm font-semibold text-[var(--electric-blue)] mb-2">AdSense Ad Unit</p>
+        <div className="text-xs space-y-1 mt-3">
+          <p>Publisher ID: <span className={publisherId ? 'text-green-400' : 'text-red-400'}>{publisherId ? `Set (${publisherId.substring(0, 10)}...)` : 'Not Set'}</span></p>
+          <p>Ad Slot: <span className={adSlot ? 'text-green-400' : 'text-red-400'}>{adSlot ? adSlot : 'Not Set'}</span></p>
+          {isDevelopment && (
+            <p className="text-[var(--foreground-low)] mt-3 pt-3 border-t border-[var(--border-color)]">
+              Note: AdSense ads won&apos;t display on localhost. They will appear on your production domain.
+            </p>
+          )}
         </div>
-      );
-    }
-    return null;
+      </div>
+    );
   }
 
   return (
@@ -103,6 +117,26 @@ export function AdSenseInArticle({ adSlot, className = '' }: { adSlot?: string; 
         adSlot={adSlot}
         adFormat="auto"
         fullWidthResponsive={true}
+      />
+    </div>
+  );
+}
+
+/**
+ * AdSense Vertical Sidebar Component (for left/right sidebars)
+ */
+export function AdSenseSidebar({ adSlot, className = '' }: { adSlot?: string; className?: string }) {
+  return (
+    <div className={`sticky top-4 flex justify-center items-start ${className}`}>
+      <AdSense
+        adSlot={adSlot}
+        adFormat="vertical"
+        fullWidthResponsive={false}
+        style={{
+          minWidth: '250px',
+          width: '250px',
+          minHeight: '600px',
+        }}
       />
     </div>
   );
