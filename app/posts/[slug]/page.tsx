@@ -58,6 +58,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!isValidSlug(slug)) {
     return {
       title: 'Post Not Found',
+      robots: {
+        index: false,
+        follow: false,
+      },
     };
   }
 
@@ -66,6 +70,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!post || !post.slug?.current || !isValidSlug(post.slug.current)) {
     return {
       title: 'Post Not Found',
+      robots: {
+        index: false,
+        follow: false,
+      },
     };
   }
 
@@ -77,6 +85,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title: post.title,
     description: post.excerpt || `Read ${post.title} on TechByJZ`,
     authors: post.authorName ? [{ name: post.authorName }] : undefined,
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
+    },
     openGraph: {
       title: post.title,
       description: post.excerpt || `Read ${post.title} on TechByJZ`,

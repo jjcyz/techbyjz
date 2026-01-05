@@ -46,6 +46,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!isValidSlug(slug)) {
     return {
       title: 'Tag Not Found',
+      robots: {
+        index: false,
+        follow: false,
+      },
     };
   }
 
@@ -54,6 +58,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!tag) {
     return {
       title: 'Tag Not Found',
+      robots: {
+        index: false,
+        follow: false,
+      },
     };
   }
 
@@ -69,6 +77,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `${tag.title} - TechByJZ`,
     description,
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
+    },
     openGraph: {
       title: `${tag.title} - TechByJZ`,
       description,

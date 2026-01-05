@@ -42,6 +42,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!isValidSlug(slug)) {
     return {
       title: 'Category Not Found',
+      robots: {
+        index: false,
+        follow: false,
+      },
     };
   }
 
@@ -50,6 +54,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!category) {
     return {
       title: 'Category Not Found',
+      robots: {
+        index: false,
+        follow: false,
+      },
     };
   }
 
@@ -65,6 +73,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `${category.title} - TechByJZ`,
     description,
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
+    },
     openGraph: {
       title: `${category.title} - TechByJZ`,
       description,
