@@ -5,6 +5,8 @@ import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import PageViewTracker from "@/components/analytics/PageViewTracker";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import CookieConsent from "@/components/shared/CookieConsent";
+import { ToastProvider } from "@/components/shared/toast/ToastProvider";
+import ToastContainer from "@/components/shared/toast/ToastContainer";
 import { validateStartup } from "@/lib/startup-validation";
 import { getOrganizationSchema, getWebSiteSchema, StructuredData } from "@/lib/structured-data";
 import "./globals.css";
@@ -114,9 +116,13 @@ export default function RootLayout({
             strategy="afterInteractive"
           />
         )}
-            <ErrorBoundary>
-              {children}
-            </ErrorBoundary>
+            <ToastProvider>
+              <ErrorBoundary>
+                {children}
+              </ErrorBoundary>
+              {/* Toast Container */}
+              <ToastContainer />
+            </ToastProvider>
 
         {/* Cookie Consent Banner */}
         <CookieConsent />

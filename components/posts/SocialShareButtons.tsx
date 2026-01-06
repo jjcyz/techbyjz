@@ -1,5 +1,7 @@
 'use client';
 
+import { useToast } from '@/components/shared/toast/useToast';
+
 interface SocialShareButtonsProps {
   title: string;
   url: string;
@@ -44,6 +46,8 @@ const CopyIcon = () => (
 );
 
 export default function SocialShareButtons({ title, url, excerpt }: SocialShareButtonsProps) {
+  const { success } = useToast();
+
   // Validate URL - ensure it's a valid, absolute URL
   if (!url || typeof url !== 'string') {
     console.error('SocialShareButtons: Invalid URL provided', url);
@@ -69,12 +73,11 @@ export default function SocialShareButtons({ title, url, excerpt }: SocialShareB
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(url);
-      // TODO: Replace with a toast notification component
-      alert('Link copied to clipboard!');
+      success('Link copied to clipboard!');
     } catch (err) {
       // Silently fail - clipboard API may not be available in some contexts
       if (process.env.NODE_ENV === 'development') {
-      console.error('Failed to copy link:', err);
+        console.error('Failed to copy link:', err);
       }
     }
   };
@@ -84,11 +87,10 @@ export default function SocialShareButtons({ title, url, excerpt }: SocialShareB
     // User can then paste it into Instagram
     try {
       await navigator.clipboard.writeText(url);
-      // TODO: Replace with a toast notification component
-      alert('Link copied! Paste it into your Instagram post.');
+      success('Link copied! Paste it into your Instagram post.');
     } catch (err) {
       if (process.env.NODE_ENV === 'development') {
-      console.error('Failed to copy link:', err);
+        console.error('Failed to copy link:', err);
       }
     }
   };
