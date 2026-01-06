@@ -79,7 +79,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const imageUrl = post.mainImage ? getImageUrl(post.mainImage, 1200, 600) : undefined;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://techbyjz.blog';
-  const postUrl = `${siteUrl}/posts/${post.slug.current}`;
+  const cleanSiteUrl = siteUrl.replace(/\/$/, ''); // Remove trailing slash if present
+  const postSlug = post.slug?.current || '';
+  const postUrl = postSlug ? `${cleanSiteUrl}/posts/${postSlug}` : cleanSiteUrl;
 
   return {
     title: post.title,
@@ -197,7 +199,9 @@ export default async function PostPage({ params }: PageProps) {
     : '';
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://techbyjz.blog';
-  const postUrl = `${siteUrl}/posts/${post.slug.current}`;
+  const cleanSiteUrl = siteUrl.replace(/\/$/, ''); // Remove trailing slash if present
+  const postSlug = post.slug?.current || '';
+  const postUrl = postSlug ? `${cleanSiteUrl}/posts/${postSlug}` : cleanSiteUrl;
 
   // Generate structured data for SEO
   const articleSchema = getArticleSchema(post, validCategories);

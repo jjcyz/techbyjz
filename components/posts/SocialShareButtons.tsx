@@ -44,7 +44,18 @@ const CopyIcon = () => (
 );
 
 export default function SocialShareButtons({ title, url, excerpt }: SocialShareButtonsProps) {
-  const encodedUrl = encodeURIComponent(url);
+  // Validate URL - ensure it's a valid, absolute URL
+  if (!url || typeof url !== 'string') {
+    console.error('SocialShareButtons: Invalid URL provided', url);
+    return null;
+  }
+
+  // Ensure URL is absolute (starts with http:// or https://)
+  const validUrl = url.startsWith('http://') || url.startsWith('https://')
+    ? url
+    : `https://${url}`;
+
+  const encodedUrl = encodeURIComponent(validUrl);
   const encodedTitle = encodeURIComponent(title);
   const encodedText = encodeURIComponent(excerpt || title);
 
