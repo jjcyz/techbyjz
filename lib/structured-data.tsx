@@ -97,6 +97,7 @@ export function getArticleSchema(post: Post, categories: Category[] = []) {
     '@context': string;
     '@type': string;
     headline: string;
+    url: string;
     description?: string;
     image?: string | string[];
     datePublished: string;
@@ -123,6 +124,7 @@ export function getArticleSchema(post: Post, categories: Category[] = []) {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
     headline: post.title,
+    url: postUrl, // Explicit URL field for Google
     description: post.excerpt || `Read ${post.title} on ${SITE_NAME}`,
     datePublished: post.publishedAt,
     publisher: {

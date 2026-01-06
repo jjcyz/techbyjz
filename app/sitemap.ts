@@ -58,14 +58,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ])
 
     // Dynamic post pages
+    // IMPORTANT: Always use /posts/ prefix to ensure correct URL structure
     const postPages: MetadataRoute.Sitemap = (posts || [])
       .filter((post) => post.slug?.current) // Only include posts with valid slugs
-      .map((post) => ({
-        url: `${siteUrl}/posts/${post.slug!.current}`,
-        lastModified: post.publishedAt ? new Date(post.publishedAt) : new Date(),
-        changeFrequency: 'weekly' as const,
-        priority: 0.9,
-      }))
+      .map((post) => {
+        const slug = post.slug!.current;
+        // Ensure URL always has /posts/ prefix - never generate root-level URLs
+        const postUrl = `${siteUrl}/posts/${slug}`;
+        return {
+          url: postUrl,
+          lastModified: post.publishedAt ? new Date(post.publishedAt) : new Date(),
+          changeFrequency: 'weekly' as const,
+          priority: 0.9,
+        };
+      })
 
     // Dynamic category pages
     const categoryPages: MetadataRoute.Sitemap = (categories || [])
