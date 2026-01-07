@@ -35,6 +35,8 @@ export interface Post {
   publishedAt: string;
   mainImage?: SanityImage;
   authorName?: string;
+  // Categories are stored as reference IDs (strings) in list queries
+  // Only dereferenced to full objects in detail queries (POST_BY_SLUG_QUERY)
   categories?: string[];
   tags?: (string | Tag)[];
   viewCount?: number;

@@ -63,7 +63,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   // Get post count for better description
   const postCount = await client.fetch<number>(
-    `count(*[_type == "post" && $categoryId in categories])`,
+    `count(*[_type == "post" && $categoryId in categories[]._ref])`,
     { categoryId: category._id }
   );
 
@@ -124,7 +124,7 @@ export default async function CategoryPage({ params }: PageProps) {
   // Fetch first page of posts, all posts (for search), total count, and categories in parallel
   const [posts, allPosts, totalCount, categories] = await Promise.all([
     client.fetch<Post[]>(
-      `*[_type == "post" && $categoryId in categories] | order(publishedAt desc) [0...12] {
+      `*[_type == "post" && $categoryId in categories[]._ref] | order(publishedAt desc) [0...12] {
         _id,
         title,
         slug,
@@ -154,7 +154,7 @@ export default async function CategoryPage({ params }: PageProps) {
       next: { revalidate: 60 }
     }),
     client.fetch<number>(
-      `count(*[_type == "post" && $categoryId in categories])`,
+      `count(*[_type == "post" && $categoryId in categories[]._ref])`,
       { categoryId: category._id },
       { next: { revalidate: 60 } }
     ),

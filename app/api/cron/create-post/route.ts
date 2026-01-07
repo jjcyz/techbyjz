@@ -18,7 +18,7 @@ import { ApiErrors, successResponse } from '@/lib/api-response';
  * Generates blog post content using AI with research and synthesis
  * Replicates n8n workflow: research → synthesize → create unique insights
  */
-async function generatePostContent(topic?: string): Promise<{
+export async function generatePostContent(topic?: string): Promise<{
   markdown: string;
   title: string;
   excerpt: string;

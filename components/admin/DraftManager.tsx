@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getSanityStudioUrl } from '@/lib/sanity-studio-url';
+import PostEditor from './PostEditor';
+import type { Category, Tag } from '@/types/post';
+import type { PortableTextContent } from '@/components/posts/RichTextEditor/types';
 
 interface Draft {
   _id: string;
@@ -11,8 +13,12 @@ interface Draft {
   slug?: {
     current: string;
   };
-  categories?: Array<{ title: string; slug?: { current: string } }>;
-  tags?: Array<{ title: string; slug?: { current: string } }>;
+  categories?: Array<{ _id: string; title: string; slug?: { current: string } }>;
+  tags?: Array<{ _id: string; title: string; slug?: { current: string } }>;
+}
+
+interface PostDetail extends Draft {
+  content?: PortableTextContent[];
 }
 
 export default function DraftManager() {
@@ -20,10 +26,60 @@ export default function DraftManager() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
+  const [editingPost, setEditingPost] = useState<PostDetail | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
 
   useEffect(() => {
     fetchDrafts();
+    fetchCategoriesAndTags();
   }, []);
+
+  async function fetchCategoriesAndTags() {
+    try {
+      const [catsRes, tagsRes] = await Promise.all([
+        fetch('/api/admin/categories'),
+        fetch('/api/admin/tags'),
+      ]);
+
+      const catsData = await catsRes.json();
+      const tagsData = await tagsRes.json();
+
+      if (catsData.success) setCategories(catsData.data || []);
+      if (tagsData.success) setTags(tagsData.data || []);
+    } catch (err) {
+      // Silently fail - categories/tags will just be empty arrays
+    }
+  }
+
+  async function handleEdit(postId: string) {
+    try {
+      setError(null);
+      const response = await fetch(`/api/admin/posts/${postId}`);
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to fetch post');
+      }
+
+      setEditingPost(data.data);
+      setEditingPostId(postId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load post for editing');
+    }
+  }
+
+  function handleEditorSave() {
+    fetchDrafts();
+    setEditingPostId(null);
+    setEditingPost(null);
+  }
+
+  function handleEditorCancel() {
+    setEditingPostId(null);
+    setEditingPost(null);
+  }
 
   async function fetchDrafts() {
     try {
@@ -96,6 +152,35 @@ export default function DraftManager() {
     );
   }
 
+  // If editing, show editor
+  if (editingPostId && editingPost) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-gray-900">Edit Post</h2>
+          <button
+            onClick={handleEditorCancel}
+            className="text-sm text-gray-600 hover:text-gray-900"
+          >
+            ← Back to Drafts
+          </button>
+        </div>
+        <PostEditor
+          postId={editingPostId}
+          initialTitle={editingPost.title}
+          initialExcerpt={editingPost.excerpt || ''}
+          initialContent={editingPost.content || []}
+          initialCategories={editingPost.categories || []}
+          initialTags={editingPost.tags || []}
+          availableCategories={categories}
+          availableTags={tags}
+          onSave={handleEditorSave}
+          onCancel={handleEditorCancel}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -157,14 +242,12 @@ export default function DraftManager() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex justify-end gap-2">
-                      <a
-                        href={getSanityStudioUrl(draft._id, 'post')}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        onClick={() => handleEdit(draft._id)}
                         className="text-blue-600 hover:text-blue-900"
                       >
                         Edit
-                      </a>
+                      </button>
                       <button
                         onClick={() => handleAction(draft._id, 'publish')}
                         disabled={actionLoading === draft._id}

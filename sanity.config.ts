@@ -1,7 +1,6 @@
 import { defineConfig } from 'sanity'
 import { structureTool } from 'sanity/structure'
 import { visionTool } from '@sanity/vision'
-import { presentationTool } from 'sanity/presentation'
 import { sanityConfig } from './lib/sanity.config'
 import { schemaTypes } from './sanity/schemaTypes'
 
@@ -15,18 +14,21 @@ export default defineConfig({
   basePath: '/studio',
 
   plugins: [
-    structureTool(),
-    visionTool(), // Adds GROQ query interface
-    presentationTool({
-      previewUrl: {
-        draftMode: {
-          enable: '/api/draft',
-        },
-      },
+    structureTool({
+      // Optimize structure tool performance
+      defaultDocumentNode: undefined,
     }),
+    visionTool(), // Adds GROQ query interface
+    // Removed presentationTool - it can cause performance issues
   ],
 
   schema: {
     types: schemaTypes,
+  },
+
+  // Performance optimizations
+  document: {
+    // Limit the number of documents fetched initially
+    productionUrl: undefined, // Disable preview URL generation (can be slow)
   },
 })

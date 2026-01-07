@@ -25,8 +25,8 @@ export async function GET(request: NextRequest) {
         excerpt,
         _createdAt,
         slug,
-        categories[]->{title, slug},
-        tags[]->{title, slug}
+        categories[]->{_id, title, slug},
+        tags[]->{_id, title, slug}
       }
     `);
 

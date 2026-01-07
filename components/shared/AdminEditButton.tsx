@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { getSanityStudioUrl } from '@/lib/sanity-studio-url';
 
 interface AdminEditButtonProps {
   postId: string;
@@ -25,12 +26,11 @@ export default function AdminEditButton({ postId, className = '' }: AdminEditBut
     return null;
   }
 
-  // Sanity Studio URL structure: /studio/desk/{documentType};{documentId}
-  // This opens the post editor directly to the specific document
-  const studioUrl = `/studio/desk/post;${postId}`;
+  // Use direct Sanity Studio URL for better performance (faster than embedded)
+  const studioUrl = getSanityStudioUrl('post', postId);
 
   return (
-    <Link
+    <a
       href={studioUrl}
       target="_blank"
       rel="noopener noreferrer"
@@ -51,7 +51,7 @@ export default function AdminEditButton({ postId, className = '' }: AdminEditBut
         />
       </svg>
       Edit
-    </Link>
+    </a>
   );
 }
 

@@ -126,21 +126,7 @@ export default defineType({
           type: 'table',
         },
       ],
-      description: 'Main content in Portable Text format (for manual editing)',
-    }),
-    defineField({
-      name: 'contentMarkdown',
-      title: 'Content (Markdown)',
-      type: 'text',
-      rows: 20,
-      description: 'Markdown content for AI-generated posts. Paste markdown here, then use "Convert to Portable Text" action.',
-    }),
-    defineField({
-      name: 'body',
-      title: 'Body',
-      type: 'array',
-      of: [{ type: 'block' }],
-      description: 'Legacy field name, kept for backwards compatibility',
+      description: 'Main content in Portable Text format',
     }),
     defineField({
       name: 'viewCount',

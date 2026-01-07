@@ -51,6 +51,7 @@ export function isValidSlug(slug: string | null | undefined): boolean {
 
 /**
  * Groups posts by category ID
+ * Categories are stored as reference IDs (strings) in posts
  */
 export function groupPostsByCategory<T extends { categories?: string[] }>(
   posts: T[]
@@ -58,12 +59,14 @@ export function groupPostsByCategory<T extends { categories?: string[] }>(
   const grouped: Record<string, T[]> = {};
 
   posts.forEach((post) => {
-    if (post.categories && post.categories.length > 0) {
+    if (post.categories && Array.isArray(post.categories) && post.categories.length > 0) {
       post.categories.forEach((categoryId) => {
-        if (!grouped[categoryId]) {
-          grouped[categoryId] = [];
+        if (categoryId && typeof categoryId === 'string') {
+          if (!grouped[categoryId]) {
+            grouped[categoryId] = [];
+          }
+          grouped[categoryId].push(post);
         }
-        grouped[categoryId].push(post);
       });
     }
   });

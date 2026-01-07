@@ -79,7 +79,9 @@ export default async function Home() {
   // Helper: Find category by title and get its posts
   const getCategoryPosts = (categoryTitle: string): { category: Category | undefined; posts: Post[] } => {
     const category = categories.find(cat => cat.title === categoryTitle);
-    if (!category) return { category: undefined, posts: [] };
+    if (!category) {
+      return { category: undefined, posts: [] };
+    }
 
     const posts = postsByCategory[category._id] || [];
     return { category, posts };

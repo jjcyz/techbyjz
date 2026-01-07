@@ -30,8 +30,12 @@ export const POST_BY_SLUG_QUERY = `*[_type == "post" && slug.current == $slug][0
   viewCount,
   mainImage,
   "authorName": author->name,
-  categories,
-  tags[]->{
+  "categories": categories[]->{
+    _id,
+    title,
+    slug
+  },
+  "tags": tags[]->{
     _id,
     title,
     slug
@@ -50,7 +54,7 @@ export const CATEGORY_BY_SLUG_QUERY = `*[_type == "category" && slug.current == 
   slug
 }`;
 
-export const POSTS_BY_CATEGORY_ID_QUERY = `*[_type == "post" && $categoryId in categories] | order(publishedAt desc) {
+export const POSTS_BY_CATEGORY_ID_QUERY = `*[_type == "post" && $categoryId in categories[]._ref] | order(publishedAt desc) {
   _id,
   title,
   slug,
@@ -67,7 +71,7 @@ export const POSTS_BY_CATEGORY_ID_QUERY = `*[_type == "post" && $categoryId in c
   }
 }`;
 
-export const RELATED_POSTS_QUERY = `*[_type == "post" && _id != $postId && count(categories[@ in $categoryIds]) > 0] | order(publishedAt desc) [0...3] {
+export const RELATED_POSTS_QUERY = `*[_type == "post" && _id != $postId && count(categories[@._ref in $categoryIds]) > 0] | order(publishedAt desc) [0...3] {
   _id,
   title,
   slug,

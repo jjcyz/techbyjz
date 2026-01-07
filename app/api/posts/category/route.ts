@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
     const end = start + limit;
 
     const posts = await client.fetch<Post[]>(
-      `*[_type == "post" && $categoryId in categories] | order(publishedAt desc) [${start}...${end}] {
+      `*[_type == "post" && $categoryId in categories[]._ref] | order(publishedAt desc) [${start}...${end}] {
         _id,
         title,
         slug,
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
 
     // Get total count for pagination
     const totalCount = await client.fetch<number>(
-      `count(*[_type == "post" && $categoryId in categories])`,
+      `count(*[_type == "post" && $categoryId in categories[]._ref])`,
       { categoryId: category._id },
       { next: { revalidate: 60 } }
     );

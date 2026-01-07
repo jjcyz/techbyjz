@@ -156,20 +156,22 @@ export default async function PostPage({ params }: PageProps) {
   }
 
   // Prepare valid categories for rendering
+  // POST_BY_SLUG_QUERY dereferences categories to Category objects
   const validCategories: Category[] = post.categories && Array.isArray(post.categories) && post.categories.length > 0
-    ? post.categories
-        .map((categoryId) => categories.find((cat) => cat._id === categoryId))
+    ? (post.categories as unknown as Category[])
         .filter((cat): cat is Category => {
-          const isValid = cat !== undefined && cat.slug?.current !== undefined;
-          if (!isValid && cat && process.env.NODE_ENV === 'development') {
-            console.warn(`Category ${cat.title || 'unknown'} (ID: ${cat._id || 'unknown'}) filtered out - missing slug`);
-          }
-          return isValid;
+          return cat !== null &&
+                 typeof cat === 'object' &&
+                 '_id' in cat &&
+                 cat.slug?.current !== undefined;
         })
     : [];
 
   // Fetch related posts based on categories, fallback to recent posts if no matches
-  const categoryIds = post.categories || []; // Now categories is already an array of strings
+  // Extract category IDs from dereferenced category objects
+  const categoryIds = validCategories.length > 0
+    ? validCategories.map(cat => cat._id)
+    : [];
   let relatedPosts: Post[] = [];
 
   if (categoryIds.length > 0) {
