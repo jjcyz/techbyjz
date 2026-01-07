@@ -11,6 +11,7 @@ import {
   logGenerationComplete,
   logError,
 } from '@/lib/content-logging';
+import { fetchAllResearchSources } from '@/lib/research-sources';
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,17 +24,13 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const {
-      topic,
-      draft = true,
-      validate = true,
-      checkDuplicates = true,
-      minQualityScore = 50,
-      allowWarnings = false,
-    } = body;
+    const { topic } = body;
 
     // Log generation start
     logGenerationStart(topic);
+
+    // Fetch research sources first (for display)
+    const researchArticles = await fetchAllResearchSources(topic);
 
     // Generate post content
     const { markdown, title, excerpt, categoryIds, tagIds } = await generatePostContent(topic);
@@ -61,12 +58,26 @@ export async function POST(request: NextRequest) {
     // Log generation completion
     logGenerationComplete(wordCount, title);
 
+    // Group research articles by source
+    const sources = researchArticles.reduce((acc, article) => {
+      if (!acc[article.source]) {
+        acc[article.source] = [];
+      }
+      acc[article.source].push(article);
+      return acc;
+    }, {} as Record<string, typeof researchArticles>);
+
     return NextResponse.json({
       success: true,
       data: {
         post: result.post,
         wordCount,
         published: true, // importPost always publishes now
+        researchSources: {
+          articles: researchArticles,
+          sources,
+          totalCount: researchArticles.length,
+        },
       },
       message: 'Post created successfully',
     });

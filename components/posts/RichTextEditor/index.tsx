@@ -201,7 +201,7 @@ export default function RichTextEditor({
       />
 
       {/* Editor - Scrollable */}
-      <div className="bg-[var(--card-bg)] border-x border-b border-[var(--border-color)] max-h-[600px] overflow-y-auto min-h-[400px]">
+      <div className="bg-[var(--card-bg)] border-x border-b border-[var(--border-color)] max-h-[1000px] overflow-y-auto min-h-[400px]">
         <EditorStyles />
         <EditorContent editor={editor} />
       </div>

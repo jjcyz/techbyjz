@@ -359,9 +359,9 @@ export default function DraftManager() {
           <p className="text-gray-500">No draft posts found.</p>
         </div>
       ) : (
-        <div className="bg-white shadow rounded-lg" style={{ overflow: 'visible', position: 'relative' }}>
-          <div className="overflow-x-auto" style={{ overflowY: 'visible' }}>
-            <table className="min-w-full divide-y divide-gray-200" style={{ overflow: 'visible' }}>
+        <div className="bg-white shadow rounded-lg overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -375,7 +375,7 @@ export default function DraftManager() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200" style={{ overflow: 'visible' }}>
+              <tbody className="bg-white divide-y divide-gray-200">
                 {drafts.map((draft) => {
                   const isExpanded = expandedPostId === draft._id;
                   const postData = isExpanded && expandedPost ? expandedPost : draft;
@@ -384,7 +384,7 @@ export default function DraftManager() {
                   return (
                     <React.Fragment key={draft._id}>
                       <tr className={isExpanded ? 'bg-blue-50' : 'hover:bg-gray-50'}>
-                        <td className="px-6 py-4 relative" style={{ overflow: 'visible' }}>
+                        <td className="px-6 py-4">
                         <div className="space-y-3">
                           <div className="text-sm font-medium">
                             <InlineEditableField
