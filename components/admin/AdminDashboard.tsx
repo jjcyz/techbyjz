@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import ContentGenerator from './ContentGenerator';
 import DraftManager from './DraftManager';
+import PublishedPostsManager from './PublishedPostsManager';
 import AdminStats from './AdminStats';
 import AdminSettings from './AdminSettings';
 
@@ -10,7 +11,7 @@ interface AdminDashboardProps {
   onLogout: () => void;
 }
 
-type Tab = 'generate' | 'drafts' | 'stats' | 'settings';
+type Tab = 'generate' | 'drafts' | 'published' | 'stats' | 'settings';
 
 export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState<Tab>('generate');
@@ -18,6 +19,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const tabs = [
     { id: 'generate' as Tab, label: 'Generate Content', icon: '✨' },
     { id: 'drafts' as Tab, label: 'Drafts', icon: '📝' },
+    { id: 'published' as Tab, label: 'Published Posts', icon: '📰' },
     { id: 'stats' as Tab, label: 'Statistics', icon: '📊' },
     { id: 'settings' as Tab, label: 'Settings', icon: '⚙️' },
   ];
@@ -75,6 +77,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeTab === 'generate' && <ContentGenerator />}
         {activeTab === 'drafts' && <DraftManager />}
+        {activeTab === 'published' && <PublishedPostsManager />}
         {activeTab === 'stats' && <AdminStats />}
         {activeTab === 'settings' && <AdminSettings />}
       </main>

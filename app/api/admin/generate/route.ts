@@ -11,7 +11,7 @@ import {
   logGenerationComplete,
   logError,
 } from '@/lib/content-logging';
-import { fetchAllResearchSources } from '@/lib/research-sources';
+import { executeResearch } from '@/lib/research/research-engine';
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,13 +31,22 @@ export async function POST(request: NextRequest) {
       model,
       temperature,
       maxTokens,
+      researchStrategy,
+      researchDepth,
     } = body;
 
     // Log generation start
     logGenerationStart(topic);
 
-    // Fetch research sources first (for display)
-    const researchArticles = await fetchAllResearchSources(topic);
+    // Fetch research sources using new research engine (for display)
+    const researchResult = await executeResearch({
+      strategy: researchStrategy || 'general',
+      depth: researchDepth || 'medium',
+      topic: topic || undefined,
+      maxArticles: researchDepth === 'deep' ? 50 : 30,
+    });
+
+    const researchArticles = researchResult.articles;
 
     // Generate post content with custom prompts if provided
     const { markdown, title, excerpt, categoryIds, tagIds } = await generatePostContent(
@@ -46,7 +55,9 @@ export async function POST(request: NextRequest) {
       userPrompt,
       model,
       temperature,
-      maxTokens
+      maxTokens,
+      researchStrategy,
+      researchDepth
     );
 
     // Calculate word count
@@ -91,6 +102,10 @@ export async function POST(request: NextRequest) {
           articles: researchArticles,
           sources,
           totalCount: researchArticles.length,
+          discoveredTopics: researchResult.discoveredTopics,
+          primaryTopic: researchResult.primaryTopic,
+          researchSummary: researchResult.researchSummary,
+          metadata: researchResult.metadata,
         },
       },
       message: 'Post created successfully',

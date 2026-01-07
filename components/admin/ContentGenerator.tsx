@@ -9,13 +9,35 @@ interface ResearchArticle {
   source: string;
   publishedAt?: string;
   score?: number;
+  relevance?: number;
+  topics?: string[];
+}
+
+interface DiscoveredTopic {
+  topic: string;
+  relevanceScore: number;
+  articleCount: number;
+  keyArticles: ResearchArticle[];
+  summary: string;
 }
 
 interface ResearchSources {
   articles: ResearchArticle[];
   sources: Record<string, ResearchArticle[]>;
   totalCount: number;
+  discoveredTopics?: DiscoveredTopic[];
+  primaryTopic?: string;
+  researchSummary?: string;
+  metadata?: {
+    totalArticles: number;
+    sourcesUsed: string[];
+    researchDepth: string;
+    strategy: string;
+  };
 }
+
+type ResearchStrategy = 'general' | 'topic-specific' | 'discovery' | 'deep-dive';
+type ResearchDepth = 'shallow' | 'medium' | 'deep';
 
 interface GenerationResult {
   success: boolean;
@@ -48,6 +70,10 @@ export default function ContentGenerator() {
   const [showPromptEditor, setShowPromptEditor] = useState(false);
   const [customSystemPrompt, setCustomSystemPrompt] = useState('');
   const [customUserPrompt, setCustomUserPrompt] = useState('');
+  const [researchStrategy, setResearchStrategy] = useState<ResearchStrategy>('general');
+  const [researchDepth, setResearchDepth] = useState<ResearchDepth>('medium');
+  const [discoveringTopics, setDiscoveringTopics] = useState(false);
+  const [selectedDiscoveredTopic, setSelectedDiscoveredTopic] = useState<string | null>(null);
 
   // Default prompts (for reference/editing)
   const defaultSystemPrompt = `You are an expert tech blogger who writes insightful, well-researched articles that people actually want to read. You:
@@ -104,13 +130,41 @@ The content will be automatically converted from Markdown to Portable Text forma
   const logsRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
-  const fetchGeneralSources = useCallback(async () => {
+  const fetchResearchSources = useCallback(async (strategy?: ResearchStrategy, depth?: ResearchDepth, topic?: string) => {
     try {
       setLoadingSources(true);
-      const response = await fetch('/api/admin/research-sources');
+      const response = await fetch('/api/admin/research', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          strategy: strategy || researchStrategy,
+          depth: depth || researchDepth,
+          topic: topic || undefined,
+        }),
+      });
       const data = await response.json();
       if (data.success && data.data) {
-        setResearchSources(data.data);
+        // Transform the new research result format to match existing interface
+        const articles = data.data.articles || [];
+        const sources = articles.reduce((acc: Record<string, ResearchArticle[]>, article: ResearchArticle) => {
+          if (!acc[article.source]) {
+            acc[article.source] = [];
+          }
+          acc[article.source].push(article);
+          return acc;
+        }, {});
+
+        setResearchSources({
+          articles,
+          sources,
+          totalCount: articles.length,
+          discoveredTopics: data.data.discoveredTopics,
+          primaryTopic: data.data.primaryTopic,
+          researchSummary: data.data.researchSummary,
+          metadata: data.data.metadata,
+        });
       } else {
         setResearchSources(null);
       }
@@ -119,40 +173,70 @@ The content will be automatically converted from Markdown to Portable Text forma
     } finally {
       setLoadingSources(false);
     }
-  }, []);
+  }, [researchStrategy, researchDepth]);
+
+  const handleDiscoverTopics = async () => {
+    setDiscoveringTopics(true);
+    try {
+      const response = await fetch('/api/admin/research', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          strategy: 'discovery',
+          depth: 'medium',
+          maxTopicsToDiscover: 5,
+        }),
+      });
+      const data = await response.json();
+      if (data.success && data.data) {
+        const articles = data.data.articles || [];
+        const sources = articles.reduce((acc: Record<string, ResearchArticle[]>, article: ResearchArticle) => {
+          if (!acc[article.source]) {
+            acc[article.source] = [];
+          }
+          acc[article.source].push(article);
+          return acc;
+        }, {});
+
+        setResearchSources({
+          articles,
+          sources,
+          totalCount: articles.length,
+          discoveredTopics: data.data.discoveredTopics,
+          researchSummary: data.data.researchSummary,
+          metadata: data.data.metadata,
+        });
+      }
+    } catch (error) {
+      console.error('Error discovering topics:', error);
+    } finally {
+      setDiscoveringTopics(false);
+    }
+  };
 
   // Load sources on initial mount
   useEffect(() => {
-    fetchGeneralSources();
-  }, [fetchGeneralSources]);
+    fetchResearchSources();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Fetch research sources when topic changes (preview)
+  // Fetch research sources when topic or strategy changes (preview)
   useEffect(() => {
-    const fetchPreview = async () => {
-      if (topic && !isGenerating) {
-        try {
-          setLoadingSources(true);
-          const response = await fetch(`/api/admin/research-sources?topic=${encodeURIComponent(topic)}`);
-          const data = await response.json();
-          if (data.success && data.data) {
-            setResearchSources(data.data);
-          } else {
-            setResearchSources(null);
-          }
-        } catch {
-          setResearchSources(null);
-        } finally {
-          setLoadingSources(false);
-        }
-      } else if (!topic && !isGenerating) {
-        // Fetch general sources when no topic
-        fetchGeneralSources();
-      }
-    };
+    if (isGenerating) return;
 
-    const timeoutId = setTimeout(fetchPreview, 500);
+    const timeoutId = setTimeout(() => {
+      if (topic && researchStrategy === 'topic-specific') {
+        fetchResearchSources(researchStrategy, researchDepth, topic);
+      } else if (researchStrategy === 'general') {
+        fetchResearchSources(researchStrategy, researchDepth, topic || undefined);
+      }
+    }, 500);
+
     return () => clearTimeout(timeoutId);
-  }, [topic, isGenerating, fetchGeneralSources]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [topic, researchStrategy, researchDepth, isGenerating]);
 
   const addLog = (message: string) => {
     setLogs((prev) => [...prev, `[${new Date().toLocaleTimeString()}] ${message}`]);
@@ -171,18 +255,62 @@ The content will be automatically converted from Markdown to Portable Text forma
     }
 
     try {
-      // Step 1: Research
-      addLog('🔍 Fetching research sources...');
-      setWorkflowStep('research');
+      // Determine final topic to use (once at the start)
+      const finalTopic = topic || selectedDiscoveredTopic || undefined;
 
-      // Fetch research sources first
+      // Validate: topic-specific strategy requires a topic
+      const effectiveStrategy = (researchStrategy === 'topic-specific' && !finalTopic)
+        ? 'general'
+        : researchStrategy;
+
+      if (researchStrategy === 'topic-specific' && !finalTopic) {
+        addLog('⚠️ Topic-specific strategy requires a topic. Switching to general strategy.');
+      }
+
+      // Step 1: Research
+      addLog(`🔍 Researching using ${effectiveStrategy} strategy (${researchDepth} depth)...`);
+      setWorkflowStep('research');
       setLoadingSources(true);
-      const researchResponse = await fetch(`/api/admin/research-sources?topic=${encodeURIComponent(topic || '')}`);
+
+      const researchResponse = await fetch('/api/admin/research', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          strategy: effectiveStrategy,
+          depth: researchDepth,
+          topic: finalTopic,
+          maxArticles: researchDepth === 'deep' ? 50 : 30,
+        }),
+      });
+
       const researchData = await researchResponse.json();
 
       if (researchData.success && researchData.data) {
-        setResearchSources(researchData.data);
-        addLog(`✅ Found ${researchData.data.totalCount} articles from ${Object.keys(researchData.data.sources).length} sources`);
+        const articles = researchData.data.articles || [];
+        const sources = articles.reduce((acc: Record<string, ResearchArticle[]>, article: ResearchArticle) => {
+          if (!acc[article.source]) {
+            acc[article.source] = [];
+          }
+          acc[article.source].push(article);
+          return acc;
+        }, {});
+
+        setResearchSources({
+          articles,
+          sources,
+          totalCount: articles.length,
+          discoveredTopics: researchData.data.discoveredTopics,
+          primaryTopic: researchData.data.primaryTopic,
+          researchSummary: researchData.data.researchSummary,
+          metadata: researchData.data.metadata,
+        });
+
+        addLog(`✅ Found ${articles.length} articles from ${Object.keys(sources).length} sources`);
+        if (researchData.data.discoveredTopics && researchData.data.discoveredTopics.length > 0) {
+          addLog(`📌 Discovered ${researchData.data.discoveredTopics.length} interesting topics`);
+        }
       } else {
         addLog(`⚠️ No research sources found`);
         setResearchSources(null);
@@ -204,12 +332,14 @@ The content will be automatically converted from Markdown to Portable Text forma
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          topic: topic || undefined,
+          topic: finalTopic,
           systemPrompt: customSystemPrompt || undefined,
           userPrompt: customUserPrompt || undefined,
           model: model || undefined,
           temperature: temperature || undefined,
           maxTokens: maxTokens || undefined,
+          researchStrategy: effectiveStrategy,
+          researchDepth: researchDepth,
         }),
       });
 
@@ -396,23 +526,144 @@ The content will be automatically converted from Markdown to Portable Text forma
         <h2 className="text-xl font-semibold mb-4">Generate New Content</h2>
 
         <div className="space-y-4">
+          {/* Research Strategy Selection */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="researchStrategy" className="block text-sm font-medium text-gray-700 mb-2">
+                Research Strategy
+              </label>
+              <select
+                id="researchStrategy"
+                value={researchStrategy}
+                onChange={(e) => {
+                  setResearchStrategy(e.target.value as ResearchStrategy);
+                  if (e.target.value === 'discovery' || e.target.value === 'deep-dive') {
+                    setTopic(''); // Clear topic for discovery strategies
+                  }
+                }}
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border"
+                disabled={isGenerating}
+              >
+                <option value="general">General - Trend Discovery</option>
+                <option value="topic-specific">Topic-Specific - Deep Dive</option>
+                <option value="discovery">Discovery - Find Topics</option>
+                <option value="deep-dive">Deep Dive - Multi-Stage</option>
+              </select>
+              <p className="mt-1 text-xs text-gray-500">
+                {researchStrategy === 'general' && 'Quick research on current trends'}
+                {researchStrategy === 'topic-specific' && 'Deep research on a specific topic'}
+                {researchStrategy === 'discovery' && 'Discover interesting topics from sources'}
+                {researchStrategy === 'deep-dive' && 'Discover topics then deep dive into the best one'}
+              </p>
+            </div>
+
+            <div>
+              <label htmlFor="researchDepth" className="block text-sm font-medium text-gray-700 mb-2">
+                Research Depth
+              </label>
+              <select
+                id="researchDepth"
+                value={researchDepth}
+                onChange={(e) => setResearchDepth(e.target.value as ResearchDepth)}
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border"
+                disabled={isGenerating}
+              >
+                <option value="shallow">Shallow - Quick (15-20 articles)</option>
+                <option value="medium">Medium - Moderate (30-40 articles)</option>
+                <option value="deep">Deep - Comprehensive (50+ articles)</option>
+              </select>
+              <p className="mt-1 text-xs text-gray-500">
+                {researchDepth === 'shallow' && 'Fast research, fewer sources'}
+                {researchDepth === 'medium' && 'Balanced research, more sources'}
+                {researchDepth === 'deep' && 'Comprehensive research, expanded terms'}
+              </p>
+            </div>
+          </div>
+
+          {/* Topic Input */}
           <div>
-            <label htmlFor="topic" className="block text-sm font-medium text-gray-700">
-              Topic (optional)
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label htmlFor="topic" className="block text-sm font-medium text-gray-700">
+                {researchStrategy === 'topic-specific' || researchStrategy === 'deep-dive'
+                  ? 'Topic (required)'
+                  : 'Topic (optional)'}
+              </label>
+              {(researchStrategy === 'discovery' || researchStrategy === 'deep-dive') && (
+                <button
+                  type="button"
+                  onClick={handleDiscoverTopics}
+                  disabled={discoveringTopics || isGenerating}
+                  className="text-xs text-blue-600 hover:text-blue-800 disabled:opacity-50"
+                >
+                  {discoveringTopics ? 'Discovering...' : '🔍 Discover Topics'}
+                </button>
+              )}
+            </div>
             <input
               type="text"
               id="topic"
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
-              placeholder="e.g., artificial intelligence, web development"
+              placeholder={
+                researchStrategy === 'discovery' || researchStrategy === 'deep-dive'
+                  ? 'Click "Discover Topics" to find interesting topics'
+                  : 'e.g., artificial intelligence, web development'
+              }
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border"
-              disabled={isGenerating}
+              disabled={isGenerating || researchStrategy === 'discovery'}
             />
             <p className="mt-1 text-sm text-gray-500">
-              Leave empty to generate content about current tech trends
+              {researchStrategy === 'general' && 'Leave empty to generate content about current tech trends'}
+              {researchStrategy === 'topic-specific' && 'Enter a specific topic for deep research'}
+              {researchStrategy === 'discovery' && 'Click "Discover Topics" to find interesting topics from sources'}
+              {researchStrategy === 'deep-dive' && 'Optional: specify a topic, or let the system discover one'}
             </p>
           </div>
+
+          {/* Discovered Topics Display */}
+          {researchSources?.discoveredTopics && researchSources.discoveredTopics.length > 0 && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h3 className="text-sm font-semibold text-blue-900 mb-3">
+                Discovered Topics ({researchSources.discoveredTopics.length})
+              </h3>
+              <div className="space-y-2">
+                {researchSources.discoveredTopics.map((discoveredTopic, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => {
+                      setSelectedDiscoveredTopic(discoveredTopic.topic);
+                      setTopic(discoveredTopic.topic);
+                      setResearchStrategy('topic-specific');
+                    }}
+                    className={`w-full text-left p-3 rounded-md border transition-all ${
+                      selectedDiscoveredTopic === discoveredTopic.topic
+                        ? 'bg-blue-100 border-blue-400 ring-2 ring-blue-300'
+                        : 'bg-white border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                    }`}
+                    disabled={isGenerating}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">{discoveredTopic.topic}</div>
+                        <div className="text-xs text-gray-600 mt-1">{discoveredTopic.summary}</div>
+                        <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                          <span>📊 {discoveredTopic.articleCount} articles</span>
+                          <span>⭐ Relevance: {discoveredTopic.relevanceScore}</span>
+                        </div>
+                      </div>
+                      {selectedDiscoveredTopic === discoveredTopic.topic && (
+                        <span className="text-blue-600 ml-2">✓</span>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-blue-700 mt-3">
+                💡 Click a topic to use it for content generation
+              </p>
+            </div>
+          )}
 
           {/* Advanced Options */}
           <div className="space-y-3">
@@ -548,11 +799,16 @@ The content will be automatically converted from Markdown to Portable Text forma
 
           <button
             onClick={handleGenerate}
-            disabled={isGenerating}
+            disabled={isGenerating || (researchStrategy === 'topic-specific' && !topic && !selectedDiscoveredTopic)}
             className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isGenerating ? 'Generating...' : 'Generate Content'}
           </button>
+          {researchStrategy === 'topic-specific' && !topic && !selectedDiscoveredTopic && (
+            <p className="text-sm text-red-600 mt-1">
+              ⚠️ Topic-specific strategy requires a topic. Please enter a topic or select a discovered topic.
+            </p>
+          )}
         </div>
       </div>
 
@@ -728,16 +984,31 @@ The content will be automatically converted from Markdown to Portable Text forma
       {/* Data Sources Section */}
       <div ref={dataSourcesRef} id="data-sources" className="bg-white shadow rounded-lg p-6 scroll-mt-4">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">
-            Data Sources
-            {researchSources && researchSources.totalCount > 0 && (
-              <span className="ml-2 text-sm font-normal text-gray-500">
-                ({researchSources.totalCount} articles)
-              </span>
+          <div>
+            <h3 className="text-lg font-semibold">
+              Data Sources
+              {researchSources && researchSources.totalCount > 0 && (
+                <span className="ml-2 text-sm font-normal text-gray-500">
+                  ({researchSources.totalCount} articles)
+                </span>
+              )}
+            </h3>
+            {researchSources?.metadata && (
+              <div className="mt-1 flex items-center gap-3 text-xs text-gray-500">
+                <span>Strategy: {researchSources.metadata.strategy}</span>
+                <span>•</span>
+                <span>Depth: {researchSources.metadata.researchDepth}</span>
+                {researchSources.primaryTopic && (
+                  <>
+                    <span>•</span>
+                    <span>Topic: {researchSources.primaryTopic}</span>
+                  </>
+                )}
+              </div>
             )}
-          </h3>
+          </div>
           <button
-            onClick={fetchGeneralSources}
+            onClick={() => fetchResearchSources()}
             disabled={loadingSources || isGenerating}
             className="text-sm text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -773,14 +1044,19 @@ The content will be automatically converted from Markdown to Portable Text forma
                       >
                         {article.title}
                       </a>
-                      {article.score && (
-                        <span className="ml-2 text-xs text-gray-500">(Score: {article.score})</span>
-                      )}
-                      {article.publishedAt && (
-                        <span className="ml-2 text-xs text-gray-500">
-                          {new Date(article.publishedAt).toLocaleDateString()}
-                        </span>
-                      )}
+                      <div className="flex items-center gap-2 mt-1">
+                        {article.score && (
+                          <span className="text-xs text-gray-500">HN Score: {article.score}</span>
+                        )}
+                        {article.relevance !== undefined && (
+                          <span className="text-xs text-blue-600">Relevance: {article.relevance.toFixed(1)}</span>
+                        )}
+                        {article.publishedAt && (
+                          <span className="text-xs text-gray-500">
+                            {new Date(article.publishedAt).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   ))}
                   {articles.length > 5 && (

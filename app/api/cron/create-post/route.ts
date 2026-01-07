@@ -24,7 +24,9 @@ export async function generatePostContent(
   customUserPrompt?: string,
   model?: string,
   temperature?: number,
-  maxTokens?: number
+  maxTokens?: number,
+  researchStrategy?: string,
+  researchDepth?: string
 ): Promise<{
   markdown: string;
   title: string;
@@ -39,8 +41,25 @@ export async function generatePostContent(
   }
 
   // Step 1: Fetch real-time research from HackerNews and RSS feeds
-  const researchArticles = await fetchAllResearchSources(topic);
-  const researchSummary = formatResearchForPrompt(researchArticles);
+  // Use new research engine if strategy/depth provided, otherwise use legacy system
+  let researchArticles;
+  let researchSummary: string;
+
+  if (researchStrategy && researchDepth) {
+    const { executeResearch } = await import('@/lib/research/research-engine');
+    const researchResult = await executeResearch({
+      strategy: researchStrategy as 'general' | 'topic-specific' | 'discovery' | 'deep-dive',
+      depth: researchDepth as 'shallow' | 'medium' | 'deep',
+      topic: topic || undefined,
+      maxArticles: researchDepth === 'deep' ? 50 : 30,
+    });
+    researchArticles = researchResult.articles;
+    researchSummary = researchResult.researchSummary;
+  } else {
+    // Legacy: use old research system
+    researchArticles = await fetchAllResearchSources(topic);
+    researchSummary = formatResearchForPrompt(researchArticles);
+  }
 
   // Step 1.5: Fetch existing categories and tags for AI suggestions (cached)
   const [existingCategories, existingTags] = await Promise.all([
