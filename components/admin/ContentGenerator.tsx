@@ -82,7 +82,7 @@ export default function ContentGenerator() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-h-[600px]">
       <div className="bg-white shadow rounded-lg p-6">
         <h2 className="text-xl font-semibold mb-4">Generate New Content</h2>
 

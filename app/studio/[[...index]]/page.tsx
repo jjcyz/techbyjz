@@ -28,9 +28,9 @@ export default function StudioPage() {
     document.head.appendChild(metaRobots)
 
     return () => {
-      // Cleanup on unmount
-      const robotsTag = document.querySelector('meta[name="robots"]')
-      if (robotsTag && robotsTag.getAttribute('content') === 'noindex, nofollow') {
+      // Cleanup on unmount - remove only the tag we added
+      const robotsTag = document.querySelector('meta[name="robots"][content="noindex, nofollow"]')
+      if (robotsTag) {
         robotsTag.remove()
       }
     }

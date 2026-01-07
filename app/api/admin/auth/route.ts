@@ -27,7 +27,8 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Authentication successful',
     });
-  } catch {
+  } catch (error) {
+    console.error('Authentication error:', error);
     return Response.json(
       { success: false, error: 'Authentication failed' },
       { status: 500 }
@@ -38,4 +39,3 @@ export async function POST(request: NextRequest) {
 export async function DELETE() {
   return createLogoutResponse();
 }
-

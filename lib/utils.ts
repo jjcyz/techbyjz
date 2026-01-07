@@ -82,3 +82,27 @@ export function getRandomPost<T>(posts: T[]): T | null {
   return posts[Math.floor(Math.random() * posts.length)];
 }
 
+/**
+ * Safely parses view count from a post, handling various formats
+ * Returns 0 if the value is invalid or missing
+ */
+export function parseViewCount(viewCount: unknown): number {
+  if (typeof viewCount === 'number' && !isNaN(viewCount)) {
+    return viewCount;
+  }
+  if (viewCount != null) {
+    const parsed = Number(viewCount);
+    return isNaN(parsed) ? 0 : parsed;
+  }
+  return 0;
+}
+
+/**
+ * Gets the site URL from environment variables with fallback
+ * Removes trailing slash if present
+ */
+export function getSiteUrl(): string {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://techbyjz.blog';
+  return siteUrl.replace(/\/$/, '');
+}
+

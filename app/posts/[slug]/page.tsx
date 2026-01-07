@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 import { client } from '@/lib/sanity';
 import { POST_BY_SLUG_QUERY, POSTS_QUERY, CATEGORIES_QUERY, RELATED_POSTS_QUERY, RECENT_POSTS_QUERY } from '@/lib/queries';
 import { getImageUrl } from '@/lib/image';
-import { isValidSlug } from '@/lib/utils';
+import { isValidSlug, parseViewCount, getSiteUrl } from '@/lib/utils';
 import { getArticleSchema, getBreadcrumbSchema, StructuredData } from '@/lib/structured-data';
 import type { Post, Category, Tag } from '@/types/post';
 import Footer from '@/components/shared/Footer';
@@ -78,10 +78,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const imageUrl = post.mainImage ? getImageUrl(post.mainImage, 1200, 600) : undefined;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://techbyjz.blog';
-  const cleanSiteUrl = siteUrl.replace(/\/$/, ''); // Remove trailing slash if present
+  const siteUrl = getSiteUrl();
   const postSlug = post.slug?.current || '';
-  const postUrl = postSlug ? `${cleanSiteUrl}/posts/${postSlug}` : cleanSiteUrl;
+  const postUrl = postSlug ? `${siteUrl}/posts/${postSlug}` : siteUrl;
 
   return {
     title: post.title,
@@ -200,10 +199,9 @@ export default async function PostPage({ params }: PageProps) {
       })
     : '';
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://techbyjz.blog';
-  const cleanSiteUrl = siteUrl.replace(/\/$/, ''); // Remove trailing slash if present
+  const siteUrl = getSiteUrl();
   const postSlug = post.slug?.current || '';
-  const postUrl = postSlug ? `${cleanSiteUrl}/posts/${postSlug}` : cleanSiteUrl;
+  const postUrl = postSlug ? `${siteUrl}/posts/${postSlug}` : siteUrl;
 
   // Generate structured data for SEO
   const articleSchema = getArticleSchema(post, validCategories);
@@ -263,14 +261,7 @@ export default async function PostPage({ params }: PageProps) {
                 <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-[var(--text-gray-400)] mb-4">
                   <time className="text-[var(--text-gray-500)]">{formattedDate}</time>
                   {(() => {
-                    // Safely get view count, defaulting to 0 if null/undefined/invalid
-                    let viewCount = 0;
-                    if (typeof post.viewCount === 'number' && !isNaN(post.viewCount)) {
-                      viewCount = post.viewCount;
-                    } else if (post.viewCount != null) {
-                      const parsed = Number(post.viewCount);
-                      viewCount = isNaN(parsed) ? 0 : parsed;
-                    }
+                    const viewCount = parseViewCount(post.viewCount);
                     return (
                       <>
                         <span className="text-[var(--text-gray-500)]">•</span>
