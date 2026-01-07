@@ -18,7 +18,14 @@ import { ApiErrors, successResponse } from '@/lib/api-response';
  * Generates blog post content using AI with research and synthesis
  * Replicates n8n workflow: research → synthesize → create unique insights
  */
-export async function generatePostContent(topic?: string): Promise<{
+export async function generatePostContent(
+  topic?: string,
+  customSystemPrompt?: string,
+  customUserPrompt?: string,
+  model?: string,
+  temperature?: number,
+  maxTokens?: number
+): Promise<{
   markdown: string;
   title: string;
   excerpt: string;
@@ -41,8 +48,8 @@ export async function generatePostContent(topic?: string): Promise<{
     fetchTags(),
   ]);
 
-  // Enhanced system prompt for research-based content
-  const systemPrompt = `You are an expert tech blogger who writes insightful, well-researched articles that people actually want to read. You:
+  // Enhanced system prompt for research-based content (use custom if provided)
+  const defaultSystemPrompt = `You are an expert tech blogger who writes insightful, well-researched articles that people actually want to read. You:
 1. Synthesize information from multiple credible sources
 2. Make connections between seemingly unrelated points
 3. Create unique perspectives and insights
@@ -56,6 +63,8 @@ Your articles are known for:
 - Actionable takeaways
 - **Human, readable writing** - conversational tone, natural flow, personality
 - Writing that feels authentic and genuine, not robotic or AI-generated`;
+
+  const systemPrompt = customSystemPrompt || defaultSystemPrompt;
 
   // Research and synthesis prompt - now includes real research data
   const researchPrompt = topic
@@ -82,7 +91,8 @@ Based on the real-time research above, extract:
 
 Then synthesize this research into a comprehensive blog post.`;
 
-  const userPrompt = `${researchPrompt}
+  // Default user prompt (use custom if provided, replacing {researchSummary} placeholder)
+  const defaultUserPrompt = `${researchPrompt}
 
 Create a blog post that:
 1. Synthesizes the research into a coherent narrative
@@ -97,17 +107,28 @@ Create a blog post that:
 - Avoid overly formal or academic language - keep it accessible
 - Make it feel authentic and genuine, like a real person wrote it
 
-Format as markdown with:
-- A clear, engaging title (as H1)
-- An excerpt/summary paragraph (2-3 sentences)
-- Well-structured sections with headings (H2, H3)
-- Bullet points and examples where appropriate
-- **Bold text** for emphasis
-- *Italic text* for subtle emphasis
-- Links where relevant (use [text](url) format)
-- Code blocks if discussing technical concepts
+Format as Markdown (which will be converted to Portable Text for the editor). Use:
+- A clear, engaging title as the first H1 heading (# Title)
+- An excerpt/summary paragraph (2-3 sentences) after the title
+- Well-structured sections with headings:
+  - H1 (#) for main title
+  - H2 (##) for major sections
+  - H3 (###) for subsections
+  - H4 (####) for sub-subsections if needed
+- Bullet lists (- item) or numbered lists (1. item) where appropriate
+- **Bold text** (double asterisks) for emphasis
+- *Italic text* (single asterisk) for subtle emphasis
+- Links using [text](url) format
+- Inline code using backticks for code snippets
+- Code blocks using triple backticks with language: three backticks, language name, code, three backticks
+- Blockquotes using > for quotes or callouts
 
-Make it insightful, unique, and valuable. Length should be substantial (1500-3000 words equivalent).`;
+The content will be automatically converted from Markdown to Portable Text format. Make it insightful, unique, and valuable. Length should be substantial (1500-3000 words equivalent).`;
+
+  // Replace {researchSummary} placeholder in custom prompt, or use default
+  const userPrompt = customUserPrompt
+    ? customUserPrompt.replace('{researchSummary}', researchPrompt)
+    : defaultUserPrompt;
 
   // Option 1: Use OpenAI
   if (process.env.OPENAI_API_KEY) {
@@ -118,13 +139,13 @@ Make it insightful, unique, and valuable. Length should be substantial (1500-300
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+        model: model || process.env.OPENAI_MODEL || 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
         ],
-        temperature: 0.7,
-        max_tokens: 4000,
+        temperature: temperature ?? 0.7,
+        max_tokens: maxTokens ?? 4000,
       }),
     });
 
@@ -140,16 +161,22 @@ Make it insightful, unique, and valuable. Length should be substantial (1500-300
       throw new Error('AI did not return any content.');
     }
 
-    // Extract title and excerpt
+    // Extract title and excerpt, then remove them from the markdown content
     const titleMatch = aiContent.match(/^#\s+(.+?)$/m);
     const title = titleMatch ? titleMatch[1].trim() : (topic || 'AI Generated Post');
 
     // Extract excerpt (first paragraph after title, or first 2-3 sentences)
-    const contentAfterTitle = aiContent.replace(/^#\s+.+?\n\n?/m, '');
-    const excerptMatch = contentAfterTitle.match(/^(.+?)(?:\n\n|$)/m);
+    let contentForBody = aiContent.replace(/^#\s+.+?\n\n?/m, ''); // Remove H1 title
+    const excerptMatch = contentForBody.match(/^(.+?)(?:\n\n|$)/m);
     const excerpt = excerptMatch
       ? excerptMatch[1].trim().substring(0, 200) + (excerptMatch[1].length > 200 ? '...' : '')
       : 'A new post generated by AI.';
+
+    // Remove the excerpt paragraph from the body content (it's stored separately)
+    if (excerptMatch) {
+      // Remove the first paragraph that was used as excerpt
+      contentForBody = contentForBody.replace(/^.+?(?:\n\n|$)/m, '').trim();
+    }
 
     // Step 3: Use AI to suggest categories and tags based on the generated content
     let categoryIds: string[] = [];
@@ -181,7 +208,7 @@ Make it insightful, unique, and valuable. Length should be substantial (1500-300
     }
 
     return {
-      markdown: aiContent,
+      markdown: contentForBody, // Use cleaned content without title and excerpt
       title,
       excerpt,
       categoryIds,

@@ -24,7 +24,14 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const { topic } = body;
+    const {
+      topic,
+      systemPrompt,
+      userPrompt,
+      model,
+      temperature,
+      maxTokens,
+    } = body;
 
     // Log generation start
     logGenerationStart(topic);
@@ -32,8 +39,15 @@ export async function POST(request: NextRequest) {
     // Fetch research sources first (for display)
     const researchArticles = await fetchAllResearchSources(topic);
 
-    // Generate post content
-    const { markdown, title, excerpt, categoryIds, tagIds } = await generatePostContent(topic);
+    // Generate post content with custom prompts if provided
+    const { markdown, title, excerpt, categoryIds, tagIds } = await generatePostContent(
+      topic,
+      systemPrompt,
+      userPrompt,
+      model,
+      temperature,
+      maxTokens
+    );
 
     // Calculate word count
     const wordCount = markdown
@@ -72,7 +86,7 @@ export async function POST(request: NextRequest) {
       data: {
         post: result.post,
         wordCount,
-        published: true, // importPost always publishes now
+        published: false, // importPost creates drafts that need to be published manually
         researchSources: {
           articles: researchArticles,
           sources,

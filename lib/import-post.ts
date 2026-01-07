@@ -87,7 +87,6 @@ export async function importPost(params: ImportPostParams): Promise<ImportPostRe
     title,
     excerpt: excerpt || '',
     content: portableTextContent,
-    publishedAt: new Date().toISOString(),
     viewCount: 0,
     slug: {
       _type: 'slug',
