@@ -12,6 +12,7 @@ import {
   logError,
 } from '@/lib/content-logging';
 import { executeResearch } from '@/lib/research/research-engine';
+import type { ResearchArticle } from '@/lib/research/types';
 
 export async function POST(request: NextRequest) {
   try {
@@ -111,13 +112,13 @@ export async function POST(request: NextRequest) {
     logGenerationComplete(wordCount, title);
 
     // Group research articles by source
-    const sources = researchArticles.reduce((acc, article) => {
+    const sources = researchArticles.reduce((acc: Record<string, ResearchArticle[]>, article: ResearchArticle) => {
       if (!acc[article.source]) {
         acc[article.source] = [];
       }
       acc[article.source].push(article);
       return acc;
-    }, {} as Record<string, typeof researchArticles>);
+    }, {} as Record<string, ResearchArticle[]>);
 
     return NextResponse.json({
       success: true,

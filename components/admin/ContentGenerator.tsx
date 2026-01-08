@@ -1200,7 +1200,7 @@ The content will be automatically converted from Markdown to Portable Text forma
               disabled={loadingSources || isGenerating}
               className="text-sm text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loadingSources ? 'Loading...' : '🔄 Refresh Sources'}
+              {loadingSources ? 'Loading...' : 'Refresh Sources'}
             </button>
             {/* Web Search Input */}
             <div className="flex items-center gap-2">
@@ -1238,16 +1238,6 @@ The content will be automatically converted from Markdown to Portable Text forma
 
         {!loadingSources && researchSources && researchSources.totalCount > 0 && (
           <div className="space-y-4">
-            {/* Info Banner */}
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm font-medium text-blue-900">
-                {getSelectedArticles().length} selected articles ({researchSources.totalCount} total)
-              </p>
-              <p className="text-xs text-blue-700 mt-1">
-                Select articles above, then proceed to Analysis section to analyze them.
-              </p>
-            </div>
-
             {/* Select All Controls */}
             <div className="flex items-center justify-between p-2 bg-gray-50 rounded-md border border-gray-200">
               <div className="flex items-center gap-2">
