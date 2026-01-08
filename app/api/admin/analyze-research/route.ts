@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const { articles, topic } = body;
+    const { articles, topic, customPrompt } = body;
 
     if (!articles || !Array.isArray(articles) || articles.length === 0) {
       return NextResponse.json(
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const analysis = await analyzeResearch(articles, topic);
+    const analysis = await analyzeResearch(articles, topic, customPrompt);
 
     return NextResponse.json({
       success: true,

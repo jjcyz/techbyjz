@@ -87,6 +87,63 @@ export default function ContentGenerator() {
     keyInsights: string[];
   } | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
+  const [selectedArticles, setSelectedArticles] = useState<Set<string>>(new Set());
+  const [showAnalysisPromptEditor, setShowAnalysisPromptEditor] = useState(false);
+  const [customAnalysisPrompt, setCustomAnalysisPrompt] = useState('');
+
+  // Default analysis prompt (for reference/editing)
+  const defaultAnalysisPrompt = `You are an expert content strategist and researcher. Your job is to analyze research sources and identify opportunities for creating truly unique, attention-grabbing content that hasn't been written before.
+
+{topic}
+
+## Research Sources Analyzed:
+{articlesSummary}
+
+## Your Task:
+Analyze these sources deeply and identify:
+
+1. **GAPS**: What important aspects, questions, or angles are NOT covered by these sources?
+   - What questions remain unanswered?
+   - What perspectives are missing?
+   - What implications aren't explored?
+
+2. **UNIQUE PERSPECTIVES**: What fresh angles or viewpoints could make this content stand out?
+   - What connections haven't been made?
+   - What would surprise readers?
+   - What counter-intuitive insights exist?
+
+3. **UNEXPLORED CONNECTIONS**: What relationships between ideas, trends, or domains aren't being discussed?
+   - Cross-domain connections
+   - Historical parallels
+   - Future implications
+
+4. **CONTRARIAN VIEWPOINTS**: What popular narratives could be challenged?
+   - What assumptions are being made?
+   - What alternative explanations exist?
+   - What are people missing?
+
+5. **ORIGINAL ANGLES**: Specific angles that would create never-before-written content:
+   - Unique framing
+   - Unexpected comparisons
+   - Novel insights
+
+6. **SYNTHESIS STRATEGY**: How should we approach synthesizing this into content?
+   - What narrative structure?
+   - What key themes to emphasize?
+   - What unique hook?
+
+7. **KEY INSIGHTS**: The 3-5 most important insights that should drive the content
+
+Respond in JSON format:
+{
+  "gaps": ["gap1", "gap2", ...],
+  "uniquePerspectives": ["perspective1", "perspective2", ...],
+  "unexploredConnections": ["connection1", "connection2", ...],
+  "contrarianViewpoints": ["viewpoint1", "viewpoint2", ...],
+  "originalAngles": ["angle1", "angle2", ...],
+  "synthesisStrategy": "strategy description",
+  "keyInsights": ["insight1", "insight2", ...]
+}`;
 
   // Default prompts (for reference/editing)
   const defaultSystemPrompt = `You are an expert tech blogger who writes insightful, well-researched articles that people actually want to read. You:
@@ -233,6 +290,56 @@ The content will be automatically converted from Markdown to Portable Text forma
     }
   };
 
+  // Helper functions for article selection
+  const getArticleId = (article: ResearchArticle): string => {
+    return `${article.source}:${article.url}`;
+  };
+
+  const toggleArticleSelection = (article: ResearchArticle) => {
+    const id = getArticleId(article);
+    setSelectedArticles(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const selectAllArticles = () => {
+    if (!researchSources) return;
+    const allIds = new Set<string>();
+    researchSources.articles.forEach(article => {
+      allIds.add(getArticleId(article));
+    });
+    setSelectedArticles(allIds);
+  };
+
+  const deselectAllArticles = () => {
+    setSelectedArticles(new Set());
+  };
+
+  const getSelectedArticles = (): ResearchArticle[] => {
+    if (!researchSources) return [];
+    if (selectedArticles.size === 0) return researchSources.articles; // If none selected, use all
+    return researchSources.articles.filter(article =>
+      selectedArticles.has(getArticleId(article))
+    );
+  };
+
+  // Auto-select all articles when sources change
+  useEffect(() => {
+    if (researchSources && researchSources.articles.length > 0) {
+      const allIds = new Set<string>();
+      researchSources.articles.forEach(article => {
+        allIds.add(getArticleId(article));
+      });
+      setSelectedArticles(allIds);
+    }
+  }, [researchSources]);
+
   // Load sources on initial mount
   useEffect(() => {
     fetchResearchSources();
@@ -358,12 +465,28 @@ The content will be automatically converted from Markdown to Portable Text forma
       return;
     }
 
+    const articlesToAnalyze = getSelectedArticles();
+    if (articlesToAnalyze.length === 0) {
+      addLog('⚠️ No articles selected. Please select at least one article to analyze.');
+      return;
+    }
+
     setAnalyzing(true);
     setResearchAnalysis(null);
-    addLog('🔍 Analyzing research sources to find gaps and unique angles...');
+    addLog(`🔍 Analyzing ${articlesToAnalyze.length} selected research sources to find gaps and unique angles...`);
 
     try {
       const finalTopic = researchSources.primaryTopic || topic || selectedDiscoveredTopic || undefined;
+
+      // Prepare custom prompt if provided
+      let promptToUse = customAnalysisPrompt || undefined;
+      if (promptToUse) {
+        const articlesSummary = formatArticlesForAnalysis(articlesToAnalyze);
+        const topicText = finalTopic ? `Topic: "${finalTopic}"` : 'General tech trends';
+        promptToUse = promptToUse
+          .replace(/{articlesSummary}/g, articlesSummary)
+          .replace(/{topic}/g, topicText);
+      }
 
       const response = await fetch('/api/admin/analyze-research', {
         method: 'POST',
@@ -371,8 +494,9 @@ The content will be automatically converted from Markdown to Portable Text forma
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          articles: researchSources.articles,
+          articles: articlesToAnalyze,
           topic: finalTopic,
+          customPrompt: promptToUse,
         }),
       });
 
@@ -403,12 +527,16 @@ The content will be automatically converted from Markdown to Portable Text forma
       return;
     }
 
+    if (!researchAnalysis) {
+      addLog('⚠️ No analysis available. Please analyze research sources first.');
+      return;
+    }
+
     setIsGenerating(true);
     setResult(null);
     setLogs([]);
-    setWorkflowStep('analysis');
 
-    addLog('🔍 Analyzing and synthesizing research from current sources...');
+    addLog('🧠 Synthesizing research from analyzed sources...');
     if (researchSources.primaryTopic) {
       addLog(`Topic: ${researchSources.primaryTopic}`);
     }
@@ -416,44 +544,12 @@ The content will be automatically converted from Markdown to Portable Text forma
     try {
       const finalTopic = researchSources.primaryTopic || topic || selectedDiscoveredTopic || undefined;
 
-      // Step 1: Analyze (if not already done)
-      let analysis = researchAnalysis;
-      if (!analysis) {
-        addLog('🔍 Analyzing research sources to find gaps and unique angles...');
-        setWorkflowStep('analysis');
-
-        const analysisResponse = await fetch('/api/admin/analyze-research', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            articles: researchSources.articles,
-            topic: finalTopic,
-          }),
-        });
-
-        if (analysisResponse.ok) {
-          const analysisData = await analysisResponse.json();
-          if (analysisData.success && analysisData.data) {
-            analysis = analysisData.data;
-            setResearchAnalysis(analysis);
-            if (analysis) {
-              addLog(`✅ Analysis complete! Found ${analysis.gaps.length} gaps, ${analysis.uniquePerspectives.length} unique perspectives`);
-              addLog(`📌 Identified ${analysis.originalAngles.length} original angles`);
-            }
-          }
-        }
-      } else if (analysis) {
-        addLog(`📊 Using existing analysis: ${analysis.gaps.length} gaps, ${analysis.uniquePerspectives.length} perspectives`);
-      }
-
-      // Step 2: Synthesis
+      // Step 1: Synthesis
       addLog('🧠 Synthesizing research with unique angles...');
       setWorkflowStep('synthesis');
       await new Promise(resolve => setTimeout(resolve, 500)); // Visual delay
 
-      // Step 3: Generation (using current research sources + analysis)
+      // Step 2: Generation (using current research sources + analysis)
       addLog('✨ Generating original content with AI...');
       setWorkflowStep('generation');
 
@@ -474,7 +570,7 @@ The content will be automatically converted from Markdown to Portable Text forma
           // Pass current research sources to avoid re-fetching
           researchArticles: researchSources.articles,
           researchSummary: researchSources.researchSummary || formatResearchSummary(researchSources.articles),
-          researchAnalysis: analysis || undefined,
+          researchAnalysis: researchAnalysis || undefined,
         }),
       });
 
@@ -523,6 +619,35 @@ The content will be automatically converted from Markdown to Portable Text forma
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  // Helper function to format articles for analysis (similar to analyze-research.ts)
+  const formatArticlesForAnalysis = (articles: ResearchArticle[]): string => {
+    if (articles.length === 0) {
+      return 'No articles provided.';
+    }
+
+    // Group by source
+    const articlesBySource = articles.reduce((acc, article) => {
+      if (!acc[article.source]) {
+        acc[article.source] = [];
+      }
+      acc[article.source].push(article);
+      return acc;
+    }, {} as Record<string, ResearchArticle[]>);
+
+    let formatted = `Total: ${articles.length} articles from ${Object.keys(articlesBySource).length} sources\n\n`;
+
+    for (const [source, sourceArticles] of Object.entries(articlesBySource)) {
+      formatted += `### ${source} (${sourceArticles.length} articles)\n\n`;
+      sourceArticles.slice(0, 10).forEach((article, idx) => {
+        formatted += `${idx + 1}. **${article.title}**\n`;
+        formatted += `   - ${article.url}\n`;
+        formatted += `   - Summary: ${article.content.substring(0, 300)}${article.content.length > 300 ? '...' : ''}\n\n`;
+      });
+    }
+
+    return formatted;
   };
 
   // Helper function to format research summary
@@ -841,6 +966,207 @@ The content will be automatically converted from Markdown to Portable Text forma
 
   return (
     <div className="space-y-6 min-h-[600px]">
+      {/* Visual Workflow - Always Visible */}
+      <div className="bg-white shadow rounded-lg p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-semibold">Workflow</h3>
+          {isGenerating && (
+            <span className="text-sm text-blue-600 font-medium animate-pulse">
+              In Progress...
+            </span>
+          )}
+        </div>
+
+        {/* Horizontal Flow Diagram */}
+        <div className="mb-8">
+          <div className="flex items-start justify-between relative">
+            {/* Connection Lines */}
+            <div className="absolute top-6 left-0 right-0 h-0.5 bg-gray-200 -z-10">
+              <div
+                className={`h-full bg-gradient-to-r transition-all duration-500 ${
+                  workflowStep === 'complete'
+                    ? 'bg-green-500 w-full'
+                    : workflowStep !== 'idle'
+                    ? 'bg-blue-500'
+                    : 'bg-transparent'
+                }`}
+                style={{
+                  width: workflowStep === 'idle'
+                    ? '0%'
+                    : workflowStep === 'complete'
+                    ? '100%'
+                    : `${((workflowSteps.findIndex(s => s.id === workflowStep) + 1) / workflowSteps.length) * 100}%`
+                }}
+              />
+            </div>
+
+            {workflowSteps.map((step, index) => {
+              // Add analyze button for analysis step when research sources are available
+              const showAnalyzeButton = step.id === 'analysis' && researchSources && researchSources.totalCount > 0 && !analyzing && !isGenerating;
+              // Add synthesize button for synthesis step when analysis is complete
+              const showSynthesizeButton = step.id === 'synthesis' && researchAnalysis && researchSources && researchSources.totalCount > 0 && !isGenerating;
+              const status = getStepStatus(step.id);
+              const isHovered = hoveredStep === step.id;
+
+              return (
+                <div
+                  key={step.id}
+                  className="flex flex-col items-center flex-1 relative group"
+                  onMouseEnter={() => setHoveredStep(step.id)}
+                  onMouseLeave={() => setHoveredStep(null)}
+                >
+                  {/* Step Circle - Clickable */}
+                  <div className="relative z-10">
+                    <button
+                      onClick={() => scrollToSection(step.id)}
+                      className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl transition-all duration-300 shadow-md cursor-pointer ${
+                        status === 'active'
+                          ? 'bg-blue-500 text-white scale-110 shadow-lg ring-4 ring-blue-200'
+                          : status === 'complete'
+                          ? 'bg-green-500 text-white scale-105 hover:scale-110'
+                          : 'bg-gray-200 text-gray-500 hover:bg-gray-300 hover:scale-105'
+                      } ${isHovered ? 'ring-4 ring-blue-300' : ''}`}
+                      title={`Click to view ${step.label.toLowerCase()} section`}
+                    >
+                      {status === 'complete' ? (
+                        <span className="text-2xl">✓</span>
+                      ) : (
+                        <span>{step.icon}</span>
+                      )}
+                    </button>
+
+                    {/* Active Pulse Animation */}
+                    {status === 'active' && (
+                      <div className="absolute inset-0 rounded-full bg-blue-400 animate-ping opacity-75" />
+                    )}
+
+                    {/* Hover Tooltip */}
+                    {isHovered && (
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 w-72 bg-gray-900 text-white text-xs rounded-lg shadow-2xl p-4 z-50 pointer-events-none animate-in fade-in slide-in-from-bottom-2 duration-200">
+                        <div className="font-semibold mb-2 text-sm flex items-center gap-2">
+                          <span>{step.icon}</span>
+                          <span>{step.label}</span>
+                        </div>
+                        <div className="text-gray-300 mb-3 text-xs leading-relaxed">{step.description}</div>
+                        <div className="border-t border-gray-700 pt-3 mt-3">
+                          <div className="text-gray-400 text-xs mb-2 font-medium">What happens:</div>
+                          <ul className="space-y-1.5">
+                            {step.details.slice(0, 3).map((detail, idx) => (
+                              <li key={idx} className="flex items-start gap-2">
+                                <span className="text-blue-400 mt-0.5 shrink-0">▸</span>
+                                <span className="text-gray-300 leading-relaxed">{detail}</span>
+                              </li>
+                            ))}
+                            {step.details.length > 3 && (
+                              <li className="text-gray-500 text-xs pl-4">
+                                + {step.details.length - 3} more steps
+                              </li>
+                            )}
+                          </ul>
+                        </div>
+                        <div className="text-blue-300 text-xs mt-3 pt-3 border-t border-gray-700 flex items-center gap-1">
+                          <span>Click to view section</span>
+                          <span>→</span>
+                        </div>
+                        {/* Arrow */}
+                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                          <div className="w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Step Label */}
+                  <div className="mt-3 text-center">
+                    <button
+                      onClick={() => scrollToSection(step.id)}
+                      className="cursor-pointer group-hover:text-blue-600 transition-colors"
+                    >
+                      <div
+                        className={`font-semibold text-sm mb-1 ${
+                          status === 'active'
+                            ? 'text-blue-600'
+                            : status === 'complete'
+                            ? 'text-green-600'
+                            : 'text-gray-500'
+                        }`}
+                      >
+                        {step.label}
+                      </div>
+                      <div className="text-xs text-gray-500 max-w-[120px]">
+                        {step.description}
+                      </div>
+                    </button>
+                    {/* Analyze Button - appears when research sources are available */}
+                    {showAnalyzeButton && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAnalyze();
+                        }}
+                        className="mt-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md shadow-sm transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                        title={`Analyze ${researchSources?.totalCount || 0} articles to find gaps and unique angles`}
+                      >
+                        🔍 Analyze Now
+                      </button>
+                    )}
+                    {/* Synthesize Button - appears when analysis is complete */}
+                    {showSynthesizeButton && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSynthesize();
+                        }}
+                        className="mt-2 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded-md shadow-sm transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                        title={`Synthesize analyzed research into original content`}
+                      >
+                        🧠 Synthesize Now
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Step Number */}
+                  <div className={`absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                    status === 'active' || status === 'complete'
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-300 text-gray-600'
+                  }`}>
+                    {index + 1}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        {workflowStep !== 'idle' && (
+          <div className="mt-6 pt-6 border-t">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-700">Overall Progress</span>
+              <span className="text-sm text-gray-500">
+                {workflowStep === 'complete'
+                  ? '100%'
+                  : `${Math.round(((workflowSteps.findIndex(s => s.id === workflowStep) + 1) / workflowSteps.length) * 100)}%`
+                }
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+              <div
+                className={`h-full transition-all duration-500 ${
+                  workflowStep === 'complete' ? 'bg-green-500' : 'bg-blue-500'
+                }`}
+                style={{
+                  width: workflowStep === 'complete'
+                    ? '100%'
+                    : `${((workflowSteps.findIndex(s => s.id === workflowStep) + 1) / workflowSteps.length) * 100}%`
+                }}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Research Section */}
       <div ref={researchRef} id="research-section" className="bg-white shadow rounded-lg p-6 scroll-mt-4">
         <h3 className="text-lg font-semibold mb-4">🔍 Research</h3>
@@ -912,113 +1238,150 @@ The content will be automatically converted from Markdown to Portable Text forma
 
         {!loadingSources && researchSources && researchSources.totalCount > 0 && (
           <div className="space-y-4">
-            {/* Analyze & Synthesize Buttons - appears above research sources */}
-            <div className="flex items-center justify-between mb-4 p-3 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-purple-900">
-                  Ready to analyze and synthesize {researchSources.totalCount} articles
-                </p>
-                <p className="text-xs text-purple-700 mt-1">
-                  {researchAnalysis
-                    ? `Analysis complete: ${researchAnalysis.gaps.length} gaps, ${researchAnalysis.uniquePerspectives.length} unique perspectives found`
-                    : 'Analyze sources to find gaps and unique angles, then synthesize into original content'}
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleAnalyze}
-                  disabled={analyzing || isGenerating}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md shadow-sm transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                  title="Analyze research sources to find gaps and unique angles"
-                >
-                  {analyzing ? (
-                    <>
-                      <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
-                      Analyzing...
-                    </>
-                  ) : (
-                    <>
-                      🔍 Analyze
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={handleSynthesize}
-                  disabled={isGenerating}
-                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-md shadow-sm transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                  title="Analyze (if needed) and synthesize into original content"
-                >
-                  {isGenerating ? (
-                    <>
-                      <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
-                      Synthesizing...
-                    </>
-                  ) : (
-                    <>
-                      🧠 Analyze & Synthesize
-                    </>
-                  )}
-                </button>
-              </div>
+            {/* Info Banner */}
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm font-medium text-blue-900">
+                {getSelectedArticles().length} selected articles ({researchSources.totalCount} total)
+              </p>
+              <p className="text-xs text-blue-700 mt-1">
+                Select articles above, then proceed to Analysis section to analyze them.
+              </p>
             </div>
 
-            {Object.entries(researchSources.sources).map(([source, articles]) => (
-              <div key={source} className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-medium text-gray-900">{source}</h4>
-                  <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                    {articles.length} {articles.length === 1 ? 'article' : 'articles'}
-                  </span>
-                </div>
-                <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
-                  {articles.map((article, idx) => (
-                    <div key={idx} className="text-sm group pb-2 border-b border-gray-100 last:border-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <a
-                          href={article.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 hover:underline flex-1"
-                        >
-                          {article.title}
-                        </a>
-                        {/* Deep dive button - extract topic from title */}
-                        {!article.source.includes('Web Search') && (
-                          <button
-                            onClick={() => {
-                              // Extract a potential topic from the title (first few words)
-                              const potentialTopic = article.title.split(' ').slice(0, 4).join(' ');
-                              handleWebSearch(potentialTopic, 'deep-dive');
-                            }}
-                            disabled={webSearching || isGenerating}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity text-xs text-green-600 hover:text-green-800 px-2 py-0.5 border border-green-300 rounded hover:bg-green-50 disabled:opacity-50 shrink-0"
-                            title="Deep dive: search web for more info on this topic"
-                          >
-                            🔍
-                          </button>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        {article.score && (
-                          <span className="text-xs text-gray-500">HN Score: {article.score}</span>
-                        )}
-                        {article.relevance !== undefined && (
-                          <span className="text-xs text-blue-600">Relevance: {article.relevance.toFixed(1)}</span>
-                        )}
-                        {article.publishedAt && (
-                          <span className="text-xs text-gray-500">
-                            {new Date(article.publishedAt).toLocaleDateString()}
-                          </span>
-                        )}
-                        {article.source.includes('Web Search') && (
-                          <span className="text-xs text-green-600 bg-green-50 px-1.5 py-0.5 rounded">Web</span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+            {/* Select All Controls */}
+            <div className="flex items-center justify-between p-2 bg-gray-50 rounded-md border border-gray-200">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="select-all-sources"
+                  checked={selectedArticles.size > 0 && selectedArticles.size === researchSources.articles.length}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      selectAllArticles();
+                    } else {
+                      deselectAllArticles();
+                    }
+                  }}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <label htmlFor="select-all-sources" className="text-sm font-medium text-gray-700 cursor-pointer">
+                  Select All ({getSelectedArticles().length} / {researchSources.totalCount} selected)
+                </label>
               </div>
-            ))}
+              <button
+                onClick={() => {
+                  if (selectedArticles.size > 0) {
+                    deselectAllArticles();
+                  } else {
+                    selectAllArticles();
+                  }
+                }}
+                className="text-xs text-blue-600 hover:text-blue-800 underline"
+              >
+                {selectedArticles.size > 0 ? 'Deselect All' : 'Select All'}
+              </button>
+            </div>
+
+            {Object.entries(researchSources.sources).map(([source, articles]) => {
+              const sourceSelectedCount = articles.filter(a => selectedArticles.has(getArticleId(a))).length;
+              const allSourceSelected = articles.length > 0 && sourceSelectedCount === articles.length;
+              const someSourceSelected = sourceSelectedCount > 0 && sourceSelectedCount < articles.length;
+
+              return (
+                <div key={source} className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={allSourceSelected}
+                        ref={(input) => {
+                          if (input) input.indeterminate = someSourceSelected;
+                        }}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            articles.forEach(article => {
+                              setSelectedArticles(prev => new Set(prev).add(getArticleId(article)));
+                            });
+                          } else {
+                            articles.forEach(article => {
+                              setSelectedArticles(prev => {
+                                const next = new Set(prev);
+                                next.delete(getArticleId(article));
+                                return next;
+                              });
+                            });
+                          }
+                        }}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <h4 className="font-medium text-gray-900">{source}</h4>
+                    </div>
+                    <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                      {sourceSelectedCount} / {articles.length} {articles.length === 1 ? 'article' : 'articles'}
+                    </span>
+                  </div>
+                  <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
+                    {articles.map((article, idx) => {
+                      const articleId = getArticleId(article);
+                      const isSelected = selectedArticles.has(articleId);
+                      return (
+                        <div key={idx} className="text-sm group pb-2 border-b border-gray-100 last:border-0">
+                          <div className="flex items-start gap-2">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => toggleArticleSelection(article)}
+                              className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 shrink-0"
+                            />
+                            <div className="flex-1 flex items-start justify-between gap-2">
+                              <a
+                                href={article.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:text-blue-800 hover:underline flex-1"
+                              >
+                                {article.title}
+                              </a>
+                              {/* Deep dive button - extract topic from title */}
+                              {!article.source.includes('Web Search') && (
+                                <button
+                                  onClick={() => {
+                                    // Extract a potential topic from the title (first few words)
+                                    const potentialTopic = article.title.split(' ').slice(0, 4).join(' ');
+                                    handleWebSearch(potentialTopic, 'deep-dive');
+                                  }}
+                                  disabled={webSearching || isGenerating}
+                                  className="opacity-0 group-hover:opacity-100 transition-opacity text-xs text-green-600 hover:text-green-800 px-2 py-0.5 border border-green-300 rounded hover:bg-green-50 disabled:opacity-50 shrink-0"
+                                  title="Deep dive: search web for more info on this topic"
+                                >
+                                  🔍
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 mt-1 flex-wrap ml-6">
+                            {article.score && (
+                              <span className="text-xs text-gray-500">HN Score: {article.score}</span>
+                            )}
+                            {article.relevance !== undefined && (
+                              <span className="text-xs text-blue-600">Relevance: {article.relevance.toFixed(1)}</span>
+                            )}
+                            {article.publishedAt && (
+                              <span className="text-xs text-gray-500">
+                                {new Date(article.publishedAt).toLocaleDateString()}
+                              </span>
+                            )}
+                            {article.source.includes('Web Search') && (
+                              <span className="text-xs text-green-600 bg-green-50 px-1.5 py-0.5 rounded">Web</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
 
@@ -1038,11 +1401,75 @@ The content will be automatically converted from Markdown to Portable Text forma
 
       {/* Analysis Section */}
       <div ref={analysisRef} id="analysis-section" className="bg-white shadow rounded-lg p-6 scroll-mt-4">
-        <h3 className="text-lg font-semibold mb-4">🔍 Analysis</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">🔍 Analysis</h3>
+          {researchSources && researchSources.totalCount > 0 && (
+            <button
+              onClick={handleAnalyze}
+              disabled={analyzing || isGenerating}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md shadow-sm transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              title="Analyze selected research sources to find gaps and unique angles"
+            >
+              {analyzing ? (
+                <>
+                  <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
+                  Analyzing...
+                </>
+              ) : (
+                <>
+                  🔍 Analyze
+                </>
+              )}
+            </button>
+          )}
+        </div>
+
+        {/* Analysis Prompt Editor */}
+        <div className="mb-4">
+          <button
+            type="button"
+            onClick={() => setShowAnalysisPromptEditor(!showAnalysisPromptEditor)}
+            className="text-sm text-blue-600 hover:text-blue-800"
+          >
+            {showAnalysisPromptEditor ? '▼' : '▶'} Customize Analysis Prompt
+          </button>
+          {showAnalysisPromptEditor && (
+            <div className="mt-3 space-y-4 p-4 bg-gray-50 rounded-md">
+              <div>
+                <label htmlFor="analysisPrompt" className="block text-sm font-medium text-gray-700 mb-2">
+                  Analysis Prompt
+                </label>
+                <textarea
+                  id="analysisPrompt"
+                  value={customAnalysisPrompt}
+                  onChange={(e) => setCustomAnalysisPrompt(e.target.value)}
+                  placeholder={defaultAnalysisPrompt}
+                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border font-mono text-xs"
+                  rows={15}
+                  disabled={isGenerating || analyzing}
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Use {'{articlesSummary}'} placeholder for research data and {'{topic}'} for the topic. Leave empty to use default prompt.
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCustomAnalysisPrompt('')}
+                  className="text-xs text-gray-600 hover:text-gray-800 underline"
+                  disabled={isGenerating || analyzing}
+                >
+                  Reset to Default
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
         {analyzing && (
           <div className="text-center py-8 text-gray-500">
             <div className="animate-spin inline-block w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full mb-2"></div>
-            <p>Analyzing research sources...</p>
+            <p>Analyzing {getSelectedArticles().length || researchSources?.totalCount || 0} research sources...</p>
           </div>
         )}
         {!analyzing && researchAnalysis && (
@@ -1121,30 +1548,51 @@ The content will be automatically converted from Markdown to Portable Text forma
         {!analyzing && !researchAnalysis && (
           <div className="text-center py-8 text-gray-500">
             <p className="mb-2">No analysis results yet.</p>
-            <p className="text-sm">Click &quot;🔍 Analyze&quot; above to analyze your research sources.</p>
+            <p className="text-sm">Select articles in the Research section, then click &quot;🔍 Analyze&quot; above to analyze them.</p>
           </div>
         )}
       </div>
 
       {/* Synthesis Section */}
       <div ref={synthesisRef} id="synthesis-section" className="bg-white shadow rounded-lg p-6 scroll-mt-4">
-        <h3 className="text-lg font-semibold mb-4">🧠 Synthesis</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">🧠 Synthesis</h3>
+          {researchAnalysis && researchSources && researchSources.totalCount > 0 && (
+            <button
+              onClick={handleSynthesize}
+              disabled={isGenerating || !researchAnalysis}
+              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-md shadow-sm transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              title="Synthesize analyzed research into original content"
+            >
+              {isGenerating ? (
+                <>
+                  <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
+                  Synthesizing...
+                </>
+              ) : (
+                <>
+                  🧠 Synthesize
+                </>
+              )}
+            </button>
+          )}
+        </div>
         {workflowStep === 'synthesis' && (
-          <div className="text-center py-8 text-blue-500">
-            <div className="animate-spin inline-block w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full mb-2"></div>
+          <div className="text-center py-8 text-purple-500">
+            <div className="animate-spin inline-block w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full mb-2"></div>
             <p>Synthesizing research into original content...</p>
           </div>
         )}
         {workflowStep !== 'synthesis' && researchAnalysis && (
           <div className="text-center py-8 text-gray-500">
             <p className="mb-2">Ready to synthesize.</p>
-            <p className="text-sm">Analysis complete. Click &quot;🧠 Analyze & Synthesize&quot; to generate content.</p>
+            <p className="text-sm">Analysis complete. Click &quot;🧠 Synthesize&quot; above to generate content.</p>
           </div>
         )}
         {workflowStep !== 'synthesis' && !researchAnalysis && (
           <div className="text-center py-8 text-gray-500">
             <p className="mb-2">Synthesis pending.</p>
-            <p className="text-sm">Complete analysis first, then synthesis will begin.</p>
+            <p className="text-sm">Complete analysis first, then click &quot;🧠 Synthesize&quot; to begin.</p>
           </div>
         )}
       </div>
@@ -1438,514 +1886,6 @@ The content will be automatically converted from Markdown to Portable Text forma
             </p>
           )}
         </div>
-      </div>
-
-      {/* Visual Workflow - Always Visible */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold">Workflow</h3>
-          {isGenerating && (
-            <span className="text-sm text-blue-600 font-medium animate-pulse">
-              In Progress...
-            </span>
-          )}
-        </div>
-
-        {/* Horizontal Flow Diagram */}
-        <div className="mb-8">
-          <div className="flex items-start justify-between relative">
-            {/* Connection Lines */}
-            <div className="absolute top-6 left-0 right-0 h-0.5 bg-gray-200 -z-10">
-              <div
-                className={`h-full bg-gradient-to-r transition-all duration-500 ${
-                  workflowStep === 'complete'
-                    ? 'bg-green-500 w-full'
-                    : workflowStep !== 'idle'
-                    ? 'bg-blue-500'
-                    : 'bg-transparent'
-                }`}
-                style={{
-                  width: workflowStep === 'idle'
-                    ? '0%'
-                    : workflowStep === 'complete'
-                    ? '100%'
-                    : `${((workflowSteps.findIndex(s => s.id === workflowStep) + 1) / workflowSteps.length) * 100}%`
-                }}
-              />
-            </div>
-
-            {workflowSteps.map((step, index) => {
-              // Add analyze button for analysis step when research sources are available
-              const showAnalyzeButton = step.id === 'analysis' && researchSources && researchSources.totalCount > 0 && !analyzing && !isGenerating;
-              // Add synthesize button for synthesis step when research sources are available
-              const showSynthesizeButton = step.id === 'synthesis' && researchSources && researchSources.totalCount > 0 && !isGenerating;
-              const status = getStepStatus(step.id);
-              const isHovered = hoveredStep === step.id;
-
-              return (
-                <div
-                  key={step.id}
-                  className="flex flex-col items-center flex-1 relative group"
-                  onMouseEnter={() => setHoveredStep(step.id)}
-                  onMouseLeave={() => setHoveredStep(null)}
-                >
-                  {/* Step Circle - Clickable */}
-                  <div className="relative z-10">
-                    <button
-                      onClick={() => scrollToSection(step.id)}
-                      className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl transition-all duration-300 shadow-md cursor-pointer ${
-                        status === 'active'
-                          ? 'bg-blue-500 text-white scale-110 shadow-lg ring-4 ring-blue-200'
-                          : status === 'complete'
-                          ? 'bg-green-500 text-white scale-105 hover:scale-110'
-                          : 'bg-gray-200 text-gray-500 hover:bg-gray-300 hover:scale-105'
-                      } ${isHovered ? 'ring-4 ring-blue-300' : ''}`}
-                      title={`Click to view ${step.label.toLowerCase()} section`}
-                    >
-                      {status === 'complete' ? (
-                        <span className="text-2xl">✓</span>
-                      ) : (
-                        <span>{step.icon}</span>
-                      )}
-                    </button>
-
-                    {/* Active Pulse Animation */}
-                    {status === 'active' && (
-                      <div className="absolute inset-0 rounded-full bg-blue-400 animate-ping opacity-75" />
-                    )}
-
-                    {/* Hover Tooltip */}
-                    {isHovered && (
-                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 w-72 bg-gray-900 text-white text-xs rounded-lg shadow-2xl p-4 z-50 pointer-events-none animate-in fade-in slide-in-from-bottom-2 duration-200">
-                        <div className="font-semibold mb-2 text-sm flex items-center gap-2">
-                          <span>{step.icon}</span>
-                          <span>{step.label}</span>
-                        </div>
-                        <div className="text-gray-300 mb-3 text-xs leading-relaxed">{step.description}</div>
-                        <div className="border-t border-gray-700 pt-3 mt-3">
-                          <div className="text-gray-400 text-xs mb-2 font-medium">What happens:</div>
-                          <ul className="space-y-1.5">
-                            {step.details.slice(0, 3).map((detail, idx) => (
-                              <li key={idx} className="flex items-start gap-2">
-                                <span className="text-blue-400 mt-0.5 shrink-0">▸</span>
-                                <span className="text-gray-300 leading-relaxed">{detail}</span>
-                              </li>
-                            ))}
-                            {step.details.length > 3 && (
-                              <li className="text-gray-500 text-xs pl-4">
-                                + {step.details.length - 3} more steps
-                              </li>
-                            )}
-                          </ul>
-                        </div>
-                        <div className="text-blue-300 text-xs mt-3 pt-3 border-t border-gray-700 flex items-center gap-1">
-                          <span>Click to view section</span>
-                          <span>→</span>
-                        </div>
-                        {/* Arrow */}
-                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
-                          <div className="w-2 h-2 bg-gray-900 transform rotate-45"></div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Step Label */}
-                  <div className="mt-3 text-center">
-                    <button
-                      onClick={() => scrollToSection(step.id)}
-                      className="cursor-pointer group-hover:text-blue-600 transition-colors"
-                    >
-                      <div
-                        className={`font-semibold text-sm mb-1 ${
-                          status === 'active'
-                            ? 'text-blue-600'
-                            : status === 'complete'
-                            ? 'text-green-600'
-                            : 'text-gray-500'
-                        }`}
-                      >
-                        {step.label}
-                      </div>
-                      <div className="text-xs text-gray-500 max-w-[120px]">
-                        {step.description}
-                      </div>
-                    </button>
-                    {/* Analyze Button - appears when research sources are available */}
-                    {showAnalyzeButton && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAnalyze();
-                        }}
-                        className="mt-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md shadow-sm transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-                        title={`Analyze ${researchSources.totalCount} articles to find gaps and unique angles`}
-                      >
-                        🔍 Analyze Now
-                      </button>
-                    )}
-                    {/* Synthesize Button - appears when research sources are available */}
-                    {showSynthesizeButton && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSynthesize();
-                        }}
-                        className="mt-2 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded-md shadow-sm transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-                        title={`Analyze and synthesize ${researchSources.totalCount} articles from current research`}
-                      >
-                        🧠 Synthesize Now
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Step Number */}
-                  <div className={`absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                    status === 'active' || status === 'complete'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-300 text-gray-600'
-                  }`}>
-                    {index + 1}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Progress Bar */}
-        {workflowStep !== 'idle' && (
-          <div className="mt-6 pt-6 border-t">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Overall Progress</span>
-              <span className="text-sm text-gray-500">
-                {workflowStep === 'complete'
-                  ? '100%'
-                  : `${Math.round(((workflowSteps.findIndex(s => s.id === workflowStep) + 1) / workflowSteps.length) * 100)}%`
-                }
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-              <div
-                className={`h-full transition-all duration-500 ${
-                  workflowStep === 'complete' ? 'bg-green-500' : 'bg-blue-500'
-                }`}
-                style={{
-                  width: workflowStep === 'complete'
-                    ? '100%'
-                    : `${((workflowSteps.findIndex(s => s.id === workflowStep) + 1) / workflowSteps.length) * 100}%`
-                }}
-              />
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Research Section */}
-      <div ref={researchRef} id="research-section" className="bg-white shadow rounded-lg p-6 scroll-mt-4">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-lg font-semibold">
-              Data Sources
-              {researchSources && researchSources.totalCount > 0 && (
-                <span className="ml-2 text-sm font-normal text-gray-500">
-                  ({researchSources.totalCount} articles)
-                </span>
-              )}
-            </h3>
-            {researchSources?.metadata && (
-              <div className="mt-1 flex items-center gap-3 text-xs text-gray-500">
-                <span>Strategy: {researchSources.metadata.strategy}</span>
-                <span>•</span>
-                <span>Depth: {researchSources.metadata.researchDepth}</span>
-                {researchSources.primaryTopic && (
-                  <>
-                    <span>•</span>
-                    <span>Topic: {researchSources.primaryTopic}</span>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => fetchResearchSources()}
-              disabled={loadingSources || isGenerating}
-              className="text-sm text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loadingSources ? 'Loading...' : '🔄 Refresh Sources'}
-            </button>
-            {/* Web Search Input */}
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={webSearchQuery}
-                onChange={(e) => setWebSearchQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && webSearchQuery.trim()) {
-                    handleWebSearch(webSearchQuery);
-                  }
-                }}
-                placeholder="Search web for topic..."
-                disabled={webSearching || isGenerating}
-                className="text-sm px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              />
-              <button
-                onClick={() => handleWebSearch(webSearchQuery)}
-                disabled={webSearching || isGenerating || !webSearchQuery.trim()}
-                className="text-sm text-green-600 hover:text-green-800 disabled:opacity-50 disabled:cursor-not-allowed px-2 py-1 border border-green-300 rounded-md hover:bg-green-50"
-                title="Search the web for additional sources on this topic"
-              >
-                {webSearching ? '⏳' : '🌐 Web Search'}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {loadingSources && (
-          <div className="text-center py-8 text-gray-500">
-            <div className="animate-spin inline-block w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full mb-2"></div>
-            <p>Loading research sources...</p>
-          </div>
-        )}
-
-        {!loadingSources && researchSources && researchSources.totalCount > 0 && (
-          <div className="space-y-4">
-            {/* Analyze & Synthesize Buttons - appears above research sources */}
-            <div className="flex items-center justify-between mb-4 p-3 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-purple-900">
-                  Ready to analyze and synthesize {researchSources.totalCount} articles
-                </p>
-                <p className="text-xs text-purple-700 mt-1">
-                  {researchAnalysis
-                    ? `Analysis complete: ${researchAnalysis.gaps.length} gaps, ${researchAnalysis.uniquePerspectives.length} unique perspectives found`
-                    : 'Analyze sources to find gaps and unique angles, then synthesize into original content'}
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleAnalyze}
-                  disabled={analyzing || isGenerating}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md shadow-sm transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                  title="Analyze research sources to find gaps and unique angles"
-                >
-                  {analyzing ? (
-                    <>
-                      <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
-                      Analyzing...
-                    </>
-                  ) : (
-                    <>
-                      🔍 Analyze
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={handleSynthesize}
-                  disabled={isGenerating}
-                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-md shadow-sm transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                  title="Analyze (if needed) and synthesize into original content"
-                >
-                  {isGenerating ? (
-                    <>
-                      <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
-                      Synthesizing...
-                    </>
-                  ) : (
-                    <>
-                      🧠 Analyze & Synthesize
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {Object.entries(researchSources.sources).map(([source, articles]) => (
-              <div key={source} className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-medium text-gray-900">{source}</h4>
-                  <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                    {articles.length} {articles.length === 1 ? 'article' : 'articles'}
-                  </span>
-                </div>
-                <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
-                  {articles.map((article, idx) => (
-                    <div key={idx} className="text-sm group pb-2 border-b border-gray-100 last:border-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <a
-                          href={article.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 hover:underline flex-1"
-                        >
-                          {article.title}
-                        </a>
-                        {/* Deep dive button - extract topic from title */}
-                        {!article.source.includes('Web Search') && (
-                          <button
-                            onClick={() => {
-                              // Extract a potential topic from the title (first few words)
-                              const potentialTopic = article.title.split(' ').slice(0, 4).join(' ');
-                              handleWebSearch(potentialTopic, 'deep-dive');
-                            }}
-                            disabled={webSearching || isGenerating}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity text-xs text-green-600 hover:text-green-800 px-2 py-0.5 border border-green-300 rounded hover:bg-green-50 disabled:opacity-50 shrink-0"
-                            title="Deep dive: search web for more info on this topic"
-                          >
-                            🔍
-                          </button>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        {article.score && (
-                          <span className="text-xs text-gray-500">HN Score: {article.score}</span>
-                        )}
-                        {article.relevance !== undefined && (
-                          <span className="text-xs text-blue-600">Relevance: {article.relevance.toFixed(1)}</span>
-                        )}
-                        {article.publishedAt && (
-                          <span className="text-xs text-gray-500">
-                            {new Date(article.publishedAt).toLocaleDateString()}
-                          </span>
-                        )}
-                        {article.source.includes('Web Search') && (
-                          <span className="text-xs text-green-600 bg-green-50 px-1.5 py-0.5 rounded">Web</span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {!loadingSources && (!researchSources || researchSources.totalCount === 0) && (
-          <div className="text-center py-8 text-gray-500">
-            <p className="mb-2">No research sources loaded yet.</p>
-            <p className="text-sm">Sources will appear here when you generate content or click &quot;Refresh Sources&quot;.</p>
-            <p className="text-xs mt-2 text-gray-400">
-              Available sources: HackerNews, TechCrunch, The Verge, Ars Technica
-            </p>
-            <p className="text-xs mt-1 text-green-600">
-              💡 Use web search above to find additional sources beyond RSS feeds
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Analysis Section */}
-      <div ref={analysisRef} id="analysis-section" className="bg-white shadow rounded-lg p-6 scroll-mt-4">
-        <h3 className="text-lg font-semibold mb-4">🔍 Analysis</h3>
-        {analyzing && (
-          <div className="text-center py-8 text-gray-500">
-            <div className="animate-spin inline-block w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full mb-2"></div>
-            <p>Analyzing research sources...</p>
-          </div>
-        )}
-        {!analyzing && researchAnalysis && (
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg max-h-[600px] overflow-y-auto">
-            <h4 className="text-sm font-semibold text-blue-900 mb-3">📊 Analysis Results</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-              {researchAnalysis.gaps.length > 0 && (
-                <div>
-                  <p className="font-medium text-blue-800 mb-1">🔍 Gaps ({researchAnalysis.gaps.length}):</p>
-                  <ul className="list-disc list-inside text-blue-700 space-y-1">
-                    {researchAnalysis.gaps.map((gap, idx) => (
-                      <li key={idx}>{gap}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {researchAnalysis.uniquePerspectives.length > 0 && (
-                <div>
-                  <p className="font-medium text-blue-800 mb-1">💡 Unique Perspectives ({researchAnalysis.uniquePerspectives.length}):</p>
-                  <ul className="list-disc list-inside text-blue-700 space-y-1">
-                    {researchAnalysis.uniquePerspectives.map((perspective, idx) => (
-                      <li key={idx}>{perspective}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {researchAnalysis.unexploredConnections.length > 0 && (
-                <div>
-                  <p className="font-medium text-blue-800 mb-1">🔗 Unexplored Connections ({researchAnalysis.unexploredConnections.length}):</p>
-                  <ul className="list-disc list-inside text-blue-700 space-y-1">
-                    {researchAnalysis.unexploredConnections.map((connection, idx) => (
-                      <li key={idx}>{connection}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {researchAnalysis.contrarianViewpoints.length > 0 && (
-                <div>
-                  <p className="font-medium text-blue-800 mb-1">⚡ Contrarian Viewpoints ({researchAnalysis.contrarianViewpoints.length}):</p>
-                  <ul className="list-disc list-inside text-blue-700 space-y-1">
-                    {researchAnalysis.contrarianViewpoints.map((viewpoint, idx) => (
-                      <li key={idx}>{viewpoint}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {researchAnalysis.originalAngles.length > 0 && (
-                <div>
-                  <p className="font-medium text-blue-800 mb-1">🎯 Original Angles ({researchAnalysis.originalAngles.length}):</p>
-                  <ul className="list-disc list-inside text-blue-700 space-y-1">
-                    {researchAnalysis.originalAngles.map((angle, idx) => (
-                      <li key={idx}>{angle}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {researchAnalysis.keyInsights.length > 0 && (
-                <div>
-                  <p className="font-medium text-blue-800 mb-1">🧠 Key Insights ({researchAnalysis.keyInsights.length}):</p>
-                  <ul className="list-disc list-inside text-blue-700 space-y-1">
-                    {researchAnalysis.keyInsights.map((insight, idx) => (
-                      <li key={idx}>{insight}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {researchAnalysis.synthesisStrategy && (
-                <div className="md:col-span-2">
-                  <p className="font-medium text-blue-800 mb-1">📋 Synthesis Strategy:</p>
-                  <p className="text-blue-700">{researchAnalysis.synthesisStrategy}</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-        {!analyzing && !researchAnalysis && (
-          <div className="text-center py-8 text-gray-500">
-            <p className="mb-2">No analysis results yet.</p>
-            <p className="text-sm">Click &quot;🔍 Analyze&quot; above to analyze your research sources.</p>
-          </div>
-        )}
-      </div>
-
-      {/* Synthesis Section */}
-      <div ref={synthesisRef} id="synthesis-section" className="bg-white shadow rounded-lg p-6 scroll-mt-4">
-        <h3 className="text-lg font-semibold mb-4">🧠 Synthesis</h3>
-        {workflowStep === 'synthesis' && (
-          <div className="text-center py-8 text-blue-500">
-            <div className="animate-spin inline-block w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full mb-2"></div>
-            <p>Synthesizing research into original content...</p>
-          </div>
-        )}
-        {workflowStep !== 'synthesis' && researchAnalysis && (
-          <div className="text-center py-8 text-gray-500">
-            <p className="mb-2">Ready to synthesize.</p>
-            <p className="text-sm">Analysis complete. Click &quot;🧠 Analyze & Synthesize&quot; to generate content.</p>
-          </div>
-        )}
-        {workflowStep !== 'synthesis' && !researchAnalysis && (
-          <div className="text-center py-8 text-gray-500">
-            <p className="mb-2">Synthesis pending.</p>
-            <p className="text-sm">Complete analysis first, then synthesis will begin.</p>
-          </div>
-        )}
       </div>
 
       {/* Generation Section */}

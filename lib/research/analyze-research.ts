@@ -26,7 +26,8 @@ export interface ResearchAnalysis {
  */
 export async function analyzeResearch(
   articles: ResearchArticle[],
-  topic?: string
+  topic?: string,
+  customPrompt?: string
 ): Promise<ResearchAnalysis> {
   const apiKey = process.env.OPENAI_API_KEY;
 
@@ -37,7 +38,7 @@ export async function analyzeResearch(
   // Format articles for analysis
   const articlesSummary = formatArticlesForAnalysis(articles);
 
-  const analysisPrompt = `You are an expert content strategist and researcher. Your job is to analyze research sources and identify opportunities for creating truly unique, attention-grabbing content that hasn't been written before.
+  const defaultAnalysisPrompt = `You are an expert content strategist and researcher. Your job is to analyze research sources and identify opportunities for creating truly unique, attention-grabbing content that hasn't been written before.
 
 ${topic ? `Topic: "${topic}"` : 'General tech trends'}
 
@@ -89,6 +90,10 @@ Respond in JSON format:
   "synthesisStrategy": "strategy description",
   "keyInsights": ["insight1", "insight2", ...]
 }`;
+
+  const analysisPrompt = customPrompt
+    ? customPrompt.replace(/{articlesSummary}/g, articlesSummary).replace(/{topic}/g, topic ? `Topic: "${topic}"` : 'General tech trends')
+    : defaultAnalysisPrompt;
 
   try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
