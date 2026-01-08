@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 
 interface Tag {
   _id: string;
@@ -79,21 +79,40 @@ export default function InlineEditableField({
     setEditValue(value);
   }, [value]);
 
-  // Tags mode: filter options based on input
+  // Memoize tag IDs to prevent unnecessary recalculations
+  const tagIds = useMemo(() => new Set(tags?.map(t => t._id) || []), [tags]);
+
+  // Create stable key for availableTags to detect actual content changes
+  const availableTagsKey = useMemo(
+    () => availableTags.map(t => `${t._id}:${t.title}`).join('|'),
+    [availableTags]
+  );
+
+  // Memoize filtered options - only recalculate when input or tag data actually changes
+  const memoizedFilteredOptions = useMemo(() => {
+    if (!isTagsMode || !inputValue.trim()) {
+      return [];
+    }
+    const inputLower = inputValue.toLowerCase();
+    return availableTags.filter(
+      (tag) =>
+        !tagIds.has(tag._id) &&
+        tag.title.toLowerCase().includes(inputLower)
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inputValue, availableTagsKey, tagIds, isTagsMode]);
+
+  // Tags mode: update filtered options and dropdown state
+  // Only update when the filtered results actually change
   useEffect(() => {
     if (isTagsMode && inputValue.trim()) {
-      const filtered = availableTags.filter(
-        (tag) =>
-          !tags?.some((t) => t._id === tag._id) &&
-          tag.title.toLowerCase().includes(inputValue.toLowerCase())
-      );
-      setFilteredOptions(filtered);
-      setIsOpen(true);
+      setFilteredOptions(memoizedFilteredOptions);
+      setIsOpen(memoizedFilteredOptions.length > 0 || inputValue.trim() !== '');
     } else {
       setFilteredOptions([]);
       setIsOpen(false);
     }
-  }, [inputValue, availableTags, tags, isTagsMode]);
+  }, [inputValue, memoizedFilteredOptions, isTagsMode]);
 
   // Tags mode: handle click outside
   useEffect(() => {

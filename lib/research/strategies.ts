@@ -7,6 +7,7 @@
 import type { ResearchConfig, ResearchResult, DiscoveredTopic } from './types';
 import type { ResearchArticle } from '@/lib/research-sources';
 import { fetchAllResearchSources } from '@/lib/research-sources';
+import { searchWeb, deepDiveOnTopic, findAdditionalSources, formatWebSearchForPrompt } from './web-search';
 
 /**
  * General research strategy - current behavior
@@ -33,6 +34,7 @@ export async function generalResearchStrategy(
 /**
  * Topic-specific deep dive strategy
  * Focuses on a specific topic with deeper research
+ * Now includes web search for deep dives
  */
 export async function topicSpecificStrategy(
   config: ResearchConfig
@@ -42,10 +44,40 @@ export async function topicSpecificStrategy(
     return generalResearchStrategy(config);
   }
 
-  // Fetch initial articles
+  // Fetch initial articles from RSS feeds
   let articles = await fetchAllResearchSources(config.topic);
+  const rssUrls = articles.map(a => a.url);
 
-  // For deep research, fetch more articles and expand search
+  // For deep research, add web search to complement RSS feeds
+  if (config.depth === 'deep' || config.enableWebSearch) {
+    try {
+      // Search the web for additional sources
+      const webResults = await deepDiveOnTopic(
+        config.topic,
+        undefined,
+        config.maxArticles ? Math.floor(config.maxArticles * 0.4) : 10
+      );
+
+      // Convert web search results to ResearchArticle format
+      const webArticles: ResearchArticle[] = webResults.map(result => ({
+        title: result.title,
+        url: result.url,
+        content: result.content,
+        source: result.source,
+        publishedAt: result.publishedAt,
+        relevance: result.relevance,
+        score: result.score,
+      }));
+
+      // Combine RSS and web search results
+      articles = [...articles, ...webArticles];
+    } catch (error) {
+      // If web search fails, continue with RSS-only results
+      console.warn('Web search failed, continuing with RSS feeds only:', error);
+    }
+  }
+
+  // For deep research, also expand topic with related terms
   if (config.depth === 'deep') {
     // Expand topic with related terms
     const expandedTopics = expandTopic(config.topic);
@@ -288,16 +320,32 @@ function formatDeepDiveSummary(
   let summary = `## Deep Dive Research: ${topic}\n\n`;
   summary += `Comprehensive research with ${articles.length} articles.\n\n`;
 
-  // Group by source
-  const articlesBySource = articles.reduce((acc, article) => {
+  // Separate RSS feeds and web search results
+  const rssArticles = articles.filter(a => !a.source.includes('Web Search'));
+  const webArticles = articles.filter(a => a.source.includes('Web Search'));
+
+  // Group RSS articles by source
+  const articlesBySource = rssArticles.reduce((acc, article) => {
     if (!acc[article.source]) acc[article.source] = [];
     acc[article.source].push(article);
     return acc;
   }, {} as Record<string, ResearchArticle[]>);
 
+  // Add RSS feed sources
   for (const [source, sourceArticles] of Object.entries(articlesBySource)) {
-    summary += `### ${source}\n\n`;
+    summary += `### ${source} (${sourceArticles.length} articles)\n\n`;
     sourceArticles.forEach((article, idx) => {
+      summary += `${idx + 1}. **${article.title}**\n`;
+      summary += `   - ${article.url}\n`;
+      if (article.relevance) summary += `   - Relevance: ${article.relevance.toFixed(1)}\n`;
+      summary += `   - ${article.content.substring(0, 200)}...\n\n`;
+    });
+  }
+
+  // Add web search results if any
+  if (webArticles.length > 0) {
+    summary += `\n### Web Search Results (${webArticles.length} additional sources)\n\n`;
+    webArticles.forEach((article, idx) => {
       summary += `${idx + 1}. **${article.title}**\n`;
       summary += `   - ${article.url}\n`;
       if (article.relevance) summary += `   - Relevance: ${article.relevance.toFixed(1)}\n`;

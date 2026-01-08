@@ -33,20 +33,44 @@ export async function POST(request: NextRequest) {
       maxTokens,
       researchStrategy,
       researchDepth,
+      researchArticles: providedResearchArticles,
+      researchSummary: providedResearchSummary,
+      researchAnalysis,
     } = body;
 
     // Log generation start
     logGenerationStart(topic);
 
-    // Fetch research sources using new research engine (for display)
-    const researchResult = await executeResearch({
-      strategy: researchStrategy || 'general',
-      depth: researchDepth || 'medium',
-      topic: topic || undefined,
-      maxArticles: researchDepth === 'deep' ? 50 : 30,
-    });
+    // Use provided research if available, otherwise fetch new research
+    let researchResult;
+    let researchArticles;
 
-    const researchArticles = researchResult.articles;
+    if (providedResearchArticles && providedResearchSummary) {
+      // Use provided research (e.g., from web search)
+      researchArticles = providedResearchArticles;
+      researchResult = {
+        articles: providedResearchArticles,
+        researchSummary: providedResearchSummary,
+        discoveredTopics: undefined,
+        primaryTopic: topic,
+        metadata: {
+          totalArticles: providedResearchArticles.length,
+          sourcesUsed: [...new Set(providedResearchArticles.map((a: { source: string }) => a.source))],
+          researchDepth: researchDepth || 'medium',
+          strategy: researchStrategy || 'general',
+          timestamp: new Date().toISOString(),
+        },
+      };
+    } else {
+      // Fetch research sources using new research engine
+      researchResult = await executeResearch({
+        strategy: researchStrategy || 'general',
+        depth: researchDepth || 'medium',
+        topic: topic || undefined,
+        maxArticles: researchDepth === 'deep' ? 50 : 30,
+      });
+      researchArticles = researchResult.articles;
+    }
 
     // Generate post content with custom prompts if provided
     const { markdown, title, excerpt, categoryIds, tagIds } = await generatePostContent(
@@ -57,7 +81,10 @@ export async function POST(request: NextRequest) {
       temperature,
       maxTokens,
       researchStrategy,
-      researchDepth
+      researchDepth,
+      providedResearchArticles,
+      providedResearchSummary,
+      researchAnalysis
     );
 
     // Calculate word count

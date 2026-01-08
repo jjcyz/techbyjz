@@ -21,20 +21,31 @@ export const revalidate = 60; // Revalidate every 60 seconds
 export const runtime = 'nodejs';
 
 // Generate static params for all tags
+// Returns empty array on error - pages will be generated on-demand with ISR
 export async function generateStaticParams() {
   try {
-    const tags = await client.fetch<Tag[]>(`*[_type == "tag"] | order(title asc) {
-      _id,
-      title,
-      slug
-    }`);
+    const tags = await client.fetch<Tag[]>(
+      `*[_type == "tag"] | order(title asc) {
+        _id,
+        title,
+        slug
+      }`,
+      {},
+      {
+        // Add timeout and better error handling for build time
+        next: { revalidate: 3600 }, // Cache for 1 hour during build
+      }
+    );
     return tags
       .filter((tag) => isValidSlug(tag.slug?.current))
       .map((tag) => ({
         slug: tag.slug!.current,
       }));
   } catch (error) {
-    console.error('Error generating static params for tags:', error);
+    // Log error but don't fail the build - pages will be generated on-demand with ISR
+    // This allows the build to succeed even if Sanity API is temporarily unavailable
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.warn(`Could not generate static params for tags during build (${errorMessage}). Pages will be generated on-demand with ISR.`);
     return [];
   }
 }

@@ -1,9 +1,9 @@
 /**
  * Real-time Research Sources Module
  *
- * Fetches actual data from:
+ * Fetches articles from:
  * - HackerNews API (free, no auth required)
- * - RSS Feeds (TechCrunch, The Verge, Ars Technica)
+ * - RSS Feeds (TechCrunch, The Verge, Ars Technica, Wired, Engadget, Techmeme, ZDNet)
  */
 
 import Parser from 'rss-parser';
@@ -14,27 +14,99 @@ export interface ResearchArticle {
   content: string;
   source: string;
   publishedAt?: string;
-  score?: number; // For HackerNews
-  relevance?: number; // Calculated relevance to topic
+  score?: number;
+  relevance?: number;
 }
 
-// RSS Feed URLs for major tech news sources
-const RSS_FEEDS = [
-  { url: 'https://techcrunch.com/feed/', name: 'TechCrunch' },
-  { url: 'https://www.theverge.com/rss/index.xml', name: 'The Verge' },
-  { url: 'https://feeds.arstechnica.com/arstechnica/index', name: 'Ars Technica' },
-];
+interface RSSFeedConfig {
+  url: string;
+  name: string;
+  enabled: boolean;
+  priority: number;
+}
+
+/**
+ * Source Registry - Configure RSS feeds and API sources
+ */
+export const SOURCE_REGISTRY = {
+  rss: {
+    techcrunch: {
+      url: 'https://techcrunch.com/feed/',
+      name: 'TechCrunch',
+      enabled: true,
+      priority: 10,
+    },
+    theverge: {
+      url: 'https://www.theverge.com/rss/index.xml',
+      name: 'The Verge',
+      enabled: true,
+      priority: 10,
+    },
+    arstechnica: {
+      url: 'https://feeds.arstechnica.com/arstechnica/index',
+      name: 'Ars Technica',
+      enabled: true,
+      priority: 9,
+    },
+    wired: {
+      url: 'https://www.wired.com/feed/rss',
+      name: 'Wired',
+      enabled: true,
+      priority: 9,
+    },
+    techmeme: {
+      url: 'https://www.techmeme.com/feed.xml',
+      name: 'Techmeme',
+      enabled: true,
+      priority: 9,
+    },
+    engadget: {
+      url: 'https://www.engadget.com/rss.xml',
+      name: 'Engadget',
+      enabled: true,
+      priority: 8,
+    },
+    zdnet: {
+      url: 'https://www.zdnet.com/news/rss.xml',
+      name: 'ZDNet',
+      enabled: true,
+      priority: 7,
+    },
+    bloomberg: {
+      url: 'https://feeds.bloomberg.com/technology/news.rss',
+      name: 'Bloomberg Technology',
+      enabled: true,
+      priority: 9,
+    },
+  },
+  hackernews: {
+    enabled: true,
+    priority: 10,
+  },
+} as const;
+
+/**
+ * Get enabled RSS feeds sorted by priority
+ */
+function getEnabledRSSFeeds(): Array<RSSFeedConfig & { key: string }> {
+  return Object.entries(SOURCE_REGISTRY.rss)
+    .filter(([, config]) => config.enabled)
+    .sort(([, a], [, b]) => b.priority - a.priority)
+    .map(([key, config]) => ({ key, ...config }));
+}
 
 /**
  * Fetch top stories from HackerNews API
- * Filters by topic if provided, otherwise returns top stories
  */
-async function fetchHackerNews(topic?: string): Promise<ResearchArticle[]> {
+async function fetchHackerNews(topic?: string, maxArticles: number = 15): Promise<ResearchArticle[]> {
+  if (!SOURCE_REGISTRY.hackernews.enabled) {
+    return [];
+  }
+
   try {
-    // Get top story IDs
     const topStoriesResponse = await fetch(
       'https://hacker-news.firebaseio.com/v0/topstories.json',
-      { cache: 'no-store' } // Always fetch fresh data for real-time research
+      { cache: 'no-store' }
     );
 
     if (!topStoriesResponse.ok) {
@@ -44,9 +116,9 @@ async function fetchHackerNews(topic?: string): Promise<ResearchArticle[]> {
 
     const storyIds: number[] = await topStoriesResponse.json();
 
-    // Fetch details for top 30 stories (we'll filter/rank later)
+    // Fetch details for top stories
     const stories = await Promise.all(
-      storyIds.slice(0, 30).map(async (id) => {
+      storyIds.slice(0, Math.max(maxArticles * 2, 30)).map(async (id) => {
         try {
           const storyResponse = await fetch(
             `https://hacker-news.firebaseio.com/v0/item/${id}.json`,
@@ -61,7 +133,7 @@ async function fetchHackerNews(topic?: string): Promise<ResearchArticle[]> {
       })
     );
 
-    // Filter out nulls and non-story items (comments, jobs, etc.)
+    // Filter valid stories
     const validStories = stories.filter(
       (story) => story && story.type === 'story' && story.title && story.url
     );
@@ -77,10 +149,10 @@ async function fetchHackerNews(topic?: string): Promise<ResearchArticle[]> {
       );
     }
 
-    // Sort by score (highest first) and take top 15
+    // Sort by score and return top articles
     return relevantStories
       .sort((a, b) => (b.score || 0) - (a.score || 0))
-      .slice(0, 15)
+      .slice(0, maxArticles)
       .map((story) => ({
         title: story.title,
         url: story.url || `https://news.ycombinator.com/item?id=${story.id}`,
@@ -97,22 +169,21 @@ async function fetchHackerNews(topic?: string): Promise<ResearchArticle[]> {
 
 /**
  * Fetch articles from RSS feeds
- * Supports TechCrunch, The Verge, Ars Technica, and more
  */
-async function fetchRSSFeeds(topic?: string): Promise<ResearchArticle[]> {
+async function fetchRSSFeeds(topic?: string, maxArticlesPerFeed: number = 10): Promise<ResearchArticle[]> {
   const parser = new Parser({
-    timeout: 10000, // 10 second timeout per feed
+    timeout: 10000,
     customFields: {
       item: ['content:encoded', 'media:content'],
     },
   });
 
-  const allArticles: ResearchArticle[] = [];
+  const feeds = getEnabledRSSFeeds();
 
-  for (const feed of RSS_FEEDS) {
+  // Fetch feeds in parallel
+  const feedPromises = feeds.map(async (feed) => {
     try {
       const parsed = await parser.parseURL(feed.url);
-
       let items = parsed.items || [];
 
       // Filter by topic if provided
@@ -126,36 +197,40 @@ async function fetchRSSFeeds(topic?: string): Promise<ResearchArticle[]> {
         );
       }
 
-      // Take most recent 10 items per feed
-      const feedArticles = items.slice(0, 10).map((item) => ({
+      // Return articles from this feed
+      return items.slice(0, maxArticlesPerFeed).map((item) => ({
         title: item.title || 'Untitled',
         url: item.link || '',
         content: item.contentSnippet || item.content || item.title || '',
         source: feed.name,
         publishedAt: item.pubDate || item.isoDate,
       }));
-
-      allArticles.push(...feedArticles);
     } catch (error) {
       console.error(`Error fetching RSS feed ${feed.name} (${feed.url}):`, error);
-      // Continue with other feeds even if one fails
+      return [];
     }
-  }
+  });
 
-  return allArticles;
+  const results = await Promise.all(feedPromises);
+  return results.flat();
 }
 
 /**
  * Fetch all research sources for a given topic
- * Combines HackerNews and RSS feeds
  */
 export async function fetchAllResearchSources(
-  topic?: string
+  topic?: string,
+  maxArticles?: number
 ): Promise<ResearchArticle[]> {
   try {
+    const defaultMaxArticles = maxArticles || 30;
+
+    // Fetch from enabled sources in parallel
     const [hackerNewsArticles, rssArticles] = await Promise.all([
-      fetchHackerNews(topic),
-      fetchRSSFeeds(topic),
+      SOURCE_REGISTRY.hackernews.enabled
+        ? fetchHackerNews(topic, Math.floor(defaultMaxArticles * 0.3))
+        : Promise.resolve([]),
+      fetchRSSFeeds(topic, 10),
     ]);
 
     // Combine and deduplicate by URL
@@ -164,9 +239,9 @@ export async function fetchAllResearchSources(
       new Map(allArticles.map((article) => [article.url, article])).values()
     );
 
-    // Sort by relevance: prioritize recent articles and high-scoring HackerNews posts
+    // Sort by relevance: prioritize high-scoring posts, then recency
     uniqueArticles.sort((a, b) => {
-      // HackerNews articles with high scores get priority
+      // Articles with scores get priority
       if (a.score && !b.score) return -1;
       if (!a.score && b.score) return 1;
       if (a.score && b.score) return b.score - a.score;
@@ -179,8 +254,7 @@ export async function fetchAllResearchSources(
       return 0;
     });
 
-    // Return top 30 most relevant articles
-    return uniqueArticles.slice(0, 30);
+    return uniqueArticles.slice(0, defaultMaxArticles);
   } catch (error) {
     console.error('Error fetching research sources:', error);
     return [];
@@ -189,7 +263,6 @@ export async function fetchAllResearchSources(
 
 /**
  * Format research articles for AI prompt
- * Creates a structured summary of the research
  */
 export function formatResearchForPrompt(articles: ResearchArticle[]): string {
   if (articles.length === 0) {
@@ -216,7 +289,7 @@ export function formatResearchForPrompt(articles: ResearchArticle[]): string {
         formatted += `   - Published: ${new Date(article.publishedAt).toLocaleDateString()}\n`;
       }
       if (article.score) {
-        formatted += `   - HackerNews Score: ${article.score}\n`;
+        formatted += `   - Score: ${article.score}\n`;
       }
       formatted += `   - Summary: ${article.content.substring(0, 200)}${article.content.length > 200 ? '...' : ''}\n\n`;
     });
@@ -225,3 +298,19 @@ export function formatResearchForPrompt(articles: ResearchArticle[]): string {
   return formatted;
 }
 
+/**
+ * Get list of enabled sources
+ */
+export function getEnabledSources(): string[] {
+  const sources: string[] = [];
+
+  if (SOURCE_REGISTRY.hackernews.enabled) {
+    sources.push('HackerNews');
+  }
+
+  getEnabledRSSFeeds().forEach((feed) => {
+    sources.push(feed.name);
+  });
+
+  return sources;
+}

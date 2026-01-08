@@ -26,7 +26,10 @@ export async function generatePostContent(
   temperature?: number,
   maxTokens?: number,
   researchStrategy?: string,
-  researchDepth?: string
+  researchDepth?: string,
+  providedResearchArticles?: Array<{ title: string; url: string; content: string; source: string; publishedAt?: string; score?: number; relevance?: number }>,
+  providedResearchSummary?: string,
+  researchAnalysis?: { gaps: string[]; uniquePerspectives: string[]; unexploredConnections: string[]; contrarianViewpoints: string[]; originalAngles: string[]; synthesisStrategy: string; keyInsights: string[] }
 ): Promise<{
   markdown: string;
   title: string;
@@ -40,12 +43,16 @@ export async function generatePostContent(
     throw new Error('No OpenAI API key found. Set OPENAI_API_KEY');
   }
 
-  // Step 1: Fetch real-time research from HackerNews and RSS feeds
-  // Use new research engine if strategy/depth provided, otherwise use legacy system
+  // Step 1: Use provided research if available, otherwise fetch new research
   let researchArticles;
   let researchSummary: string;
 
-  if (researchStrategy && researchDepth) {
+  if (providedResearchArticles && providedResearchSummary) {
+    // Use provided research (e.g., from web search)
+    researchArticles = providedResearchArticles;
+    researchSummary = providedResearchSummary;
+  } else if (researchStrategy && researchDepth) {
+    // Use new research engine if strategy/depth provided
     const { executeResearch } = await import('@/lib/research/research-engine');
     const researchResult = await executeResearch({
       strategy: researchStrategy as 'general' | 'topic-specific' | 'discovery' | 'deep-dive',
@@ -85,39 +92,53 @@ Your articles are known for:
 
   const systemPrompt = customSystemPrompt || defaultSystemPrompt;
 
-  // Research and synthesis prompt - now includes real research data
+  // Import analysis formatter if we have analysis
+  let analysisSection = '';
+  if (researchAnalysis) {
+    const { formatAnalysisForSynthesis } = await import('@/lib/research/analyze-research');
+    analysisSection = formatAnalysisForSynthesis(researchAnalysis, topic);
+  }
+
+  // Research and synthesis prompt - enhanced with analysis if available
   const researchPrompt = topic
     ? `Research the topic: "${topic}".
 
 ${researchSummary}
 
-Based on the real-time research above, extract:
-1. 5-7 key points from these sources
-2. 3-5 interesting connections or patterns
-3. 2-3 unique insights or perspectives that most people miss
-4. Counter-intuitive findings or contrarian viewpoints
+${analysisSection ? `${analysisSection}\n\n` : ''}${analysisSection ? 'Based on the analysis above, create content that:' : 'Based on the real-time research above, extract:'}
+${analysisSection ? '' : '1. 5-7 key points from these sources\n2. 3-5 interesting connections or patterns\n3. 2-3 unique insights or perspectives that most people miss\n4. Counter-intuitive findings or contrarian viewpoints\n\nThen synthesize this research into a comprehensive blog post.'}
+${analysisSection ? `1. Fills the identified gaps
+2. Explores the unique perspectives and original angles
+3. Makes the unexplored connections
+4. Presents contrarian viewpoints thoughtfully
+5. Creates truly original content that hasn't been written before
 
-Then synthesize this research into a comprehensive blog post.`
+**CRITICAL**: This must be content that catches attention and offers something NEW. Don't just summarize what's already been written - create something unique based on the gaps and angles identified above.` : ''}`
     : `Research current tech trends and news.
 
 ${researchSummary}
 
-Based on the real-time research above, extract:
-1. 5-7 key points from these sources
-2. 3-5 interesting connections or patterns
-3. 2-3 unique insights or perspectives that most people miss
-4. Counter-intuitive findings or contrarian viewpoints
+${analysisSection ? `${analysisSection}\n\n` : ''}${analysisSection ? 'Based on the analysis above, create content that:' : 'Based on the real-time research above, extract:'}
+${analysisSection ? '' : '1. 5-7 key points from these sources\n2. 3-5 interesting connections or patterns\n3. 2-3 unique insights or perspectives that most people miss\n4. Counter-intuitive findings or contrarian viewpoints\n\nThen synthesize this research into a comprehensive blog post.'}
+${analysisSection ? `1. Fills the identified gaps
+2. Explores the unique perspectives and original angles
+3. Makes the unexplored connections
+4. Presents contrarian viewpoints thoughtfully
+5. Creates truly original content that hasn't been written before
 
-Then synthesize this research into a comprehensive blog post.`;
+**CRITICAL**: This must be content that catches attention and offers something NEW. Don't just summarize what's already been written - create something unique based on the gaps and angles identified above.` : ''}`;
 
   // Default user prompt (use custom if provided, replacing {researchSummary} placeholder)
   const defaultUserPrompt = `${researchPrompt}
 
 Create a blog post that:
 1. Synthesizes the research into a coherent narrative
-2. Highlights the most interesting connections
-3. Develops unique insights further
-4. Tells a compelling story
+2. Fills gaps and explores unique angles identified in the analysis
+3. Highlights the most interesting connections (especially unexplored ones)
+4. Develops unique insights further
+5. Presents contrarian viewpoints thoughtfully
+6. Tells a compelling story that catches attention
+7. Offers something NEW that hasn't been written before
 
 **CRITICAL: Write like a human, not a robot.**
 - Use conversational language and natural flow - write as if you're explaining to a friend

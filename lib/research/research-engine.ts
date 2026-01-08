@@ -18,11 +18,11 @@ import {
 export async function executeResearch(
   config: ResearchConfig
 ): Promise<ResearchResult> {
-  // Set defaults
+  // Set defaults (spread config first, then override with defaults if not provided)
   const finalConfig: ResearchConfig = {
-    depth: 'medium',
-    maxArticles: 30,
     ...config,
+    depth: config.depth ?? 'medium',
+    maxArticles: config.maxArticles ?? 30,
   };
 
   // Route to appropriate strategy
@@ -77,4 +77,3 @@ export async function discoverTopics(maxTopics: number = 5): Promise<ResearchRes
     maxTopicsToDiscover: maxTopics,
   });
 }
-

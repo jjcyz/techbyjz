@@ -28,6 +28,8 @@ export interface ResearchConfig {
   focusAreas?: string[];             // Areas to focus on (e.g., ['AI', 'Security'])
   enableTopicDiscovery?: boolean;     // Whether to discover topics from sources
   maxTopicsToDiscover?: number;       // Max topics to discover (default: 5)
+  enableWebSearch?: boolean;          // Whether to use web search (default: true for deep dives)
+  webSearchProvider?: 'tavily' | 'serper' | 'google'; // Preferred web search provider
 }
 
 export interface DiscoveredTopic {
