@@ -15,6 +15,9 @@ import type { Post } from '@/types/post';
  * Note: This route won't interfere with existing static routes like /about, /contact, etc.
  * because Next.js prioritizes static routes over dynamic catch-all routes.
  */
+export const dynamicParams = true;
+export const revalidate = 60; // Revalidate every 60 seconds
+
 export async function generateStaticParams() {
   // Don't pre-generate any params - let this be dynamic
   return [];
@@ -25,9 +28,15 @@ export default async function SlugPage({ params }: { params: Promise<{ slug: str
 
   // Skip if slug is a known static route (these should be handled by their own routes)
   // But this is a safety check - Next.js will prioritize static routes anyway
-  const staticRoutes = ['about', 'privacy', 'terms', 'contact', 'studio', 'category', 'tag', 'posts'];
+  const staticRoutes = ['about', 'privacy', 'terms', 'contact', 'studio', 'category', 'tag', 'posts', 'page', 'admin', 'api'];
   if (staticRoutes.includes(slug.toLowerCase())) {
     notFound(); // These routes should be handled elsewhere
+  }
+
+  // Handle pagination URLs (e.g., /page/2/)
+  if (slug.toLowerCase() === 'page') {
+    // Redirect to home page - pagination should be handled via query params or dedicated route
+    redirect('/');
   }
 
   // Validate slug format
@@ -36,18 +45,45 @@ export default async function SlugPage({ params }: { params: Promise<{ slug: str
   }
 
   try {
-    // Check if this slug exists as a post
-    const post = await client.fetch<Post | null>(POST_BY_SLUG_QUERY, { slug }, {
-      next: { revalidate: 3600 } // Cache for 1 hour
+    // Check if this slug exists as a post (including drafts for better matching)
+    // First try exact match
+    let post = await client.fetch<Post | null>(POST_BY_SLUG_QUERY, { slug }, {
+      next: { revalidate: 60 }
     });
+
+    // If not found, try case-insensitive match or with different separators
+    if (!post) {
+      // Try to find posts with similar slugs (handles URL encoding issues)
+      const allPosts = await client.fetch<Array<{ slug: { current: string } | null }>>(
+        `*[_type == "post"] {
+          slug { current }
+        }`,
+        {},
+        { next: { revalidate: 60 } }
+      );
+
+      // Find post with matching slug (case-insensitive, handle URL encoding)
+      const normalizedSlug = decodeURIComponent(slug).toLowerCase();
+      const matchingPost = allPosts.find(p => {
+        if (!p.slug?.current) return false;
+        const postSlug = decodeURIComponent(p.slug.current).toLowerCase();
+        return postSlug === normalizedSlug || postSlug.replace(/-/g, '_') === normalizedSlug.replace(/-/g, '_');
+      });
+
+      if (matchingPost?.slug?.current) {
+        post = await client.fetch<Post | null>(POST_BY_SLUG_QUERY, { slug: matchingPost.slug.current }, {
+          next: { revalidate: 60 }
+        });
+      }
+    }
 
     // If post exists, redirect to the correct URL with /posts/ prefix
     if (post && post.slug?.current && isValidSlug(post.slug.current)) {
       redirect(`/posts/${post.slug.current}`); // Redirect to correct URL
     }
   } catch (error) {
-    // If there's an error, return 404
-    console.error('Error checking slug:', error);
+    // If there's an error, log it and return 404
+    console.error('Error checking slug:', slug, error);
   }
 
   // If no post found, return 404

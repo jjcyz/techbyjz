@@ -31,7 +31,13 @@ export default function InfiniteScrollPosts({
     setLoading(true);
     try {
       const nextPage = page + 1;
-      const response = await fetch(`${fetchUrl}?slug=${encodeURIComponent(slug)}&page=${nextPage}`);
+      // Build query string - only include slug if it's provided
+      const queryParams = new URLSearchParams();
+      if (slug) {
+        queryParams.set('slug', slug);
+      }
+      queryParams.set('page', String(nextPage));
+      const response = await fetch(`${fetchUrl}?${queryParams.toString()}`);
 
       if (!response.ok) {
         throw new Error('Failed to fetch posts');
