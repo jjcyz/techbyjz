@@ -42,15 +42,19 @@ export function middleware(request: NextRequest) {
 
   // Content Security Policy
   // Note: 'unsafe-inline' is required for Next.js and Tailwind CSS
-  // TODO: Consider implementing nonce-based CSP for better security
+  // AdSense requires various Google domains to function properly
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://pagead2.googlesyndication.com",
+    // Scripts: Google Analytics, Tag Manager, AdSense, DoubleClick
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://pagead2.googlesyndication.com https://adservice.google.com https://www.google.com https://www.gstatic.com https://partner.googleadservices.com",
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: https://cdn.sanity.io https://*.sanity.io https://www.google-analytics.com https://*.googlesyndication.com",
-    "font-src 'self' data:",
-    "connect-src 'self' https://*.sanity.io https://api.openai.com https://www.google-analytics.com https://*.google-analytics.com",
-    "frame-src 'self' https://tpc.googlesyndication.com https://googleads.g.doubleclick.net",
+    // Images: Sanity CDN, Google Analytics, AdSense ad creatives
+    "img-src 'self' data: blob: https://cdn.sanity.io https://*.sanity.io https://www.google-analytics.com https://*.googlesyndication.com https://*.doubleclick.net https://www.google.com https://www.gstatic.com https://pagead2.googlesyndication.com",
+    "font-src 'self' data: https://fonts.gstatic.com",
+    // Connections: APIs, Analytics, AdSense
+    "connect-src 'self' https://*.sanity.io https://api.openai.com https://www.google-analytics.com https://*.google-analytics.com https://pagead2.googlesyndication.com https://adservice.google.com https://*.doubleclick.net",
+    // Frames: AdSense ad units, Google ads
+    "frame-src 'self' https://tpc.googlesyndication.com https://googleads.g.doubleclick.net https://www.google.com https://pagead2.googlesyndication.com",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

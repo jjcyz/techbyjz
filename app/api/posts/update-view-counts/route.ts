@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { client } from '@/lib/sanity';
 import { isBot } from '@/lib/rate-limit';
+import { secureCompare } from '@/lib/security';
 
 /**
  * API endpoint to update all posts to have viewCount: 0
@@ -29,7 +30,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (apiKey !== expectedApiKey) {
+    if (!secureCompare(apiKey || '', expectedApiKey)) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

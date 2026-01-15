@@ -7,11 +7,15 @@ interface GoogleAnalyticsProps {
 }
 
 /**
- * Google Analytics 4 (GA4) Component
+ * Google Analytics 4 (GA4) Component with Consent Mode v2
  *
- * Tracks website traffic, page views, user behavior, and more.
- * This is different from AdSense - AdSense shows ad performance,
- * while GA4 shows overall website traffic analytics.
+ * This component implements Google Consent Mode v2 which is required for
+ * GDPR compliance and AdSense serving in the EEA.
+ *
+ * How it works:
+ * 1. Sets default consent to 'denied' before loading any Google scripts
+ * 2. Loads gtag.js (required for consent mode to function)
+ * 3. CookieConsent component will call gtag('consent', 'update', ...) when user accepts
  *
  * Setup:
  * 1. Go to https://analytics.google.com/
@@ -26,13 +30,47 @@ export default function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps)
 
   return (
     <>
+      {/*
+        Google Consent Mode v2 - Default Settings
+        MUST be set before loading gtag.js
+        This sets all consent to 'denied' by default, requiring explicit user consent
+      */}
+      <Script
+        id="google-consent-default"
+        strategy="beforeInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+
+            // Set default consent to denied (required for GDPR/Consent Mode v2)
+            gtag('consent', 'default', {
+              'ad_storage': 'denied',
+              'ad_user_data': 'denied',
+              'ad_personalization': 'denied',
+              'analytics_storage': 'denied',
+              'functionality_storage': 'denied',
+              'personalization_storage': 'denied',
+              'security_storage': 'granted',
+              'wait_for_update': 500
+            });
+
+            // Enable URL passthrough for better measurement when cookies are denied
+            gtag('set', 'url_passthrough', true);
+
+            // Enable ads data redaction when ad_storage is denied
+            gtag('set', 'ads_data_redaction', true);
+          `,
+        }}
+      />
+
       {/* Google Analytics 4 - Global Site Tag (gtag.js) */}
       <Script
         strategy="afterInteractive"
         src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`}
       />
       <Script
-        id="google-analytics"
+        id="google-analytics-config"
         strategy="afterInteractive"
         dangerouslySetInnerHTML={{
           __html: `
@@ -41,6 +79,7 @@ export default function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps)
             gtag('js', new Date());
             gtag('config', '${measurementId}', {
               page_path: window.location.pathname,
+              send_page_view: true
             });
           `,
         }}
@@ -48,4 +87,3 @@ export default function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps)
     </>
   )
 }
-

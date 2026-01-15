@@ -262,11 +262,17 @@ The content will be automatically converted from Markdown to Portable Text forma
 
 export async function GET(request: NextRequest) {
   try {
-    // Verify cron secret
+    // Verify cron secret (fail-closed: no secret = deny access)
     const secret = request.nextUrl.searchParams.get('secret');
     const expectedSecret = process.env.CRON_SECRET;
 
-    if (expectedSecret && secret !== expectedSecret) {
+    // Fail-safe: if CRON_SECRET not configured, deny all access
+    if (!expectedSecret) {
+      console.error('CRON_SECRET not configured - cron access denied');
+      return ApiErrors.internalError('Cron endpoint not configured');
+    }
+
+    if (secret !== expectedSecret) {
       return ApiErrors.unauthorized();
     }
 

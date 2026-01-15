@@ -1,27 +1,68 @@
 /**
- * Simple admin authentication for private admin interface
+ * Admin authentication for private admin interface
  * Uses password-based authentication via environment variable
+ *
+ * SECURITY NOTES:
+ * - No default password - ADMIN_PASSWORD env var is required
+ * - No default session secret - ADMIN_SESSION_SECRET env var is required
+ * - Uses constant-time comparison to prevent timing attacks
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { randomBytes, createHmac } from 'crypto';
+import { secureCompare } from './security';
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin';
 const ADMIN_SESSION_COOKIE = 'admin_session';
-const ADMIN_SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || 'change-me-in-production';
 
 /**
- * Verify admin password
+ * Get admin password from environment (required, no default)
  */
-export function verifyAdminPassword(password: string): boolean {
-  return password === ADMIN_PASSWORD;
+function getAdminPassword(): string | null {
+  return process.env.ADMIN_PASSWORD || null;
 }
 
 /**
- * Create admin session
+ * Get session secret from environment (required, no default)
+ */
+function getSessionSecret(): string | null {
+  return process.env.ADMIN_SESSION_SECRET || null;
+}
+
+/**
+ * Verify admin password using constant-time comparison
+ */
+export function verifyAdminPassword(password: string): boolean {
+  const adminPassword = getAdminPassword();
+
+  // Fail-safe: if password not configured, deny all access
+  if (!adminPassword) {
+    console.error('ADMIN_PASSWORD not configured - admin access denied');
+    return false;
+  }
+
+  return secureCompare(password, adminPassword);
+}
+
+/**
+ * Create admin session with secure token
  */
 export function createAdminSession(): string {
-  // Simple session token (in production, use proper JWT or session management)
-  const sessionToken = Buffer.from(`${Date.now()}-${ADMIN_SESSION_SECRET}`).toString('base64');
+  const sessionSecret = getSessionSecret();
+
+  if (!sessionSecret) {
+    throw new Error('ADMIN_SESSION_SECRET not configured');
+  }
+
+  const timestamp = Date.now().toString();
+  const nonce = randomBytes(16).toString('hex');
+
+  // Create HMAC signature for the session data
+  const hmac = createHmac('sha256', sessionSecret);
+  hmac.update(`${timestamp}:${nonce}`);
+  const signature = hmac.digest('hex');
+
+  // Token format: timestamp:nonce:signature
+  const sessionToken = Buffer.from(`${timestamp}:${nonce}:${signature}`).toString('base64');
   return sessionToken;
 }
 
@@ -30,11 +71,28 @@ export function createAdminSession(): string {
  */
 export function verifyAdminSession(sessionToken: string): boolean {
   try {
-    const decoded = Buffer.from(sessionToken, 'base64').toString('utf-8');
-    const [timestamp, secret] = decoded.split('-');
+    const sessionSecret = getSessionSecret();
 
-    // Check if secret matches
-    if (secret !== ADMIN_SESSION_SECRET) {
+    if (!sessionSecret) {
+      console.error('ADMIN_SESSION_SECRET not configured - session verification failed');
+      return false;
+    }
+
+    const decoded = Buffer.from(sessionToken, 'base64').toString('utf-8');
+    const parts = decoded.split(':');
+
+    if (parts.length !== 3) {
+      return false;
+    }
+
+    const [timestamp, nonce, providedSignature] = parts;
+
+    // Verify HMAC signature
+    const hmac = createHmac('sha256', sessionSecret);
+    hmac.update(`${timestamp}:${nonce}`);
+    const expectedSignature = hmac.digest('hex');
+
+    if (!secureCompare(providedSignature, expectedSignature)) {
       return false;
     }
 
@@ -42,7 +100,7 @@ export function verifyAdminSession(sessionToken: string): boolean {
     const sessionAge = Date.now() - parseInt(timestamp, 10);
     const maxAge = 24 * 60 * 60 * 1000; // 24 hours
 
-    return sessionAge < maxAge;
+    return sessionAge < maxAge && sessionAge >= 0;
   } catch {
     return false;
   }
@@ -76,7 +134,7 @@ export function createAdminSessionResponse(data: unknown, status = 200): NextRes
   response.cookies.set(ADMIN_SESSION_COOKIE, sessionToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: 'strict',
     maxAge: 24 * 60 * 60, // 24 hours
     path: '/',
   });
@@ -92,4 +150,3 @@ export function createLogoutResponse(): NextResponse {
   response.cookies.delete(ADMIN_SESSION_COOKIE);
   return response;
 }
-
