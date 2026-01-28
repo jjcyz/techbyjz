@@ -4,6 +4,7 @@ import { client } from '@/lib/sanity';
 import { POSTS_QUERY, CATEGORIES_QUERY } from '@/lib/queries';
 import { isValidSlug, getSiteUrl } from '@/lib/utils';
 import { getCollectionPageSchema, StructuredData } from '@/lib/structured-data';
+import { fetchOptions } from '@/lib/revalidation-config';
 import type { Post, Category } from '@/types/post';
 import Footer from '@/components/shared/Footer';
 import Header from '@/components/shared/Header';
@@ -13,7 +14,7 @@ import Link from 'next/link';
 const SITE_URL = getSiteUrl();
 
 // Use ISR for posts listing page
-export const revalidate = 60; // Revalidate every 60 seconds
+export const revalidate = 3600; // 1 hour - update in lib/revalidation-config.ts if needed
 export const runtime = 'nodejs';
 
 // Generate metadata
@@ -77,19 +78,15 @@ export default async function PostsPage() {
         }
       }`,
       {},
-      { next: { revalidate: 60 } }
+      fetchOptions.fetch
     ),
-    client.fetch<Post[]>(POSTS_QUERY, {}, {
-      next: { revalidate: 60 }
-    }),
+    client.fetch<Post[]>(POSTS_QUERY, {}, fetchOptions.fetch),
     client.fetch<number>(
       `count(*[_type == "post"])`,
       {},
-      { next: { revalidate: 60 } }
+      fetchOptions.fetch
     ),
-    client.fetch<Category[]>(CATEGORIES_QUERY, {}, {
-      next: { revalidate: 60 }
-    })
+    client.fetch<Category[]>(CATEGORIES_QUERY, {}, fetchOptions.fetch)
   ]);
 
   // Filter posts to only show those with valid slugs

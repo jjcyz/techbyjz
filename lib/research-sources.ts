@@ -7,6 +7,7 @@
  */
 
 import Parser from 'rss-parser';
+import { fetchOptions } from './revalidation-config';
 
 export interface ResearchArticle {
   title: string;
@@ -106,7 +107,7 @@ async function fetchHackerNews(topic?: string, maxArticles: number = 15): Promis
   try {
     const topStoriesResponse = await fetch(
       'https://hacker-news.firebaseio.com/v0/topstories.json',
-      { cache: 'no-store' }
+      fetchOptions.research
     );
 
     if (!topStoriesResponse.ok) {
@@ -122,7 +123,7 @@ async function fetchHackerNews(topic?: string, maxArticles: number = 15): Promis
         try {
           const storyResponse = await fetch(
             `https://hacker-news.firebaseio.com/v0/item/${id}.json`,
-            { cache: 'no-store' }
+            fetchOptions.research
           );
           if (!storyResponse.ok) return null;
           return await storyResponse.json();

@@ -5,6 +5,7 @@ import Header from '@/components/shared/Header';
 import { client } from '@/lib/sanity';
 import { POSTS_QUERY, CATEGORIES_QUERY } from '@/lib/queries';
 import { isValidSlug } from '@/lib/utils';
+import { fetchOptions } from '@/lib/revalidation-config';
 import type { Post, Category } from '@/types/post';
 
 export const metadata: Metadata = {
@@ -18,12 +19,8 @@ export const metadata: Metadata = {
 
 export default async function TermsPage() {
   const [posts, categories] = await Promise.all([
-    client.fetch<Post[]>(POSTS_QUERY, {}, {
-      next: { revalidate: 3600 }
-    }),
-    client.fetch<Category[]>(CATEGORIES_QUERY, {}, {
-      next: { revalidate: 3600 }
-    })
+    client.fetch<Post[]>(POSTS_QUERY, {}, fetchOptions.static),
+    client.fetch<Category[]>(CATEGORIES_QUERY, {}, fetchOptions.static)
   ]);
 
   const validPosts = posts.filter((post) => isValidSlug(post.slug?.current));

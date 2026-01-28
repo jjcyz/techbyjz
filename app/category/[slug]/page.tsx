@@ -5,6 +5,7 @@ import { client } from '@/lib/sanity';
 import { CATEGORY_BY_SLUG_QUERY, POSTS_QUERY, CATEGORIES_QUERY } from '@/lib/queries';
 import { isValidSlug } from '@/lib/utils';
 import { getCollectionPageSchema, StructuredData } from '@/lib/structured-data';
+import { fetchOptions } from '@/lib/revalidation-config';
 import type { Post, Category } from '@/types/post';
 import Footer from '@/components/shared/Footer';
 import Header from '@/components/shared/Header';
@@ -17,7 +18,7 @@ interface PageProps {
 }
 
 // Use ISR for category pages
-export const revalidate = 60; // Revalidate every 60 seconds
+export const revalidate = 3600; // 1 hour - update in lib/revalidation-config.ts if needed
 export const runtime = 'nodejs';
 
 // Generate static params for all categories
@@ -112,9 +113,7 @@ export default async function CategoryPage({ params }: PageProps) {
   }
 
   // First fetch category to get its ID
-  const category = await client.fetch<Category | null>(CATEGORY_BY_SLUG_QUERY, { slug }, {
-    next: { revalidate: 60 }
-  });
+  const category = await client.fetch<Category | null>(CATEGORY_BY_SLUG_QUERY, { slug }, fetchOptions.fetch);
 
   // If category not found, show 404
   if (!category || !category.slug?.current || !isValidSlug(category.slug.current)) {
@@ -148,19 +147,15 @@ export default async function CategoryPage({ params }: PageProps) {
         }
       }`,
       { categoryId: category._id },
-      { next: { revalidate: 60 } }
+      fetchOptions.fetch
     ),
-    client.fetch<Post[]>(POSTS_QUERY, {}, {
-      next: { revalidate: 60 }
-    }),
+    client.fetch<Post[]>(POSTS_QUERY, {}, fetchOptions.fetch),
     client.fetch<number>(
       `count(*[_type == "post" && $categoryId in categories[]._ref])`,
       { categoryId: category._id },
-      { next: { revalidate: 60 } }
+      fetchOptions.fetch
     ),
-    client.fetch<Category[]>(CATEGORIES_QUERY, {}, {
-      next: { revalidate: 60 }
-    })
+    client.fetch<Category[]>(CATEGORIES_QUERY, {}, fetchOptions.fetch)
   ]);
 
   // Filter posts to only show those with valid slugs

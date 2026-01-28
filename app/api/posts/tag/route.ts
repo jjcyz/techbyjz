@@ -4,6 +4,7 @@ import { TAG_BY_SLUG_QUERY } from '@/lib/queries';
 import { isValidSlug } from '@/lib/utils';
 import { checkRateLimit, RATE_LIMITS, isBot } from '@/lib/rate-limit';
 import { ApiErrors, successResponse } from '@/lib/api-response';
+import { fetchOptions } from '@/lib/revalidation-config';
 import type { Post, Tag } from '@/types/post';
 
 const POSTS_PER_PAGE = 12;
@@ -51,7 +52,7 @@ export async function GET(request: NextRequest) {
     const tag = await client.fetch<Tag | null>(
       TAG_BY_SLUG_QUERY,
       { slug },
-      { next: { revalidate: 60 } }
+      fetchOptions.api
     );
 
     if (!tag) {
@@ -87,14 +88,14 @@ export async function GET(request: NextRequest) {
         }
       }`,
       { tagId: tag._id },
-      { next: { revalidate: 60 } }
+      fetchOptions.api
     );
 
     // Get total count for pagination
     const totalCount = await client.fetch<number>(
       `count(*[_type == "post" && $tagId in tags[]._ref])`,
       { tagId: tag._id },
-      { next: { revalidate: 60 } }
+      fetchOptions.api
     );
 
     const hasMore = end < totalCount;

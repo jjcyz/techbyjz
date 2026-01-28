@@ -5,6 +5,7 @@ import { client } from '@/lib/sanity';
 import { TAG_BY_SLUG_QUERY, POSTS_QUERY, CATEGORIES_QUERY } from '@/lib/queries';
 import { isValidSlug } from '@/lib/utils';
 import { getCollectionPageSchema, StructuredData } from '@/lib/structured-data';
+import { fetchOptions } from '@/lib/revalidation-config';
 import type { Post, Tag, Category } from '@/types/post';
 import Footer from '@/components/shared/Footer';
 import Header from '@/components/shared/Header';
@@ -17,7 +18,7 @@ interface PageProps {
 }
 
 // Use ISR for tag pages
-export const revalidate = 60; // Revalidate every 60 seconds
+export const revalidate = 3600; // 1 hour - update in lib/revalidation-config.ts if needed
 export const runtime = 'nodejs';
 
 // Generate static params for all tags
@@ -31,10 +32,7 @@ export async function generateStaticParams() {
         slug
       }`,
       {},
-      {
-        // Add timeout and better error handling for build time
-        next: { revalidate: 3600 }, // Cache for 1 hour during build
-      }
+      fetchOptions.fetch
     );
     return tags
       .filter((tag) => isValidSlug(tag.slug?.current))
@@ -127,9 +125,7 @@ export default async function TagPage({ params }: PageProps) {
   }
 
   // First fetch tag to get its ID
-  const tag = await client.fetch<Tag | null>(TAG_BY_SLUG_QUERY, { slug }, {
-    next: { revalidate: 60 }
-  });
+  const tag = await client.fetch<Tag | null>(TAG_BY_SLUG_QUERY, { slug }, fetchOptions.fetch);
 
   // If tag not found, show 404
   if (!tag || !tag.slug?.current || !isValidSlug(tag.slug.current)) {
@@ -163,19 +159,15 @@ export default async function TagPage({ params }: PageProps) {
         }
       }`,
       { tagId: tag._id },
-      { next: { revalidate: 60 } }
+      fetchOptions.fetch
     ),
-    client.fetch<Post[]>(POSTS_QUERY, {}, {
-      next: { revalidate: 60 }
-    }),
+    client.fetch<Post[]>(POSTS_QUERY, {}, fetchOptions.fetch),
     client.fetch<number>(
       `count(*[_type == "post" && $tagId in tags[]._ref])`,
       { tagId: tag._id },
-      { next: { revalidate: 60 } }
+      fetchOptions.fetch
     ),
-    client.fetch<Category[]>(CATEGORIES_QUERY, {}, {
-      next: { revalidate: 60 }
-    })
+    client.fetch<Category[]>(CATEGORIES_QUERY, {}, fetchOptions.fetch)
   ]);
 
   // Filter posts to only show those with valid slugs

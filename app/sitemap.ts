@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next'
 import { client } from '@/lib/sanity'
 import { POSTS_SITEMAP_QUERY, CATEGORIES_QUERY, TAGS_QUERY } from '@/lib/queries'
+import { fetchOptions } from '@/lib/revalidation-config'
 import type { Category, Tag } from '@/types/post'
 
 // Lightweight interface for sitemap posts (only what we need)
@@ -46,15 +47,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Fetch all posts, categories, and tags in parallel
     // Using lightweight query for posts to improve performance
     const [posts, categories, tags] = await Promise.all([
-      client.fetch<SitemapPost[]>(POSTS_SITEMAP_QUERY, {}, {
-        next: { revalidate: 86400 } // Revalidate every 24 hours (sitemaps don't need frequent updates)
-      }),
-      client.fetch<Category[]>(CATEGORIES_QUERY, {}, {
-        next: { revalidate: 86400 } // 24 hours
-      }),
-      client.fetch<Tag[]>(TAGS_QUERY, {}, {
-        next: { revalidate: 86400 } // 24 hours
-      })
+      client.fetch<SitemapPost[]>(POSTS_SITEMAP_QUERY, {}, fetchOptions.sitemap),
+      client.fetch<Category[]>(CATEGORIES_QUERY, {}, fetchOptions.sitemap),
+      client.fetch<Tag[]>(TAGS_QUERY, {}, fetchOptions.sitemap)
     ])
 
     // Dynamic post pages

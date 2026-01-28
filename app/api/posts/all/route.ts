@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { client } from '@/lib/sanity';
 import { checkRateLimit, RATE_LIMITS, isBot } from '@/lib/rate-limit';
 import { ApiErrors, successResponse } from '@/lib/api-response';
+import { fetchOptions } from '@/lib/revalidation-config';
 import type { Post } from '@/types/post';
 
 const POSTS_PER_PAGE = 12;
@@ -69,14 +70,14 @@ export async function GET(request: NextRequest) {
         }
       }`,
       {},
-      { next: { revalidate: 60 } }
+      fetchOptions.api
     );
 
     // Get total count for pagination
     const totalCount = await client.fetch<number>(
       `count(*[_type == "post"])`,
       {},
-      { next: { revalidate: 60 } }
+      fetchOptions.api
     );
 
     const hasMore = end < totalCount;

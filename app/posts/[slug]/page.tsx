@@ -16,6 +16,7 @@ import PostContent from '@/components/posts/PostContent';
 import PostTitle from '@/components/posts/PostTitle';
 import PostExcerpt from '@/components/posts/PostExcerpt';
 import { AdSenseSidebar } from '@/components/ads/AdSense';
+import { fetchOptions } from '@/lib/revalidation-config';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -24,7 +25,7 @@ interface PageProps {
 // Use on-demand ISR: posts are generated on first request, then cached
 // This makes builds scalable - no need to generate all posts at build time
 export const dynamicParams = true; // Allow dynamic params not in generateStaticParams
-export const revalidate = 60; // Revalidate every 60 seconds (ISR)
+export const revalidate = 3600; // 1 hour - update in lib/revalidation-config.ts if needed
 export const runtime = 'nodejs'; // Ensure Node.js runtime for Vercel
 
 // Optional: Pre-generate only the most recent posts for faster initial load
@@ -138,15 +139,9 @@ export default async function PostPage({ params }: PageProps) {
 
   // Fetch the post, all posts (for search), categories, and related posts in parallel
   const [post, allPosts, categories] = await Promise.all([
-    client.fetch<Post | null>(POST_BY_SLUG_QUERY, { slug }, {
-      next: { revalidate: 60 }
-    }),
-    client.fetch<Post[]>(POSTS_QUERY, {}, {
-      next: { revalidate: 60 }
-    }),
-    client.fetch<Category[]>(CATEGORIES_QUERY, {}, {
-      next: { revalidate: 60 }
-    })
+    client.fetch<Post | null>(POST_BY_SLUG_QUERY, { slug }, fetchOptions.fetch),
+    client.fetch<Post[]>(POSTS_QUERY, {}, fetchOptions.fetch),
+    client.fetch<Category[]>(CATEGORIES_QUERY, {}, fetchOptions.fetch)
   ]);
 
   // If post not found or has invalid slug, show 404
@@ -177,18 +172,14 @@ export default async function PostPage({ params }: PageProps) {
     relatedPosts = await client.fetch<Post[]>(RELATED_POSTS_QUERY, {
       postId: post._id,
       categoryIds,
-    }, {
-      next: { revalidate: 60 }
-    });
+    }, fetchOptions.fetch);
   }
 
   // If no related posts found by category, show recent posts instead
   if (relatedPosts.length === 0) {
     relatedPosts = await client.fetch<Post[]>(RECENT_POSTS_QUERY, {
       postId: post._id,
-    }, {
-      next: { revalidate: 60 }
-    });
+    }, fetchOptions.fetch);
   }
 
   const formattedDate = post.publishedAt

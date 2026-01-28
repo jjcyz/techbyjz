@@ -14,6 +14,7 @@ import { AdSenseBanner } from "@/components/ads/AdSense";
 import { isValidSlug, groupPostsByCategory, getRandomPost } from "@/lib/utils";
 import { getBlogSchema, StructuredData } from "@/lib/structured-data";
 import type { Post, Category } from "@/types/post";
+import { fetchOptions } from "@/lib/revalidation-config";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://techbyjz.blog';
 
@@ -46,12 +47,8 @@ export default async function Home() {
 
   try {
     [posts, categories] = await Promise.all([
-      client.fetch<Post[]>(POSTS_QUERY, {}, {
-        next: { revalidate: 60 } // Revalidate every 60 seconds for ISR
-      }),
-      client.fetch<Category[]>(CATEGORIES_QUERY, {}, {
-        next: { revalidate: 60 }
-      })
+      client.fetch<Post[]>(POSTS_QUERY, {}, fetchOptions.fetch),
+      client.fetch<Category[]>(CATEGORIES_QUERY, {}, fetchOptions.fetch)
     ]);
   } catch (error) {
     console.error('Error fetching data from Sanity:', error);

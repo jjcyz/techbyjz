@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation';
 import { client } from '@/lib/sanity';
 import { POST_BY_SLUG_QUERY } from '@/lib/queries';
 import { isValidSlug } from '@/lib/utils';
+import { fetchOptions } from '@/lib/revalidation-config';
 import type { Post } from '@/types/post';
 
 /**
@@ -16,7 +17,7 @@ import type { Post } from '@/types/post';
  * because Next.js prioritizes static routes over dynamic catch-all routes.
  */
 export const dynamicParams = true;
-export const revalidate = 60; // Revalidate every 60 seconds
+export const revalidate = 3600; // 1 hour - update in lib/revalidation-config.ts if needed
 
 export async function generateStaticParams() {
   // Don't pre-generate any params - let this be dynamic
@@ -47,9 +48,7 @@ export default async function SlugPage({ params }: { params: Promise<{ slug: str
   try {
     // Check if this slug exists as a post (including drafts for better matching)
     // First try exact match
-    let post = await client.fetch<Post | null>(POST_BY_SLUG_QUERY, { slug }, {
-      next: { revalidate: 60 }
-    });
+    let post = await client.fetch<Post | null>(POST_BY_SLUG_QUERY, { slug }, fetchOptions.fetch);
 
     // If not found, try case-insensitive match or with different separators
     if (!post) {
@@ -59,7 +58,7 @@ export default async function SlugPage({ params }: { params: Promise<{ slug: str
           slug { current }
         }`,
         {},
-        { next: { revalidate: 60 } }
+        fetchOptions.fetch
       );
 
       // Find post with matching slug (case-insensitive, handle URL encoding)
@@ -71,9 +70,7 @@ export default async function SlugPage({ params }: { params: Promise<{ slug: str
       });
 
       if (matchingPost?.slug?.current) {
-        post = await client.fetch<Post | null>(POST_BY_SLUG_QUERY, { slug: matchingPost.slug.current }, {
-          next: { revalidate: 60 }
-        });
+        post = await client.fetch<Post | null>(POST_BY_SLUG_QUERY, { slug: matchingPost.slug.current }, fetchOptions.fetch);
       }
     }
 
