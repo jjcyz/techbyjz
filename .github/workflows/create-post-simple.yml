@@ -20,7 +20,7 @@ jobs:
         run: |
           # Call your cron endpoint
           # Your API will handle AI generation internally
-          RESPONSE=$(curl -s -X GET "$API_URL/api/cron/create-post?secret=$CRON_SECRET")
+          RESPONSE=$(curl -fsS -X GET "$API_URL/api/cron/create-post?secret=$CRON_SECRET")
 
           if echo "$RESPONSE" | jq -e '.success' > /dev/null; then
             echo "✅ Post created successfully!"

@@ -39,7 +39,7 @@ jobs:
           TOPIC: ${{ inputs.topic }}
         run: |
           # Call the cron endpoint to generate and publish the post
-          curl -X GET "$API_URL/api/cron/create-post?secret=$CRON_SECRET&topic=${TOPIC:-}" \
+          curl -fsS -X GET "$API_URL/api/cron/create-post?secret=$CRON_SECRET&topic=${TOPIC:-}" \
             -H "x-api-key: $API_KEY" \
             -H "Content-Type: application/json" \
             -w "\nHTTP Status: %{http_code}\n"

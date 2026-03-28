@@ -13,7 +13,9 @@ export function middleware(request: NextRequest) {
   // Configure in Vercel Dashboard → Project → Settings → Domains
 
   // Block bots from API endpoints (except allowed search engines and AI search bots)
-  if (pathname.startsWith('/api/')) {
+  // Cron routes are excluded: GitHub Actions and other schedulers use curl (flagged as "bot"
+  // by isBot); the handler still requires CRON_SECRET.
+  if (pathname.startsWith('/api/') && !pathname.startsWith('/api/cron/')) {
     // Allow traditional search engines and AI search bots to access public API endpoints
     // These help users discover content through search
     const isSearchEngine = /googlebot|bingbot|slurp|duckduckbot|chatgpt-user|anthropic-ai|claude-web|perplexitybot|perplexity-ai/i.test(userAgent);
