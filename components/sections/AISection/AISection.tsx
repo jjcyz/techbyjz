@@ -19,7 +19,6 @@ export default function AISection({ posts, category }: AISectionProps) {
           title="AI Models"
           category={category}
           sectionId="ai-posts"
-          theme="purple"
         />
 
         {/* Uniform square grid layout */}

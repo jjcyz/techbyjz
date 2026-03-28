@@ -46,7 +46,7 @@ export default async function ContactPage() {
           </p>
         </div>
 
-        <div className="prose prose-invert max-w-none space-y-8 text-sm md:text-base text-[var(--foreground)]">
+        <div className="prose prose-neutral max-w-none space-y-8 text-sm md:text-base text-[var(--foreground)]">
           <section className="bg-[var(--card-bg)] border border-[var(--border-color)] p-6 md:p-8 rounded-lg">
             <h2 className="text-xl md:text-2xl font-bold text-[var(--foreground)] mb-4">
               Get in Touch

@@ -133,7 +133,7 @@ export default function Header({ posts, categories = [] }: HeaderProps) {
 
       {/* Navigation Menu Overlay */}
       {isMenuOpen && (
-        <div className="fixed inset-0 bg-[var(--background-dark-navy)]/95 backdrop-blur-md z-40 overflow-y-auto">
+        <div className="fixed inset-0 bg-[var(--background)]/95 backdrop-blur-md z-40 overflow-y-auto">
           <div className="min-h-screen px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 py-8 md:py-12">
             <nav className="max-w-4xl mx-auto space-y-2">
               {/* Logo/Brand */}
@@ -143,7 +143,7 @@ export default function Header({ posts, categories = [] }: HeaderProps) {
                   className="inline-block group"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-[var(--electric-blue)] to-[var(--purple)] bg-clip-text text-transparent group-hover:opacity-80 transition-opacity">
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--electric-blue)] group-hover:opacity-90 transition-opacity">
                     TechByJZ
                   </h1>
                 </Link>
@@ -154,8 +154,8 @@ export default function Header({ posts, categories = [] }: HeaderProps) {
                 href="/"
                 className={`block py-4 px-6 text-lg font-medium transition-all duration-300 ${
                   pathname === '/'
-                    ? 'text-[var(--electric-blue)] bg-[var(--card-bg)] border-2 border-[var(--electric-blue)] shadow-[0_0_20px_rgba(0,191,255,0.3)]'
-                    : 'text-[var(--foreground-low)] hover:text-[var(--electric-blue)] hover:bg-[var(--card-bg)] border-2 border-transparent hover:border-[var(--border-color)]'
+                    ? 'text-[var(--electric-blue)] bg-[var(--surface-muted)] border-2 border-[var(--electric-blue)] shadow-sm'
+                    : 'text-[var(--foreground-low)] hover:text-[var(--electric-blue)] hover:bg-[var(--surface-muted)] border-2 border-transparent hover:border-[var(--border-color)]'
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -168,8 +168,8 @@ export default function Header({ posts, categories = [] }: HeaderProps) {
                   href={`/category/${category.slug!.current}`}
                   className={`block py-4 px-6 text-lg font-medium transition-all duration-300 ${
                     pathname?.startsWith(`/category/${category.slug!.current}`)
-                      ? 'text-[var(--electric-blue)] bg-[var(--card-bg)] border-2 border-[var(--electric-blue)] shadow-[0_0_20px_rgba(0,191,255,0.3)]'
-                      : 'text-[var(--foreground-low)] hover:text-[var(--electric-blue)] hover:bg-[var(--card-bg)] border-2 border-transparent hover:border-[var(--border-color)]'
+                      ? 'text-[var(--electric-blue)] bg-[var(--surface-muted)] border-2 border-[var(--electric-blue)] shadow-sm'
+                      : 'text-[var(--foreground-low)] hover:text-[var(--electric-blue)] hover:bg-[var(--surface-muted)] border-2 border-transparent hover:border-[var(--border-color)]'
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
@@ -181,8 +181,8 @@ export default function Header({ posts, categories = [] }: HeaderProps) {
                 href="/about"
                 className={`block py-4 px-6 text-lg font-medium transition-all duration-300 ${
                   pathname === '/about'
-                    ? 'text-[var(--electric-blue)] bg-[var(--card-bg)] border-2 border-[var(--electric-blue)] shadow-[0_0_20px_rgba(0,191,255,0.3)]'
-                    : 'text-[var(--foreground-low)] hover:text-[var(--electric-blue)] hover:bg-[var(--card-bg)] border-2 border-transparent hover:border-[var(--border-color)]'
+                    ? 'text-[var(--electric-blue)] bg-[var(--surface-muted)] border-2 border-[var(--electric-blue)] shadow-sm'
+                    : 'text-[var(--foreground-low)] hover:text-[var(--electric-blue)] hover:bg-[var(--surface-muted)] border-2 border-transparent hover:border-[var(--border-color)]'
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -193,8 +193,8 @@ export default function Header({ posts, categories = [] }: HeaderProps) {
                 href="/contact"
                 className={`block py-4 px-6 text-lg font-medium transition-all duration-300 ${
                   pathname === '/contact'
-                    ? 'text-[var(--electric-blue)] bg-[var(--card-bg)] border-2 border-[var(--electric-blue)] shadow-[0_0_20px_rgba(0,191,255,0.3)]'
-                    : 'text-[var(--foreground-low)] hover:text-[var(--electric-blue)] hover:bg-[var(--card-bg)] border-2 border-transparent hover:border-[var(--border-color)]'
+                    ? 'text-[var(--electric-blue)] bg-[var(--surface-muted)] border-2 border-[var(--electric-blue)] shadow-sm'
+                    : 'text-[var(--foreground-low)] hover:text-[var(--electric-blue)] hover:bg-[var(--surface-muted)] border-2 border-transparent hover:border-[var(--border-color)]'
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -203,7 +203,7 @@ export default function Header({ posts, categories = [] }: HeaderProps) {
 
               <Link
                 href="/privacy"
-                className="block py-4 px-6 text-lg font-medium text-[var(--foreground-low)] hover:text-[var(--electric-blue)] hover:bg-[var(--card-bg)] border-2 border-transparent hover:border-[var(--border-color)] transition-all duration-300"
+                className="block py-4 px-6 text-lg font-medium text-[var(--foreground-low)] hover:text-[var(--electric-blue)] hover:bg-[var(--surface-muted)] border-2 border-transparent hover:border-[var(--border-color)] transition-all duration-300"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Privacy Policy
@@ -211,7 +211,7 @@ export default function Header({ posts, categories = [] }: HeaderProps) {
 
               <Link
                 href="/terms"
-                className="block py-4 px-6 text-lg font-medium text-[var(--foreground-low)] hover:text-[var(--electric-blue)] hover:bg-[var(--card-bg)] border-2 border-transparent hover:border-[var(--border-color)] transition-all duration-300"
+                className="block py-4 px-6 text-lg font-medium text-[var(--foreground-low)] hover:text-[var(--electric-blue)] hover:bg-[var(--surface-muted)] border-2 border-transparent hover:border-[var(--border-color)] transition-all duration-300"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Terms of Service

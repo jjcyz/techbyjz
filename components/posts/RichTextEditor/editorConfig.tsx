@@ -108,7 +108,7 @@ export const editorExtensions = [
 
 export const editorProps = {
   attributes: {
-    class: 'prose prose-invert max-w-none focus:outline-none min-h-[400px] px-4 py-3',
+    class: 'prose prose-neutral max-w-none focus:outline-none min-h-[400px] px-4 py-3',
     'aria-label': 'Rich text editor',
   },
 }

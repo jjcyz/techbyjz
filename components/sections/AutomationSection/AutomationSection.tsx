@@ -19,7 +19,6 @@ export default function AutomationSection({ posts, category }: AutomationSection
           title="Automation"
           category={category}
           sectionId="automation-posts"
-          theme="electric-blue"
         />
 
         {/* Content area with featured card and grid */}

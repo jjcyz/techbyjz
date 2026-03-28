@@ -83,7 +83,7 @@ export const portableTextComponents: any = {
       );
     },
     blockquote: ({ children }: PortableTextComponentProps<PortableTextBlock>) => (
-      <blockquote className="border-l-4 border-[var(--electric-blue)] pl-3 my-4 italic text-xs sm:text-sm text-[var(--foreground-low)] bg-[var(--card-bg)]/30 py-2 max-w-[65ch] mx-auto leading-relaxed">
+      <blockquote className="border-l-4 border-[var(--electric-blue)] pl-3 my-4 italic text-xs sm:text-sm text-[var(--foreground-low)] bg-[var(--surface-muted)] py-2 max-w-[65ch] mx-auto leading-relaxed rounded-r-sm">
         {children}
       </blockquote>
     ),
@@ -111,7 +111,7 @@ export const portableTextComponents: any = {
     em: ({ children }: any) => <em className="italic">{children}</em>,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     code: ({ children }: any) => (
-      <code className="bg-[var(--card-bg)] px-1.5 py-0.5 text-[var(--electric-blue)] text-xs font-mono">
+      <code className="bg-[var(--surface-muted)] px-1.5 py-0.5 text-[var(--foreground)] text-xs font-mono rounded">
         {children}
       </code>
     ),

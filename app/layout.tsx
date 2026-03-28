@@ -39,8 +39,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TechByJZ Blog | Futuristic Tech Insights",
-  description: "A futuristic sci-fi themed tech blog featuring cutting-edge tech insights",
+  title: "TechByJZ Blog | Tech Insights",
+  description: "Tech news, AI, automation, and cybersecurity — clear analysis and ideas you will not find everywhere else.",
   robots: {
     index: true,
     follow: true,
@@ -92,7 +92,7 @@ export default function RootLayout({
         {/* Skip to main content link for accessibility */}
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 z-50 px-4 py-2 bg-[var(--electric-blue)] text-[var(--background-dark-navy)] font-semibold rounded focus:outline-none focus:ring-2 focus:ring-[var(--electric-blue)] focus:ring-offset-2"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 z-50 px-4 py-2 bg-[var(--electric-blue)] text-white font-semibold rounded-sm focus:outline-none focus:ring-2 focus:ring-[var(--electric-blue)] focus:ring-offset-2"
         >
           Skip to main content
         </a>

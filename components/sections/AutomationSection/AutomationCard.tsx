@@ -11,7 +11,6 @@ export default function AutomationCard({ post, featured = false }: AutomationCar
     <PostCard
       post={post}
       variant={featured ? 'overlay-featured' : 'overlay-square'}
-      theme="electric-blue"
       featured={featured}
     />
   );

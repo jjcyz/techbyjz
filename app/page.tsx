@@ -20,11 +20,11 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://techbyjz.blog';
 
 // Enhanced metadata for home page
 export const metadata: Metadata = {
-  title: "TechByJZ Blog | Futuristic Tech Insights",
-  description: "A futuristic tech blog featuring cutting-edge insights on technology, AI, automation, and cybersecurity. Stay ahead with the latest tech trends and innovations.",
+  title: "TechByJZ Blog | Tech Insights",
+  description: "Clear analysis on technology, AI, automation, and cybersecurity — trends, deep dives, and ideas worth your time.",
   openGraph: {
-    title: "TechByJZ Blog | Futuristic Tech Insights",
-    description: "A futuristic tech blog featuring cutting-edge insights on technology, AI, automation, and cybersecurity.",
+    title: "TechByJZ Blog | Tech Insights",
+    description: "Technology, AI, automation, and cybersecurity — analysis and ideas worth your time.",
     url: SITE_URL,
     siteName: "TechByJZ",
     locale: "en_US",
@@ -32,8 +32,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "TechByJZ Blog | Futuristic Tech Insights",
-    description: "A futuristic tech blog featuring cutting-edge insights on technology, AI, automation, and cybersecurity.",
+    title: "TechByJZ Blog | Tech Insights",
+    description: "Technology, AI, automation, and cybersecurity — analysis and ideas worth your time.",
   },
   alternates: {
     canonical: SITE_URL,
@@ -100,10 +100,7 @@ export default async function Home() {
       <Header posts={validPosts} categories={categoriesWithPosts} />
       <main id="main-content" className="min-h-screen relative overflow-x-hidden w-full">
       {/* Hero Banner Section */}
-      <HeroBannerSection
-        posts={validPosts}
-        randomPost={randomPost}
-      />
+      <HeroBannerSection randomPost={randomPost} />
 
       {/* AdSense Banner Ad - After Hero Section */}
       <div className="w-full px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 py-4">

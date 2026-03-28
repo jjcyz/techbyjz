@@ -45,7 +45,7 @@ export default async function PrivacyPage() {
           </p>
         </div>
 
-        <div className="prose prose-invert max-w-none space-y-6 text-sm md:text-base text-[var(--foreground)]">
+        <div className="prose prose-neutral max-w-none space-y-6 text-sm md:text-base text-[var(--foreground)]">
           <section>
             <h2 className="text-xl md:text-2xl font-bold text-[var(--foreground)] mb-4 mt-8">
               Introduction

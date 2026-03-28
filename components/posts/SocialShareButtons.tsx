@@ -103,7 +103,7 @@ export default function SocialShareButtons({ title, url, excerpt }: SocialShareB
           href={shareLinks.twitter}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-white hover:text-[var(--electric-blue)] transition-colors duration-300"
+          className="text-[var(--foreground-muted)] hover:text-[var(--electric-blue)] transition-colors duration-300"
           aria-label="Share on Twitter"
         >
           <TwitterIcon />
@@ -112,7 +112,7 @@ export default function SocialShareButtons({ title, url, excerpt }: SocialShareB
           href={shareLinks.facebook}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-white hover:text-[var(--electric-blue)] transition-colors duration-300"
+          className="text-[var(--foreground-muted)] hover:text-[var(--electric-blue)] transition-colors duration-300"
           aria-label="Share on Facebook"
         >
           <FacebookIcon />
@@ -121,7 +121,7 @@ export default function SocialShareButtons({ title, url, excerpt }: SocialShareB
           href={shareLinks.linkedin}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-white hover:text-[var(--electric-blue)] transition-colors duration-300"
+          className="text-[var(--foreground-muted)] hover:text-[var(--electric-blue)] transition-colors duration-300"
           aria-label="Share on LinkedIn"
         >
           <LinkedInIcon />
@@ -130,21 +130,21 @@ export default function SocialShareButtons({ title, url, excerpt }: SocialShareB
           href={shareLinks.reddit}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-white hover:text-[var(--electric-blue)] transition-colors duration-300"
+          className="text-[var(--foreground-muted)] hover:text-[var(--electric-blue)] transition-colors duration-300"
           aria-label="Share on Reddit"
         >
           <RedditIcon />
         </a>
         <button
           onClick={handleInstagramShare}
-          className="text-white hover:text-[var(--electric-blue)] transition-colors duration-300"
+          className="text-[var(--foreground-muted)] hover:text-[var(--electric-blue)] transition-colors duration-300"
           aria-label="Share on Instagram"
         >
           <InstagramIcon />
         </button>
         <button
           onClick={handleCopyLink}
-          className="text-white hover:text-[var(--electric-blue)] transition-colors duration-300"
+          className="text-[var(--foreground-muted)] hover:text-[var(--electric-blue)] transition-colors duration-300"
           aria-label="Copy link"
         >
           <CopyIcon />

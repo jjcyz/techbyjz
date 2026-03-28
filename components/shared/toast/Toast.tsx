@@ -56,7 +56,7 @@ export default function Toast({ toast, onRemove }: ToastProps) {
 
     switch (toast.type) {
       case 'success':
-        return `${baseStyles} bg-[var(--card-bg)] border-[var(--neon-cyan)] text-[var(--foreground)]`;
+        return `${baseStyles} bg-[var(--card-bg)] border-emerald-600 text-[var(--foreground)]`;
       case 'error':
         return `${baseStyles} bg-[var(--card-bg)] border-red-500 text-[var(--foreground)]`;
       case 'warning':
@@ -70,7 +70,7 @@ export default function Toast({ toast, onRemove }: ToastProps) {
   const getIconColor = () => {
     switch (toast.type) {
       case 'success':
-        return 'text-[var(--neon-cyan)]';
+        return 'text-emerald-600';
       case 'error':
         return 'text-red-500';
       case 'warning':

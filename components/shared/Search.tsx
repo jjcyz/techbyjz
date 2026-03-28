@@ -188,7 +188,7 @@ function SearchInner({ posts }: SearchProps) {
                     <Link
                       key={post._id || slug}
                       href={`/posts/${slug}`}
-                      className="block p-3 hover:bg-[var(--hover-cyan-bg)] hover:text-[var(--electric-blue)] transition-colors focus:outline-none"
+                      className="block p-3 rounded-sm hover:bg-[var(--hover-accent-bg)] hover:text-[var(--electric-blue)] transition-colors focus:outline-none"
                       onClick={() => setIsExpanded(false)}
                     >
                       <h4 className="text-sm sm:text-base font-semibold text-[var(--foreground)] hover:text-[var(--electric-blue)] transition-colors">
@@ -220,7 +220,7 @@ export default function Search({ posts }: SearchProps) {
   return (
     <Suspense fallback={
       <div className="relative">
-        <button className="p-3 text-white transition-all duration-300" aria-label="Open search">
+        <button className="p-3 text-[var(--foreground-low)] transition-all duration-300" aria-label="Open search">
           <SearchIcon />
         </button>
       </div>

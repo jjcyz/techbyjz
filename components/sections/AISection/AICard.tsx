@@ -6,6 +6,6 @@ interface AICardProps {
 }
 
 export default function AICard({ post }: AICardProps) {
-  return <PostCard post={post} variant="overlay-square" theme="purple" />;
+  return <PostCard post={post} variant="overlay-square" />;
 }
 

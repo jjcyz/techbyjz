@@ -106,11 +106,11 @@ export default function InfiniteScrollPosts({
             <Link
               key={post._id}
               href={`/posts/${postSlug}`}
-              className="group block relative transition-all duration-300 h-full border border-[var(--border-color)] hover:border-[var(--electric-blue)] hover:shadow-[0_0_20px_rgba(0,191,255,0.3)] bg-[var(--card-bg)]"
+              className="group block relative transition-all duration-300 h-full border border-[var(--border-color)] rounded-sm hover:border-[var(--electric-blue)] hover:shadow-md bg-[var(--card-bg)]"
             >
               {/* Post Image */}
               {imageUrl ? (
-                <div className="relative w-full aspect-[16/9] overflow-hidden bg-[var(--background-dark-navy)]">
+                <div className="relative w-full aspect-[16/9] overflow-hidden bg-[var(--surface-muted)]">
                   <Image
                     src={imageUrl}
                     alt={post.mainImage?.alt || post.title}
@@ -120,7 +120,7 @@ export default function InfiniteScrollPosts({
                   />
                 </div>
               ) : (
-                <div className="relative w-full aspect-[16/9] bg-[var(--background-dark-navy)] flex items-center justify-center">
+                <div className="relative w-full aspect-[16/9] bg-[var(--surface-muted)] flex items-center justify-center">
                   <div className="w-16 h-16 bg-gradient-to-br from-[var(--electric-blue)]/20 to-[var(--electric-blue)]/20 opacity-30 blur-xl" />
                 </div>
               )}

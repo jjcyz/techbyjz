@@ -38,10 +38,10 @@ export default function RelatedPosts({ posts, currentPostSlug }: RelatedPostsPro
             <Link
               key={post._id}
               href={`/posts/${slug}`}
-              className="group relative transition-all duration-300 h-full flex flex-col border border-[var(--border-color)] hover:border-[var(--electric-blue)] hover:shadow-[0_0_20px_rgba(0,191,255,0.3)] p-3"
+              className="group relative transition-all duration-300 h-full flex flex-col border border-[var(--border-color)] rounded-sm hover:border-[var(--electric-blue)] hover:shadow-md p-3 bg-[var(--card-bg)]"
             >
               {imageUrl && (
-                <div className="relative w-full aspect-[16/9] overflow-hidden bg-[var(--background-dark-navy)] mb-3">
+                <div className="relative w-full aspect-[16/9] overflow-hidden bg-[var(--surface-muted)] mb-3">
                   <Image
                     src={imageUrl}
                     alt={post.mainImage?.alt || post.title}

@@ -17,7 +17,6 @@ export default function FeaturedSection({ posts }: FeaturedSectionProps) {
         <SectionHeader
           title="Featured Posts"
           sectionId="featured-posts"
-          theme="electric-blue"
           viewMoreHref="/?view=all"
         />
 

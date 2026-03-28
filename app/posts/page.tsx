@@ -141,7 +141,7 @@ export default async function PostsPage() {
               </p>
               <Link
                 href="/"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--card-bg)] border border-[var(--electric-blue)] text-[var(--electric-blue)] hover:bg-[var(--electric-blue)] hover:text-[var(--background-dark-navy)] transition-all duration-300 text-sm font-semibold"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--card-bg)] border border-[var(--electric-blue)] text-[var(--electric-blue)] hover:bg-[var(--electric-blue)] hover:text-white transition-all duration-300 text-sm font-semibold"
               >
                 ← Back to Home
               </Link>

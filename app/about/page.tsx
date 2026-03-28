@@ -42,7 +42,7 @@ export default async function AboutPage() {
           </h1>
         </div>
 
-        <div className="prose prose-invert max-w-none space-y-6 text-sm md:text-base text-[var(--foreground)]">
+        <div className="prose prose-neutral max-w-none space-y-6 text-sm md:text-base text-[var(--foreground)]">
           <section>
             <p className="text-lg text-[var(--foreground-low)] leading-relaxed mb-6">
               Welcome to TechByJZ, your destination for cutting-edge technology insights, trends, and analysis.

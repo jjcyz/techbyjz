@@ -6,51 +6,30 @@ import type { Post } from '@/types/post';
 import ViewCount from '@/components/posts/ViewCount';
 
 export type PostCardVariant =
-  | 'overlay-square'      // Square with overlay (AICard style)
-  | 'overlay-featured'    // Featured wide with overlay (FeaturedCard, AutomationCard featured)
-  | 'overlay-horizontal'  // Horizontal with overlay (CybersecurityCard regular)
-  | 'horizontal-content'; // Horizontal with content beside (NewsCard)
+  | 'overlay-square'
+  | 'overlay-featured'
+  | 'overlay-horizontal'
+  | 'horizontal-content';
 
-export type PostCardTheme =
-  | 'electric-blue'
-  | 'purple'
-  | 'red';
+const cardAccent = {
+  hoverBorder: 'group-hover:border-[var(--electric-blue)]',
+  hoverShadow: 'group-hover:shadow-md group-hover:shadow-blue-500/10',
+  hoverText: 'group-hover:text-[var(--electric-blue)]',
+  placeholderGradient: 'from-[var(--electric-blue)]/15 to-[var(--electric-blue)]/5',
+};
 
 interface PostCardProps {
   post: Post;
   variant?: PostCardVariant;
-  theme?: PostCardTheme;
   featured?: boolean;
   imageWidth?: number;
   imageHeight?: number;
   className?: string;
 }
 
-const themeConfig = {
-  'electric-blue': {
-    hoverBorder: 'group-hover:border-[var(--electric-blue)]',
-    hoverShadow: 'group-hover:shadow-[0_0_25px_rgba(0,150,255,0.3)]',
-    hoverText: 'group-hover:text-[var(--electric-blue)]',
-    placeholderGradient: 'from-[var(--electric-blue)]/20 to-[var(--electric-blue)]/20',
-  },
-  purple: {
-    hoverBorder: 'group-hover:border-[var(--purple)]',
-    hoverShadow: 'group-hover:shadow-[0_0_25px_rgba(157,78,221,0.3)]',
-    hoverText: 'group-hover:text-[var(--purple)]',
-    placeholderGradient: 'from-purple-500/20 to-cyan-500/20',
-  },
-  red: {
-    hoverBorder: 'group-hover:border-[#ff4444]',
-    hoverShadow: 'group-hover:shadow-[0_0_25px_rgba(255,68,68,0.3)]',
-    hoverText: 'group-hover:text-[#ff4444]',
-    placeholderGradient: 'from-[#ff4444]/20 to-[#ff8800]/20',
-  },
-};
-
 export default function PostCard({
   post,
   variant = 'overlay-square',
-  theme = 'electric-blue',
   featured = false,
   imageWidth,
   imageHeight,
@@ -61,9 +40,7 @@ export default function PostCard({
   }
 
   const slug = post.slug!.current;
-  const themeStyles = themeConfig[theme];
 
-  // Default image dimensions based on variant
   const defaultDims = {
     'overlay-square': { width: 300, height: 300 },
     'overlay-featured': { width: 500, height: 400 },
@@ -76,34 +53,30 @@ export default function PostCard({
 
   const imageUrl = getImageUrl(post.mainImage, finalWidth, finalHeight);
 
-  // Horizontal content variant (NewsCard style)
   if (variant === 'horizontal-content') {
     return (
       <Link
         href={`/posts/${slug}`}
-        className={`group block relative transition-all duration-300 h-full flex ${featured ? 'flex-col' : 'flex-row'} gap-3 border-[0.5px] border-[var(--border-color)] ${themeStyles.hoverBorder} ${themeStyles.hoverShadow} transition-all duration-300 ${featured ? 'p-4' : 'p-2'} ${className}`}
+        className={`group block relative transition-all duration-300 h-full flex ${featured ? 'flex-col' : 'flex-row'} gap-3 border border-[var(--border-color)] rounded-sm ${cardAccent.hoverBorder} ${cardAccent.hoverShadow} transition-all duration-300 ${featured ? 'p-4' : 'p-2'} bg-[var(--card-bg)] ${className}`}
       >
-        <div className={`relative ${featured ? 'w-full aspect-[16/9]' : 'w-32 sm:w-40 flex-shrink-0 aspect-[4/3]'} overflow-hidden bg-[var(--background-dark-navy)]`}>
+        <div className={`relative ${featured ? 'w-full aspect-[16/9]' : 'w-32 sm:w-40 flex-shrink-0 aspect-[4/3]'} overflow-hidden bg-[var(--surface-muted)] rounded-sm`}>
           {imageUrl ? (
-            <>
-              <Image
-                src={imageUrl}
-                alt={post.mainImage?.alt || post.title}
-                fill
-                className="object-cover group-hover:scale-110 transition-transform duration-500"
-                sizes={featured ? "(max-width: 640px) 100vw, 100vw" : "160px"}
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-[var(--background-dark-navy)]/40 via-transparent to-transparent" />
-            </>
+            <Image
+              src={imageUrl}
+              alt={post.mainImage?.alt || post.title}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
+              sizes={featured ? "(max-width: 640px) 100vw, 100vw" : "160px"}
+            />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <div className={`w-8 h-8 bg-gradient-to-br ${themeStyles.placeholderGradient} opacity-30 blur-xl`} />
+              <div className={`w-8 h-8 bg-gradient-to-br ${cardAccent.placeholderGradient} opacity-40 blur-xl rounded-full`} />
             </div>
           )}
         </div>
 
         <div className={`flex-1 flex flex-col ${featured ? '' : 'justify-center'} min-w-0`}>
-          <h3 className={`${featured ? 'text-base md:text-lg lg:text-xl' : 'text-sm md:text-base'} font-semibold text-[var(--foreground)] ${themeStyles.hoverText} transition-colors duration-300 line-clamp-3 leading-tight`}>
+          <h3 className={`${featured ? 'text-base md:text-lg lg:text-xl' : 'text-sm md:text-base'} font-semibold text-[var(--foreground)] ${cardAccent.hoverText} transition-colors duration-300 line-clamp-3 leading-tight`}>
             {post.title}
           </h3>
           {featured && post.excerpt && (
@@ -117,7 +90,6 @@ export default function PostCard({
     );
   }
 
-  // All overlay variants share similar structure
   const aspectRatioClasses = {
     'overlay-square': 'aspect-square',
     'overlay-featured': 'aspect-[16/9] sm:aspect-[2/1]',
@@ -139,34 +111,32 @@ export default function PostCard({
   return (
     <Link
       href={`/posts/${slug}`}
-      className={`group block relative transition-all duration-300 h-full ${className}`}
+      className={`group block h-full ${className}`}
     >
-      <div className={`relative w-full ${aspectRatioClasses[variant]} overflow-hidden bg-[var(--background-dark-navy)] border-[0.5px] border-[var(--border-color)] ${themeStyles.hoverBorder} ${themeStyles.hoverShadow} transition-all duration-300`}>
-        {imageUrl ? (
-          <>
+      <div className={`flex h-full min-h-0 flex-col overflow-hidden rounded-sm border border-[var(--border-color)] bg-[var(--card-bg)] ${cardAccent.hoverBorder} ${cardAccent.hoverShadow} transition-all duration-300`}>
+        <div className={`relative w-full shrink-0 ${aspectRatioClasses[variant]} bg-[var(--surface-muted)]`}>
+          {imageUrl ? (
             <Image
               src={imageUrl}
               alt={post.mainImage?.alt || post.title}
               fill
-              className="object-cover group-hover:scale-110 transition-transform duration-500"
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[var(--background-dark-navy)]/90 via-[var(--background-dark-navy)]/50 to-transparent" />
-          </>
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <div className={`${variant === 'overlay-square' ? 'w-12 h-12' : 'w-10 h-10'} bg-gradient-to-br ${themeStyles.placeholderGradient} opacity-30 blur-xl`} />
-          </div>
-        )}
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className={`${variant === 'overlay-square' ? 'w-12 h-12' : 'w-10 h-10'} bg-gradient-to-br ${cardAccent.placeholderGradient} opacity-40 blur-xl rounded-full`} />
+            </div>
+          )}
+        </div>
 
-        <div className={`absolute bottom-0 left-0 right-0 ${paddingClasses}`}>
-          <h3 className={`${titleSizeClasses} ${variant === 'overlay-square' && !featured ? 'font-bold' : 'font-semibold'} text-[var(--foreground)] ${themeStyles.hoverText} transition-colors duration-300 line-clamp-3 leading-tight drop-shadow-lg ${featured ? 'mb-2' : 'mb-1'}`}>
+        <div className={`flex min-h-0 flex-1 flex-col justify-center border-t border-[var(--border-color)] bg-[var(--card-bg)] ${paddingClasses}`}>
+          <h3 className={`${titleSizeClasses} ${variant === 'overlay-square' && !featured ? 'font-bold' : 'font-semibold'} text-[var(--foreground)] ${cardAccent.hoverText} transition-colors duration-300 line-clamp-3 leading-tight ${featured ? 'mb-2' : 'mb-1'}`}>
             {post.title}
           </h3>
-          <ViewCount viewCount={post.viewCount} className="text-[var(--foreground)]/80" />
+          <ViewCount viewCount={post.viewCount} />
         </div>
       </div>
     </Link>
   );
 }
-

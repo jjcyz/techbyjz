@@ -11,7 +11,6 @@ export default function CybersecurityCard({ post, featured = false }: Cybersecur
     <PostCard
       post={post}
       variant={featured ? 'overlay-featured' : 'overlay-horizontal'}
-      theme="red"
       featured={featured}
     />
   );

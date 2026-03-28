@@ -20,7 +20,6 @@ export default function CybersecuritySection({ posts, category }: CybersecurityS
           title="Cybersecurity"
           category={category}
           sectionId="cybersecurity-posts"
-          theme="red"
         />
 
         {/* Content Area - Two column layout with equal heights using CSS Grid */}
@@ -28,10 +27,10 @@ export default function CybersecuritySection({ posts, category }: CybersecurityS
           {/* Left column: Two featured cards stacked together */}
           <div className="flex flex-col gap-3">
             {posts[0] && (
-              <PostCard post={posts[0]} variant="overlay-featured" theme="red" featured />
+              <PostCard post={posts[0]} variant="overlay-featured" featured />
             )}
             {posts[1] && (
-              <PostCard post={posts[1]} variant="overlay-featured" theme="red" featured />
+              <PostCard post={posts[1]} variant="overlay-featured" featured />
             )}
           </div>
 

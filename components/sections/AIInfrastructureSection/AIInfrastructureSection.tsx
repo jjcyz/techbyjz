@@ -19,7 +19,6 @@ export default function AIInfrastructureSection({ posts, category }: AIInfrastru
           title="AI Infrastructure"
           category={category}
           sectionId="ai-infrastructure-posts"
-          theme="purple"
         />
 
         {/* Uniform square grid layout */}

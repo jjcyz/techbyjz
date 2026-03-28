@@ -12,37 +12,34 @@ html {
 }
 
 :root {
-  /* Base Background Colors */
-  --background: #0a0a1a;
-  --background-dark-navy: #050510;
-  --background-deep-blue: #0d1421;
+  /* Page background: soft white reads cleaner than pure #fff on long pages */
+  --background: #fafafa;
+  --surface-muted: #f4f4f6;
+  /* Legacy name: image placeholders and subtle panels */
+  --background-dark-navy: #f4f4f5;
 
-  /* Accent Colors */
-  --neon-cyan: #00ffff;
-  --electric-blue: #00bfff;
-  --purple: #9d4edd;
+  --foreground: #0f172a;
+  --foreground-low: #334155;
+  --foreground-muted: #64748b;
 
-  /* Text Colors */
-  --foreground: #ffffff;
-  --foreground-low: #b0b0b0;
-  --foreground-muted: #6b7280;
-  --text-gray-300: #d1d5db;
+  --electric-blue: #2563eb;
+  --electric-blue-muted: #3b82f6;
 
-  /* UI Colors */
-  --card-bg: rgba(13, 20, 33, 0.8);
-  --dark-blue: rgba(5, 5, 16, 0.8); /* Dark background variant */
-  --border-color: rgba(0, 255, 255, 0.2);
-  --border-cyan: rgba(0, 255, 255, 0.3);
-  --glow-cyan: rgba(0, 255, 255, 0.3);
-  --hover-cyan-bg: rgba(0, 255, 255, 0.1);
+  --text-gray-300: #cbd5e1;
+  --text-gray-400: #94a3b8;
+  --text-gray-500: #64748b;
+
+  --card-bg: #ffffff;
+  --dark-blue: #f1f5f9;
+  --border-color: rgba(15, 23, 42, 0.1);
+  --border-accent: rgba(37, 99, 235, 0.35);
+  --hover-accent-bg: rgba(37, 99, 235, 0.08);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-neon-cyan: var(--neon-cyan);
   --color-electric-blue: var(--electric-blue);
-  --color-purple: var(--purple);
   --color-card-bg: var(--card-bg);
   --color-border-color: var(--border-color);
   --font-sans: var(--font-poppins);
@@ -50,8 +47,7 @@ html {
 }
 
 body {
-  background: linear-gradient(180deg, var(--background-dark-navy) 0%, var(--background-deep-blue) 50%, var(--background-dark-navy) 100%);
-  background-attachment: fixed;
+  background: var(--background);
   color: var(--foreground-low);
   font-family: var(--font-poppins), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 1rem;
@@ -61,12 +57,6 @@ body {
   overflow-x: hidden;
 }
 
-/* Glow effects */
-.glow-cyan {
-  box-shadow: 0 0 20px rgba(0, 255, 255, 0.4), 0 0 40px rgba(0, 255, 255, 0.2);
-}
-
-/* Hide scrollbar for carousel */
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -76,7 +66,6 @@ body {
   scrollbar-width: none;
 }
 
-/* Toast animations */
 @keyframes toast-enter {
   from {
     opacity: 0;

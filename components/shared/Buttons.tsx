@@ -3,10 +3,8 @@
 import { useRouter } from 'next/navigation';
 import type { Post } from '@/types/post';
 
-// Read Articles Button - scrolls to Categories section
 export function ReadArticlesButton() {
   const scrollToCategories = () => {
-    // Find the first category section
     const categorySections = document.querySelectorAll('[id^="category-"]');
     if (categorySections.length > 0) {
       categorySections[0].scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -15,16 +13,15 @@ export function ReadArticlesButton() {
 
   return (
     <button
+      type="button"
       onClick={scrollToCategories}
-      className="group relative px-2.5 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 lg:px-6 lg:py-2.5 text-xs sm:text-sm font-semibold bg-transparent border border-[var(--electric-blue)] sm:border-2 text-[var(--electric-blue)] overflow-hidden transition-all duration-300 hover:scale-105 hover:bg-[var(--electric-blue)]/10 no-button-reset"
+      className="px-2.5 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 lg:px-6 lg:py-2.5 text-xs sm:text-sm font-semibold border border-[var(--electric-blue)] sm:border-2 text-[var(--electric-blue)] transition-all duration-300 hover:bg-[var(--electric-blue)] hover:text-white rounded-sm no-button-reset"
     >
-      <span className="relative z-10">Read Articles</span>
-      <div className="absolute inset-0 bg-[var(--neon-cyan)]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      Read Articles
     </button>
   );
 }
 
-// Random Post Button
 interface RandomPostButtonProps {
   randomPost?: Post | null;
 }
@@ -32,28 +29,25 @@ interface RandomPostButtonProps {
 export function RandomPostButton({ randomPost }: RandomPostButtonProps) {
   const router = useRouter();
 
-  const handleRandomPost = () => {
-    if (randomPost?.slug?.current) {
-      router.push(`/posts/${randomPost.slug.current}`);
-    }
-  };
-
   if (!randomPost) {
     return null;
   }
 
   return (
     <button
-      onClick={handleRandomPost}
-      className="group relative px-2.5 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 lg:px-6 lg:py-2.5 text-xs sm:text-sm font-semibold bg-transparent border border-[var(--purple)] sm:border-2 text-[var(--purple)] overflow-hidden transition-all duration-300 hover:scale-105 hover:bg-[var(--purple)]/10 no-button-reset"
+      type="button"
+      onClick={() => {
+        if (randomPost.slug?.current) {
+          router.push(`/posts/${randomPost.slug.current}`);
+        }
+      }}
+      className="px-2.5 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 lg:px-6 lg:py-2.5 text-xs sm:text-sm font-semibold border border-[var(--electric-blue)] sm:border-2 text-[var(--electric-blue)] bg-white/80 transition-all duration-300 hover:bg-[var(--electric-blue)] hover:text-white rounded-sm no-button-reset"
     >
-      <span className="relative z-10">Random Post</span>
-      <div className="absolute inset-0 bg-[var(--purple)]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      Random Post
     </button>
   );
 }
 
-// Scroll to Section Button
 interface ScrollToSectionButtonProps {
   sectionId: string;
   children: React.ReactNode;
@@ -61,16 +55,15 @@ interface ScrollToSectionButtonProps {
 }
 
 export function ScrollToSectionButton({ sectionId, children, className = '' }: ScrollToSectionButtonProps) {
-  const handleClick = () => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   return (
     <button
-      onClick={handleClick}
+      type="button"
+      onClick={() => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }}
       className={`text-[var(--foreground-low)] hover:text-[var(--electric-blue)] transition-colors text-sm ${className}`}
     >
       {children}
@@ -78,32 +71,17 @@ export function ScrollToSectionButton({ sectionId, children, className = '' }: S
   );
 }
 
-// Back to Top Button
 export function BackToTopButton() {
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   return (
     <button
-      onClick={scrollToTop}
-      className="text-[var(--electric-blue)] hover:text-[var(--electric-blue)] transition-colors text-sm font-medium flex items-center gap-2 border border-[var(--border-cyan)] px-4 py-2 hover:bg-[var(--hover-cyan-bg)]"
+      type="button"
+      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      className="text-[var(--electric-blue)] transition-colors text-sm font-medium flex items-center gap-2 border border-[var(--border-color)] px-4 py-2 rounded-sm hover:bg-[var(--hover-accent-bg)]"
     >
       Back to Top
-      <svg
-        className="w-4 h-4"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M5 10l7-7m0 0l7 7m-7-7v18"
-        />
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
       </svg>
     </button>
   );
 }
-

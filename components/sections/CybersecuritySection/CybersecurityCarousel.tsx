@@ -96,7 +96,7 @@ export default function CybersecurityCarousel({ posts }: CybersecurityCarouselPr
       onMouseLeave={handleMouseLeave}
     >
       {/* Top Fade Gradient */}
-      <div className="absolute left-0 top-0 right-0 h-16 bg-gradient-to-b from-[var(--background-dark-navy)] to-transparent z-10 pointer-events-none" />
+      <div className="absolute left-0 top-0 right-0 h-16 bg-gradient-to-b from-[var(--background)] to-transparent z-10 pointer-events-none" />
 
       {/* Scrollable Container - vertical scroll within constrained height */}
       <div
@@ -111,13 +111,13 @@ export default function CybersecurityCarousel({ posts }: CybersecurityCarouselPr
             key={`${post._id || post.slug?.current}-${index}`}
             className="flex-shrink-0"
           >
-            <PostCard post={post} variant="overlay-horizontal" theme="red" />
+            <PostCard post={post} variant="overlay-horizontal" />
           </div>
         ))}
       </div>
 
       {/* Bottom Fade Gradient */}
-      <div className="absolute left-0 bottom-0 right-0 h-16 bg-gradient-to-t from-[var(--background-dark-navy)] to-transparent z-10 pointer-events-none" />
+      <div className="absolute left-0 bottom-0 right-0 h-16 bg-gradient-to-t from-[var(--background)] to-transparent z-10 pointer-events-none" />
     </div>
   );
 }

@@ -10,7 +10,6 @@ export default function FeaturedCard({ post }: FeaturedCardProps) {
     <PostCard
       post={post}
       variant="overlay-featured"
-      theme="electric-blue"
       featured
       imageWidth={400}
       imageHeight={250}

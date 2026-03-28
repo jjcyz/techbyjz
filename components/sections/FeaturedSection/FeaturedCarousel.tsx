@@ -92,7 +92,7 @@ export default function FeaturedCarousel({ posts }: FeaturedCarouselProps) {
       onMouseLeave={handleMouseLeave}
     >
       {/* Left Fade Gradient */}
-      <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-[var(--background-dark-navy)] to-transparent z-10 pointer-events-none" />
+      <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-[var(--background)] to-transparent z-10 pointer-events-none" />
 
       {/* Scrollable Container - constrained to parent width */}
       <div
@@ -113,7 +113,7 @@ export default function FeaturedCarousel({ posts }: FeaturedCarouselProps) {
       </div>
 
       {/* Right Fade Gradient */}
-      <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-[var(--background-dark-navy)] to-transparent z-10 pointer-events-none" />
+      <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-[var(--background)] to-transparent z-10 pointer-events-none" />
     </div>
   );
 }
