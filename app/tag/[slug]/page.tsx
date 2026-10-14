@@ -18,7 +18,7 @@ interface PageProps {
 }
 
 // Use ISR for tag pages
-export const revalidate = 3600; // 1 hour - update in lib/revalidation-config.ts if needed
+export const revalidate = 86400; // 24 hours - update in lib/revalidation-config.ts if needed
 export const runtime = 'nodejs';
 
 // Generate static params for all tags

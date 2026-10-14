@@ -16,12 +16,29 @@ import type { Post } from '@/types/post';
  * Note: This route won't interfere with existing static routes like /about, /contact, etc.
  * because Next.js prioritizes static routes over dynamic catch-all routes.
  */
-export const dynamicParams = true;
-export const revalidate = 3600; // 1 hour - update in lib/revalidation-config.ts if needed
+export const dynamicParams = false;
+export const revalidate = 86400; // 24 hours - update in lib/revalidation-config.ts if needed
 
 export async function generateStaticParams() {
-  // Don't pre-generate any params - let this be dynamic
-  return [];
+  // Pre-generate every known post slug. Any other root-level slug is a plain
+  // 404 at the routing layer (dynamicParams = false), so crawlers hitting
+  // invented URLs no longer trigger Sanity lookups or ISR writes.
+  try {
+    const posts = await client.fetch<Array<{ slug: { current: string } | null }>>(
+      `*[_type == "post"] {
+        slug { current }
+      }`
+    );
+
+    return posts
+      .filter((item) => isValidSlug(item.slug?.current))
+      .map((item) => ({
+        slug: item.slug!.current,
+      }));
+  } catch (error) {
+    console.error('Error generating static params:', error);
+    return [];
+  }
 }
 
 export default async function SlugPage({ params }: { params: Promise<{ slug: string }> }) {
