@@ -22,25 +22,26 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-// Use on-demand ISR: posts are generated on first request, then cached
-// This makes builds scalable - no need to generate all posts at build time
-export const dynamicParams = true; // Allow dynamic params not in generateStaticParams
-export const revalidate = 3600; // 1 hour - update in lib/revalidation-config.ts if needed
+// Pre-generate every post at build time; refresh at most once a day.
+// (Hourly revalidation across all routes exhausted the Vercel free-plan ISR
+// write and CPU limits in Sep 2026. The Sanity webhook in app/api/revalidate
+// handles instant updates when content actually changes.)
+export const dynamicParams = true; // New posts still generate on first request, then stay cached for a day
+export const revalidate = 86400; // 24 hours - update in lib/revalidation-config.ts if needed
 export const runtime = 'nodejs'; // Ensure Node.js runtime for Vercel
 
-// Optional: Pre-generate only the most recent posts for faster initial load
-// This is optional - if removed, all posts will be generated on-demand
+// Pre-generate all posts at build time (see the config note above)
 export async function generateStaticParams() {
   try {
-    // Only pre-generate the latest 10 posts for faster initial load
-    // All other posts will be generated on first request (on-demand ISR)
-    const recentPosts = await client.fetch<Array<{ slug: { current: string } | null }>>(
-      `*[_type == "post"] | order(publishedAt desc) [0...10] {
+    // Pre-generate every post so visitors and crawlers are served from
+    // cache instead of triggering on-demand generation
+    const allPosts = await client.fetch<Array<{ slug: { current: string } | null }>>(
+      `*[_type == "post"] | order(publishedAt desc) {
         slug { current }
       }`
     );
 
-    return recentPosts
+    return allPosts
       .filter((item) => isValidSlug(item.slug?.current))
       .map((item) => ({
         slug: item.slug!.current,
