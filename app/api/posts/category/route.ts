@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
 
     const hasMore = end < totalCount;
 
-    return successResponse({
+    const response = successResponse({
       posts,
       pagination: {
         page,
@@ -109,6 +109,14 @@ export async function GET(request: NextRequest) {
         hasMore,
       },
     });
+    // Edge-cache successful list responses so repeat calls (incl. crawlers)
+    // serve from the CDN instead of the origin function (Oct 17 FOT fix).
+    // Underlying Sanity data is already cached 24h; errors are never cached.
+    response.headers.set(
+      'Cache-Control',
+      'public, s-maxage=3600, stale-while-revalidate=86400'
+    );
+    return response;
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
       console.error('Error fetching category posts:', error);

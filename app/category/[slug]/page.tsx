@@ -19,6 +19,7 @@ interface PageProps {
 
 // Use ISR for category pages
 export const revalidate = 86400; // 24 hours - update in lib/revalidation-config.ts if needed
+export const dynamicParams = false; // Only pre-generated slugs exist; unknown ones 404 without an origin render (Oct 17 FOT fix)
 export const runtime = 'nodejs';
 
 // Generate static params for all categories

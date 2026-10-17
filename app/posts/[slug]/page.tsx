@@ -26,7 +26,7 @@ interface PageProps {
 // (Hourly revalidation across all routes exhausted the Vercel free-plan ISR
 // write and CPU limits in Sep 2026. The Sanity webhook in app/api/revalidate
 // handles instant updates when content actually changes.)
-export const dynamicParams = true; // New posts still generate on first request, then stay cached for a day
+export const dynamicParams = false; // Locked Oct 17 (Fast Origin Transfer fix): unknown slugs 404 at the router with no origin render. New posts go live on the next deploy.
 export const revalidate = 86400; // 24 hours - update in lib/revalidation-config.ts if needed
 export const runtime = 'nodejs'; // Ensure Node.js runtime for Vercel
 
