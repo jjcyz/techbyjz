@@ -12,6 +12,18 @@ export async function POST(
   try {
     // Block bots
     const userAgent = request.headers.get('user-agent');
+    // Also block search engines and AI search bots from the view counter.
+    // isBot() below exempts them for discoverability, but their JS-rendered
+    // page views each trigger a Sanity fetch + write here, burning Fluid CPU
+    // with no human ever seeing the count. Humans pass through unaffected.
+    const crawlerPattern =
+      /googlebot|bingbot|slurp|duckduckbot|chatgpt-user|anthropic-ai|claude-web|perplexitybot|perplexity-ai/i;
+    if (crawlerPattern.test(userAgent || '')) {
+      return NextResponse.json(
+        { error: 'Access denied' },
+        { status: 403 }
+      );
+    }
     if (isBot(userAgent)) {
       return NextResponse.json(
         { error: 'Access denied' },
