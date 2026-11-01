@@ -11,7 +11,6 @@ import Footer from '@/components/shared/Footer';
 import Header from '@/components/shared/Header';
 import RelatedPosts from '@/components/posts/RelatedPosts';
 import SocialShareButtons from '@/components/posts/SocialShareButtons';
-import ViewTracker from '@/components/posts/ViewTracker';
 import PostContent from '@/components/posts/PostContent';
 import PostTitle from '@/components/posts/PostTitle';
 import PostExcerpt from '@/components/posts/PostExcerpt';
@@ -221,9 +220,6 @@ export default async function PostPage({ params }: PageProps) {
       <StructuredData data={structuredData} />
       <Header posts={allPosts.filter((p) => isValidSlug(p.slug?.current))} categories={categories} />
       <main id="main-content" className="min-h-screen relative">
-      {/* Track view count */}
-      <ViewTracker slug={post.slug.current} />
-
       {/* Post Layout with Sidebar Ads */}
       <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-20 py-8 md:py-12 lg:py-16">
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 xl:gap-12">
